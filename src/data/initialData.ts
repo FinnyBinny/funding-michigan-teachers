@@ -32,6 +32,7 @@ export interface Project {
 }
 
 export interface Story {
+  id?: number;
   name: string;
   bio: string;
   impact: string;
@@ -157,6 +158,7 @@ export const PROJECTS: Project[] = [
 
 export const STORIES: Story[] = [
   {
+    id: 1,
     name: 'Ms. Rachel Torres',
     bio: 'I\'ve been teaching chemistry at Okemos High for 11 years. My students come in curious and leave with a passion for science — but only when they have the tools to explore.',
     impact: 'The new STEM lab equipment transformed our classes. For the first time, every student got to run their own experiment. Three of my students just entered the state science fair.',
@@ -165,6 +167,7 @@ export const STORIES: Story[] = [
     image: 'https://picsum.photos/seed/teacher-rachel/800/800',
   },
   {
+    id: 2,
     name: 'Mr. David Kim',
     bio: 'Growing up, books were my escape and my greatest teacher. I became an English teacher because I wanted every kid to find that same magic between the pages.',
     impact: 'Our new classroom library has 200 fresh titles. Students who said they hated reading are now finishing books and asking for more. Reading scores are up 18% this semester.',
@@ -173,6 +176,7 @@ export const STORIES: Story[] = [
     image: 'https://picsum.photos/seed/teacher-david/800/800',
   },
   {
+    id: 3,
     name: 'Mrs. Amara Johnson',
     bio: 'Every child deserves a space where they feel safe, seen, and ready to learn. My special education students need tools that most school budgets simply can\'t provide.',
     impact: 'Our sensory corner has reduced classroom disruptions by 40%. One of my students, who struggled to complete a single task, now finishes full assignments with confidence.',

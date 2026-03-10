@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, ChevronLeft, ChevronRight, School, MapPin } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { STORIES } from '../data/initialData';
+import { useStories } from '../hooks/useLocalData';
 
 export default function TeacherStories() {
-  const [stories] = useState(STORIES);
+  const stories = useStories();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const nextStory = () => setCurrentIndex((prev) => (prev + 1) % stories.length);

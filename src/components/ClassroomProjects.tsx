@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ThumbsUp, Heart, School, Loader2, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { PROJECTS, Project } from '../data/initialData';
+import { useProjects } from '../hooks/useLocalData';
 
 export default function ClassroomProjects() {
-  const [projects, setProjects] = useState<Project[]>(PROJECTS);
+  const baseProjects = useProjects();
+  const [voteIncrements, setVoteIncrements] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState<number | null>(null);
   const [success, setSuccess] = useState<{id: number, type: 'vote' | 'donate'} | null>(null);
   const [votedProjects, setVotedProjects] = useState<number[]>(() => {
@@ -14,6 +15,12 @@ export default function ClassroomProjects() {
       return saved ? JSON.parse(saved) : [];
     } catch { return []; }
   });
+
+  // Apply local vote increments on top of base project data
+  const projects = baseProjects.map(p => ({
+    ...p,
+    votes: p.votes + (voteIncrements[p.id] || 0),
+  }));
 
   const handleVote = (id: number) => {
     if (votedProjects.includes(id)) {
@@ -25,7 +32,7 @@ export default function ClassroomProjects() {
       const newVotes = [...votedProjects, id];
       setVotedProjects(newVotes);
       localStorage.setItem('mi_teacher_fund_votes', JSON.stringify(newVotes));
-      setProjects(prev => prev.map(p => p.id === id ? { ...p, votes: p.votes + 1 } : p));
+      setVoteIncrements(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
       setSuccess({ id, type: 'vote' });
       setLoading(null);
       setTimeout(() => setSuccess(null), 2000);

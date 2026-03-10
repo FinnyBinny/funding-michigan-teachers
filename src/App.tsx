@@ -23,10 +23,12 @@ import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
 import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
+import AdminPanel from './components/AdminPanel';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -180,7 +182,7 @@ export default function App() {
               <div className="relative z-10 bg-white p-5 rounded-[40px] shadow-2xl border border-chalkboard/5 transform rotate-2">
                 <div className="overflow-hidden rounded-[32px]">
                   <img
-                    src="https://drive.google.com/uc?export=view&id=171X7FDeSPXikFKzD_D2RS6NGBk6A3YKH"
+                    src="https://picsum.photos/seed/michigan-classroom/800/500"
                     className="w-full h-auto hover:scale-105 transition-transform duration-700"
                     alt="Michigan Classroom"
                     referrerPolicy="no-referrer"
@@ -217,24 +219,16 @@ export default function App() {
         </section>
 
         {/* Our Mission Section */}
-        <motion.section
+        <section
           id="mission"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-white relative overflow-hidden"
         >
           <OurMission />
-        </motion.section>
+        </section>
 
         {/* Impact Map Section */}
-        <motion.section
+        <section
           id="impact"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-chalkboard text-white overflow-hidden relative"
         >
           <div className="max-w-7xl mx-auto">
@@ -261,15 +255,11 @@ export default function App() {
           {/* Background Accents */}
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-apple/5 rounded-full blur-[120px] -z-0 translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-ruler/5 rounded-full blur-[100px] -z-0 -translate-x-1/2 translate-y-1/2" />
-        </motion.section>
+        </section>
 
         {/* Classroom Projects Section */}
-        <motion.section
+        <section
           id="projects"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
@@ -292,15 +282,11 @@ export default function App() {
             </div>
             <ClassroomProjects />
           </div>
-        </motion.section>
+        </section>
 
         {/* Teacher Leaderboard Section */}
-        <motion.section
+        <section
           id="leaderboard"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-apple/5 relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
@@ -323,15 +309,11 @@ export default function App() {
             </div>
             <TeacherLeaderboard />
           </div>
-        </motion.section>
+        </section>
 
         {/* Event Calendar Section */}
-        <motion.section
+        <section
           id="events"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-ruler/5 relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
@@ -354,15 +336,11 @@ export default function App() {
             </div>
             <EventCalendar />
           </div>
-        </motion.section>
+        </section>
 
         {/* Donation Tiers Section */}
-        <motion.section
+        <section
           id="tiers"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 relative overflow-hidden bg-paper"
         >
           <div className="max-w-7xl mx-auto">
@@ -385,15 +363,11 @@ export default function App() {
             </div>
             <DonationTiers />
           </div>
-        </motion.section>
+        </section>
 
         {/* Donor Wall Section */}
-        <motion.section
+        <section
           id="donors"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-chalkboard text-white relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
@@ -419,15 +393,11 @@ export default function App() {
 
           {/* Background Accents */}
           <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-apple/5 rounded-full blur-[120px] -z-0 -translate-x-1/2 -translate-y-1/2" />
-        </motion.section>
+        </section>
 
         {/* Teacher Stories Section */}
-        <motion.section
+        <section
           id="stories"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
           className="py-32 px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
@@ -450,7 +420,7 @@ export default function App() {
             </div>
             <TeacherStories />
           </div>
-        </motion.section>
+        </section>
 
         {/* Newsletter Section */}
         <Newsletter />
@@ -522,6 +492,12 @@ export default function App() {
             </div>
             <div className="flex items-center gap-6">
               <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <button
+                onClick={() => setShowAdmin(true)}
+                className="hover:text-white/60 transition-colors"
+              >
+                Admin
+              </button>
             </div>
           </div>
         </div>
@@ -533,6 +509,9 @@ export default function App() {
 
       {/* FAQ Assistant */}
       <FAQAssistant />
+
+      {/* Admin Panel */}
+      <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
     </div>
   );
 }

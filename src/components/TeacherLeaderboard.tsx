@@ -1,23 +1,24 @@
+import { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Trophy, Users, Star, TrendingUp, School } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { PROJECTS } from '../data/initialData';
-
-// Derive leaderboard from projects data
-const leaderboard = Object.values(
-  PROJECTS.reduce((acc, p) => {
-    const key = `${p.teacher_name}|${p.school_name}`;
-    if (!acc[key]) {
-      acc[key] = { teacher_name: p.teacher_name, school_name: p.school_name, project_count: 0, total_votes: 0, total_raised: 0 };
-    }
-    acc[key].project_count += 1;
-    acc[key].total_votes += p.votes;
-    acc[key].total_raised += p.raised;
-    return acc;
-  }, {} as Record<string, { teacher_name: string; school_name: string; project_count: number; total_votes: number; total_raised: number }>)
-).sort((a, b) => b.total_votes - a.total_votes);
+import { useProjects } from '../hooks/useLocalData';
 
 export default function TeacherLeaderboard() {
+  const projects = useProjects();
+
+  const leaderboard = useMemo(() => Object.values(
+    projects.reduce((acc, p) => {
+      const key = `${p.teacher_name}|${p.school_name}`;
+      if (!acc[key]) {
+        acc[key] = { teacher_name: p.teacher_name, school_name: p.school_name, project_count: 0, total_votes: 0, total_raised: 0 };
+      }
+      acc[key].project_count += 1;
+      acc[key].total_votes += p.votes;
+      acc[key].total_raised += p.raised;
+      return acc;
+    }, {} as Record<string, { teacher_name: string; school_name: string; project_count: number; total_votes: number; total_raised: number }>)
+  ).sort((a, b) => b.total_votes - a.total_votes), [projects]);
 
   return (
     <div className="bg-white rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-chalkboard/5 overflow-hidden">

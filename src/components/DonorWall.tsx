@@ -1,13 +1,14 @@
 import { motion } from 'motion/react';
 import { Award, Star } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { DONORS } from '../data/initialData';
+import { useDonors } from '../hooks/useLocalData';
 
 export default function DonorWall() {
+  const donors = useDonors();
   return (
     <div className="relative">
       <div className="flex flex-wrap justify-center gap-6 min-h-[400px] p-10 bg-paper/30 rounded-[3rem] border border-chalkboard/5 relative overflow-hidden">
-        {DONORS.map((donor, index) => (
+        {donors.map((donor, index) => (
           <motion.div
             key={donor.id}
             initial={{ opacity: 0, scale: 0.8 }}

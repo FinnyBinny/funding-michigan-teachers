@@ -4,13 +4,14 @@ import * as topojson from 'topojson-client';
 import { motion, AnimatePresence } from 'motion/react';
 import { School, MapPin, Info, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { LOCATIONS, Location } from '../data/initialData';
+import { useLocations } from '../hooks/useLocalData';
+import type { Location } from '../hooks/useLocalData';
 
 export default function MichiganMap() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<Location | null>(null);
-  const [locations] = useState<Location[]>(LOCATIONS);
+  const locations = useLocations();
 
   useEffect(() => {
     if (!svgRef.current) return;

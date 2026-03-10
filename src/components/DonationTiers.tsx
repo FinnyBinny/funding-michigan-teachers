@@ -1,15 +1,14 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Pencil, 
-  Ruler, 
-  BookOpen, 
-  Award, 
-  Star, 
-  Trophy, 
+import {
+  Pencil,
+  Ruler,
+  BookOpen,
   Heart,
   CheckCircle2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import DonationModal from './DonationModal';
 
 const TIERS = [
   {
@@ -57,13 +56,17 @@ const TIERS = [
 ];
 
 export default function DonationTiers() {
+  const [donateOpen, setDonateOpen] = useState(false);
+  const [donateAmount, setDonateAmount] = useState(0);
+
   const handleJoin = (tier: typeof TIERS[0]) => {
     const amount = parseInt(tier.amount.replace('$', ''));
-    const url = `https://givebutter.com/fmt/donate?amount=${amount}&frequency=monthly`;
-    window.open(url, '_blank');
+    setDonateAmount(amount);
+    setDonateOpen(true);
   };
 
   return (
+    <>
     <div className="grid md:grid-cols-3 gap-10">
       {TIERS.map((tier, index) => (
         <motion.div
@@ -126,5 +129,12 @@ export default function DonationTiers() {
         </motion.div>
       ))}
     </div>
+    <DonationModal
+      isOpen={donateOpen}
+      onClose={() => setDonateOpen(false)}
+      amount={donateAmount}
+      frequency="monthly"
+    />
+    </>
   );
 }
