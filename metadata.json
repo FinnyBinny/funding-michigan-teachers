@@ -1,0 +1,7 @@
+{
+  "name": "Funding Michigan Teachers",
+  "description": "In the trenches of education, we witness the unwavering dedication of teachers. Our mission is to ignite a wave of motivation and support for our educators, bridging the gap between their needs and the resources they deserve.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
