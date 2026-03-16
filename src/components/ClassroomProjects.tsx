@@ -9,6 +9,7 @@ export default function ClassroomProjects() {
   const [voteIncrements, setVoteIncrements] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState<number | null>(null);
   const [success, setSuccess] = useState<{id: number, type: 'vote' | 'donate'} | null>(null);
+  const [alreadyVotedId, setAlreadyVotedId] = useState<number | null>(null);
   const [votedProjects, setVotedProjects] = useState<number[]>(() => {
     try {
       const saved = localStorage.getItem('mi_teacher_fund_votes');
@@ -24,7 +25,8 @@ export default function ClassroomProjects() {
 
   const handleVote = (id: number) => {
     if (votedProjects.includes(id)) {
-      alert('You have already voted for this project!');
+      setAlreadyVotedId(id);
+      setTimeout(() => setAlreadyVotedId(null), 2000);
       return;
     }
     setLoading(id);
@@ -101,10 +103,25 @@ export default function ClassroomProjects() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="absolute inset-0 bg-apple text-white flex items-center justify-center gap-3 z-10 font-bold text-lg"
+                  className="absolute inset-0 bg-apple text-white flex items-center justify-center gap-3 z-10 font-bold text-lg rounded-b-[40px]"
+                  role="status"
+                  aria-live="polite"
                 >
                   <CheckCircle2 size={24} />
                   <span>Vote Counted! Thank you!</span>
+                </motion.div>
+              )}
+              {alreadyVotedId === project.id && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute inset-0 bg-chalkboard text-white flex items-center justify-center gap-3 z-10 font-bold text-lg rounded-b-[40px]"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <CheckCircle2 size={24} />
+                  <span>You've already voted for this project!</span>
                 </motion.div>
               )}
             </AnimatePresence>

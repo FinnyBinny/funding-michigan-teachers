@@ -7,6 +7,8 @@
     <meta name="description" content="Funding Michigan Teachers is a student-led 501(c)(3) nonprofit dedicated to providing Michigan educators with the resources they need to inspire the next generation." />
     <meta name="keywords" content="Michigan teachers, nonprofit, education funding, classroom resources, student-led, Michigan schools" />
     <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1a1c1d" />
+    <link rel="canonical" href="https://fundingmichiganteachers.org" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -24,10 +26,34 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Fonts -->
+    <!-- Fonts: preconnect then load all weights used by the app -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&family=Architects+Daughter&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "NonprofitOrganization",
+      "name": "Funding Michigan Teachers",
+      "url": "https://fundingmichiganteachers.org",
+      "logo": "https://fundingmichiganteachers.org/favicon.svg",
+      "description": "A student-led 501(c)(3) nonprofit organization dedicated to providing Michigan educators with the resources they need to inspire the next generation.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Okemos",
+        "addressRegion": "MI",
+        "addressCountry": "US"
+      },
+      "email": "hello@fundingmichiganteachers.org",
+      "taxID": "93-4485967",
+      "foundingDate": "2023",
+      "sameAs": [
+        "https://fundingmichiganteachers.org"
+      ]
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
