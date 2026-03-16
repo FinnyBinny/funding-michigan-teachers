@@ -471,7 +471,7 @@ export default function App() {
             </div>
 
             <div>
-              <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Navigation</h4>
+              <h3 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Navigation</h3>
               <ul className="space-y-5 text-white/60 font-medium">
                 <li><a href="#mission" className="hover:text-white transition-colors">Our Mission</a></li>
                 <li><a href="#impact" className="hover:text-white transition-colors">Impact Map</a></li>
@@ -482,7 +482,7 @@ export default function App() {
             </div>
 
             <div>
-              <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Connect</h4>
+              <h3 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Connect</h3>
               <ul className="space-y-5 text-white/60 font-medium">
                 <li>Okemos, Michigan</li>
                 <li><a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white transition-colors">hello@fundingmichiganteachers.org</a></li>

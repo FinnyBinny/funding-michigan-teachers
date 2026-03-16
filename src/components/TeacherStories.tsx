@@ -48,7 +48,7 @@ export default function TeacherStories() {
                     <School size={64} />
                   </div>
                   <div>
-                    <h4 className="text-2xl font-serif font-bold text-chalkboard mb-2">{currentStory.name}</h4>
+                    <h3 className="text-2xl font-serif font-bold text-chalkboard mb-2">{currentStory.name}</h3>
                     <p className="text-muted uppercase tracking-widest text-xs font-bold">Dedicated Michigan Educator</p>
                   </div>
                 </motion.div>
@@ -96,7 +96,7 @@ export default function TeacherStories() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-3">The Educator</h4>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-3">The Educator</p>
                 <p className="text-xl text-chalkboard/70 leading-relaxed font-light italic">
                   "{currentStory.bio}"
                 </p>
@@ -110,7 +110,7 @@ export default function TeacherStories() {
                 className="bg-white p-10 rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-chalkboard/5 relative overflow-hidden group/impact"
               >
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-apple" />
-                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-4">The Impact</h4>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-4">The Impact</p>
                 <p className="text-2xl font-serif leading-relaxed text-chalkboard group-hover/impact:text-apple transition-colors duration-500">
                   {currentStory.impact}
                 </p>
@@ -147,18 +147,20 @@ export default function TeacherStories() {
       </div>
 
       {/* Pagination dots */}
-      <div className="flex justify-center gap-3 mt-12">
+      <div className="flex justify-center gap-1 mt-12">
         {stories.map((story, i) => (
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}
             aria-label={`View story ${i + 1}: ${story.name}`}
             aria-current={currentIndex === i ? 'true' : undefined}
-            className={cn(
-              "h-2 rounded-full transition-all duration-500",
-              currentIndex === i ? "bg-apple w-12" : "bg-chalkboard/10 w-2 hover:bg-chalkboard/30"
-            )}
-          />
+            className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full"
+          >
+            <span className={cn(
+              "h-2 rounded-full transition-all duration-500 block pointer-events-none",
+              currentIndex === i ? "bg-apple w-12" : "bg-chalkboard/10 w-2"
+            )} />
+          </button>
         ))}
       </div>
     </div>
