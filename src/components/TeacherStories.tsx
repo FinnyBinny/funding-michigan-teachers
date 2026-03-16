@@ -30,8 +30,11 @@ export default function TeacherStories() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   src={currentStory.image}
+                  width="600"
+                  height="700"
                   className="w-full h-full object-cover"
-                  alt={currentStory.name}
+                  alt={`Portrait of ${currentStory.name}`}
+                  loading="lazy"
                   referrerPolicy="no-referrer"
                 />
               ) : (
@@ -116,14 +119,16 @@ export default function TeacherStories() {
 
             <div className="mt-16 flex flex-wrap items-center justify-between gap-8">
               <div className="flex gap-4">
-                <button 
+                <button
                   onClick={prevStory}
+                  aria-label="Previous story"
                   className="p-4 rounded-2xl border-2 border-chalkboard/5 hover:border-apple hover:text-apple transition-all active:scale-90 bg-white shadow-sm"
                 >
                   <ChevronLeft size={28} />
                 </button>
-                <button 
+                <button
                   onClick={nextStory}
+                  aria-label="Next story"
                   className="p-4 rounded-2xl border-2 border-chalkboard/5 hover:border-apple hover:text-apple transition-all active:scale-90 bg-white shadow-sm"
                 >
                   <ChevronRight size={28} />
@@ -143,10 +148,12 @@ export default function TeacherStories() {
 
       {/* Pagination dots */}
       <div className="flex justify-center gap-3 mt-12">
-        {stories.map((_, i) => (
+        {stories.map((story, i) => (
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}
+            aria-label={`View story ${i + 1}: ${story.name}`}
+            aria-current={currentIndex === i ? 'true' : undefined}
             className={cn(
               "h-2 rounded-full transition-all duration-500",
               currentIndex === i ? "bg-apple w-12" : "bg-chalkboard/10 w-2 hover:bg-chalkboard/30"

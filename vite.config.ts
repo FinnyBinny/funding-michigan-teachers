@@ -10,4 +10,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'motion': ['motion'],
+          'd3-vendor': ['d3', 'topojson-client'],
+          'ui-vendor': ['lucide-react', 'clsx', 'tailwind-merge'],
+        },
+      },
+    },
+  },
 });

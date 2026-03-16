@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -12,7 +12,6 @@ import {
   X
 } from 'lucide-react';
 import { cn } from './lib/utils';
-import MichiganMap from './components/MichiganMap';
 import DonationTiers from './components/DonationTiers';
 import TeacherStories from './components/TeacherStories';
 import EventCalendar from './components/EventCalendar';
@@ -22,8 +21,11 @@ import TeacherLeaderboard from './components/TeacherLeaderboard';
 import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
 import ContactForm from './components/ContactForm';
-import FAQAssistant from './components/FAQAssistant';
-import AdminPanel from './components/AdminPanel';
+
+// Lazy-load heavy/below-fold components to reduce initial bundle size
+const MichiganMap = lazy(() => import('./components/MichiganMap'));
+const FAQAssistant = lazy(() => import('./components/FAQAssistant'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
@@ -32,7 +34,7 @@ export default function App() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -80,7 +82,7 @@ export default function App() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="lg:hidden p-2 rounded-xl hover:bg-chalkboard/5 transition-colors"
-            aria-label="Toggle menu"
+            aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -160,8 +162,11 @@ export default function App() {
                     <img
                       key={i}
                       src={`https://picsum.photos/seed/teacher${i}/100/100`}
+                      width="56"
+                      height="56"
                       className="w-14 h-14 rounded-2xl border-4 border-paper shadow-md object-cover"
-                      alt="Supporter"
+                      alt={`Teacher supporter ${i}`}
+                      loading="lazy"
                       referrerPolicy="no-referrer"
                     />
                   ))}
@@ -183,8 +188,11 @@ export default function App() {
                 <div className="overflow-hidden rounded-[32px]">
                   <img
                     src="https://picsum.photos/seed/michigan-classroom/800/500"
+                    width="800"
+                    height="500"
                     className="w-full h-auto hover:scale-105 transition-transform duration-700"
-                    alt="Michigan Classroom"
+                    alt="Michigan classroom scene"
+                    fetchPriority="high"
                     referrerPolicy="no-referrer"
                   />
                 </div>
@@ -249,7 +257,9 @@ export default function App() {
                 Explore the schools and districts we've supported. Every dot represents a classroom transformed by your generosity.
               </p>
             </div>
-            <MichiganMap />
+            <Suspense fallback={<div className="w-full aspect-[4/3] bg-white/5 rounded-[3rem] animate-pulse" />}>
+              <MichiganMap />
+            </Suspense>
           </div>
 
           {/* Background Accents */}
@@ -448,11 +458,15 @@ export default function App() {
                 A student-led 501(c)(3) nonprofit organization dedicated to empowering Michigan's educators and transforming classrooms through community support.
               </p>
               <div className="flex gap-6">
-                {['Twitter', 'Instagram', 'LinkedIn'].map(social => (
-                  <a key={social} href="#" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">
-                    {social}
-                  </a>
-                ))}
+                <a href="https://twitter.com/FundingMITeach" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest" aria-label="Follow us on Twitter">
+                  Twitter
+                </a>
+                <a href="https://instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest" aria-label="Follow us on Instagram">
+                  Instagram
+                </a>
+                <a href="https://linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest" aria-label="Connect on LinkedIn">
+                  LinkedIn
+                </a>
               </div>
             </div>
 
@@ -495,6 +509,7 @@ export default function App() {
               <button
                 onClick={() => setShowAdmin(true)}
                 className="hover:text-white/60 transition-colors"
+                aria-label="Open admin panel"
               >
                 Admin
               </button>
@@ -508,10 +523,16 @@ export default function App() {
       </footer>
 
       {/* FAQ Assistant */}
-      <FAQAssistant />
+      <Suspense fallback={null}>
+        <FAQAssistant />
+      </Suspense>
 
       {/* Admin Panel */}
-      <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
+      {showAdmin && (
+        <Suspense fallback={null}>
+          <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

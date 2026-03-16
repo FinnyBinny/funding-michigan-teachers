@@ -128,8 +128,9 @@ export default function MichiganMap() {
             exit={{ opacity: 0, x: 50 }}
             className="absolute top-8 right-8 bottom-8 w-96 bg-white/95 backdrop-blur-2xl text-chalkboard p-10 rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.3)] z-30 flex flex-col border border-white/20"
           >
-            <button 
+            <button
               onClick={() => setSelectedLocation(null)}
+              aria-label="Close location details"
               className="absolute top-6 right-6 p-3 hover:bg-chalkboard/5 rounded-full transition-colors"
             >
               <X size={24} />
