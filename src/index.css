@@ -16,6 +16,10 @@
 }
 
 @layer base {
+  html {
+    scroll-padding-top: 80px;
+  }
+
   body {
     @apply bg-paper text-chalkboard font-sans antialiased;
   }

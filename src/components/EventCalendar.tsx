@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Calendar as CalendarIcon, MapPin, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Phone, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useEvents } from '../hooks/useLocalData';
 
@@ -47,15 +47,36 @@ export default function EventCalendar() {
               <MapPin size={16} className="text-ruler" />
               <span className="truncate">{event.location || 'Michigan (Virtual/In-person)'}</span>
             </div>
+            {event.phone && (
+              <div className="flex items-center gap-3 text-sm font-bold text-muted uppercase tracking-widest">
+                <Phone size={16} className="text-ruler" />
+                <span>{event.phone}</span>
+              </div>
+            )}
+            {event.deadline && (
+              <div className="flex items-center gap-3 text-sm font-bold text-apple uppercase tracking-widest">
+                <AlertCircle size={16} className="text-apple shrink-0" />
+                <span>{event.deadline}</span>
+              </div>
+            )}
           </div>
 
           <div className="mt-10">
-            <a
-              href="mailto:hello@fundingmichiganteachers.org?subject=Event%20Inquiry"
-              className="block w-full py-4 rounded-2xl border-2 border-chalkboard/5 font-bold text-sm hover:bg-chalkboard hover:text-white transition-all active:scale-95 shadow-sm text-center"
-            >
-              Register Interest
-            </a>
+            {event.ctaUrl ? (
+              <a
+                href={event.ctaUrl}
+                className="block w-full py-4 rounded-2xl bg-apple text-white font-bold text-sm hover:bg-chalkboard transition-all active:scale-95 shadow-sm text-center"
+              >
+                {event.ctaLabel ?? 'Learn More'}
+              </a>
+            ) : (
+              <a
+                href="mailto:hello@fundingmichiganteachers.org?subject=Event%20Inquiry"
+                className="block w-full py-4 rounded-2xl border-2 border-chalkboard/5 font-bold text-sm hover:bg-chalkboard hover:text-white transition-all active:scale-95 shadow-sm text-center"
+              >
+                Register Interest
+              </a>
+            )}
           </div>
         </motion.div>
       ))}

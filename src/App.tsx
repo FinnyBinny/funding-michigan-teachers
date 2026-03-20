@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -9,9 +9,11 @@ import {
   Trophy,
   Calendar,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 import { cn } from './lib/utils';
+import MichiganMap from './components/MichiganMap';
 import DonationTiers from './components/DonationTiers';
 import TeacherStories from './components/TeacherStories';
 import EventCalendar from './components/EventCalendar';
@@ -21,21 +23,39 @@ import TeacherLeaderboard from './components/TeacherLeaderboard';
 import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
 import ContactForm from './components/ContactForm';
-
-// Lazy-load heavy/below-fold components to reduce initial bundle size
-const MichiganMap = lazy(() => import('./components/MichiganMap'));
-const FAQAssistant = lazy(() => import('./components/FAQAssistant'));
-const AdminPanel = lazy(() => import('./components/AdminPanel'));
+import FAQAssistant from './components/FAQAssistant';
+import AdminPanel from './components/AdminPanel';
+import DonationModal from './components/DonationModal';
+import PastEvents from './components/PastEvents';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showDonation, setShowDonation] = useState(false);
+  const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
+
+  const handleDonate = (amount?: number) => {
+    setDonationAmount(amount);
+    setShowDonation(true);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Secret keyboard shortcut to open admin: Ctrl+Shift+A (or Cmd+Shift+A on Mac)
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        setShowAdmin(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
   const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Stories'];
@@ -44,17 +64,17 @@ export default function App() {
     <div className="min-h-screen bg-paper selection:bg-pencil/30">
       {/* Navbar */}
       <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 py-4",
-        scrolled ? "bg-white/90 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.05)] py-3" : "bg-transparent"
+        "fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4",
+        scrolled ? "bg-white/95 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.05)] py-3" : "bg-transparent"
       )}>
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="w-12 h-12 bg-apple rounded-2xl flex items-center justify-center text-white shadow-lg transform -rotate-3 transition-transform group-hover:rotate-0">
-              <BookOpen size={28} />
+          <div className="flex items-center gap-3 group cursor-pointer min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-lg transform -rotate-3 transition-transform group-hover:rotate-0 shrink-0">
+              <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-serif text-xl font-bold tracking-tight leading-none">Funding Michigan Teachers</span>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Student-Led Nonprofit</span>
+            <div className="flex flex-col min-w-0">
+              <span className="font-serif text-base sm:text-xl font-bold tracking-tight leading-none truncate">Funding Michigan Teachers</span>
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted hidden sm:block">Student-Led Nonprofit</span>
             </div>
           </div>
 
@@ -71,8 +91,8 @@ export default function App() {
               </a>
             ))}
             <button
-              onClick={() => document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-chalkboard text-white px-8 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold"
+              onClick={() => handleDonate()}
+              className="bg-chalkboard text-white px-8 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer"
             >
               Donate Now
             </button>
@@ -82,7 +102,7 @@ export default function App() {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="lg:hidden p-2 rounded-xl hover:bg-chalkboard/5 transition-colors"
-            aria-label="Toggle navigation menu"
+            aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -110,11 +130,8 @@ export default function App() {
                 </a>
               ))}
               <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="mt-4 bg-apple text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-apple/90 transition-all"
+                onClick={() => { setMobileMenuOpen(false); handleDonate(); }}
+                className="mt-4 bg-apple text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-apple/90 transition-all cursor-pointer"
               >
                 Donate Now
               </button>
@@ -125,8 +142,8 @@ export default function App() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-40 pb-32 px-6 overflow-hidden classroom-grid">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
+        <section className="relative pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -134,13 +151,14 @@ export default function App() {
             >
               <div className="inline-flex items-center gap-2 bg-pencil/20 text-ink px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 border border-pencil/30 uppercase tracking-widest">
                 <Sparkles size={14} className="text-pencil-dark" />
-                <span>Student-Led Excellence</span>
+                <span>Student-Led · Founded Okemos 2023</span>
               </div>
-              <h1 className="text-7xl md:text-9xl font-serif font-bold leading-[0.85] mb-8 text-balance">
-                Funding the <span className="text-apple italic font-normal">Future</span> of Michigan.
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[0.95] mb-6 text-balance">
+                Michigan teachers give everything.<br />
+                <span className="text-apple italic font-normal">We give back.</span>
               </h1>
-              <p className="text-xl text-chalkboard/70 max-w-xl mb-10 leading-relaxed font-light">
-                We're a student-led nonprofit dedicated to providing Michigan teachers with the resources they need to inspire the next generation.
+              <p className="text-lg text-chalkboard/70 max-w-xl mb-8 leading-relaxed font-light">
+                Founded by Finn Regan at age 14 — because he grew up watching teachers spend their own money on classrooms while no one said thank you. We exist to change that.
               </p>
               <div className="flex flex-wrap gap-5">
                 <button
@@ -156,72 +174,75 @@ export default function App() {
                   Our Mission
                 </button>
               </div>
-              <div className="mt-16 flex items-center gap-8">
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <img
-                      key={i}
-                      src={`https://picsum.photos/seed/teacher${i}/100/100`}
-                      width="56"
-                      height="56"
-                      className="w-14 h-14 rounded-2xl border-4 border-paper shadow-md object-cover"
-                      alt={`Teacher supporter ${i}`}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                    />
-                  ))}
-                </div>
+              <div className="mt-10 flex items-center gap-6">
                 <div className="flex flex-col">
-                  <span className="text-apple font-bold text-2xl leading-none">600+</span>
+                  <span className="text-apple font-bold text-2xl leading-none">1,200+</span>
                   <span className="text-xs uppercase tracking-widest font-bold text-muted">Teachers Impacted</span>
+                </div>
+                <div className="w-px h-10 bg-chalkboard/10" />
+                <div className="flex flex-col">
+                  <span className="text-ruler font-bold text-2xl leading-none">$4,000+</span>
+                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
+                </div>
+                <div className="w-px h-10 bg-chalkboard/10" />
+                <div className="flex flex-col">
+                  <span className="text-pencil font-bold text-2xl leading-none">3</span>
+                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Schools Reached</span>
                 </div>
               </div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, rotate: 5 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="relative"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative hidden lg:block"
             >
-              <div className="relative z-10 bg-white p-5 rounded-[40px] shadow-2xl border border-chalkboard/5 transform rotate-2">
-                <div className="overflow-hidden rounded-[32px]">
-                  <img
-                    src="https://picsum.photos/seed/michigan-classroom/800/500"
-                    width="800"
-                    height="500"
-                    className="w-full h-auto hover:scale-105 transition-transform duration-700"
-                    alt="Michigan classroom scene"
-                    fetchPriority="high"
-                    referrerPolicy="no-referrer"
+              {/* Real photo — Finn with Mrs. Freeman */}
+              <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
+                <img
+                  src="/images/finn-and-mrs-freeman-opt.jpg"
+                  alt="Finn Regan with Mrs. Freeman at Okemos High School"
+                  className="w-full h-[400px] object-cover object-top"
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/75 via-chalkboard/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Finn & Mrs. Freeman · Okemos High School</p>
+                  <p className="text-white font-serif text-xl font-bold leading-tight">One of FMT's first and loudest supporters at OHS.</p>
+                </div>
+              </div>
+
+              {/* Real fundraising progress */}
+              <div className="mt-5 bg-white rounded-[2rem] p-7 shadow-xl border border-chalkboard/5">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted">2025–26 Goal Progress</p>
+                  <span className="text-apple font-mono font-bold">40%</span>
+                </div>
+                <div className="w-full h-3 bg-chalkboard/5 rounded-full overflow-hidden my-3">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: '40%' }}
+                    transition={{ duration: 1.8, delay: 0.8, ease: "easeOut" }}
+                    className="h-full bg-apple rounded-full"
                   />
                 </div>
-
-                <div className="absolute -bottom-10 -left-10 bg-ruler text-white p-8 rounded-3xl shadow-2xl transform -rotate-6 hover:rotate-0 transition-transform duration-500">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-80">Live Impact</span>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-chalkboard leading-none">$4,000+</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">raised so far</p>
                   </div>
-                  <div className="text-4xl font-bold font-mono">Over $4,000.00</div>
-                </div>
-
-                <div className="absolute -top-10 -right-10 bg-pencil text-chalkboard p-8 rounded-3xl shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-500">
-                  <div className="text-4xl font-bold font-mono">25%</div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-80 mt-1">Goal Reached</div>
-                  <div className="w-full h-1.5 bg-chalkboard/10 rounded-full mt-4 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: '25%' }}
-                      transition={{ duration: 1.5, ease: "easeOut" }}
-                      className="h-full bg-chalkboard"
-                    />
+                  <div className="text-right">
+                    <p className="text-2xl font-bold font-mono text-chalkboard/30 leading-none">$10,000</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">school year goal</p>
                   </div>
                 </div>
               </div>
 
-              {/* Decorative elements */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-apple/5 rounded-full blur-[120px] -z-10" />
-              <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-ruler/5 rounded-full blur-[100px] -z-10" />
+              {/* Decorative glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-apple/5 rounded-full blur-[100px] -z-10" />
             </motion.div>
           </div>
         </section>
@@ -229,7 +250,7 @@ export default function App() {
         {/* Our Mission Section */}
         <section
           id="mission"
-          className="py-32 px-6 bg-white relative overflow-hidden"
+          className="py-12 sm:py-16 px-4 sm:px-6 bg-white relative overflow-hidden"
         >
           <OurMission />
         </section>
@@ -237,10 +258,10 @@ export default function App() {
         {/* Impact Map Section */}
         <section
           id="impact"
-          className="py-32 px-6 bg-chalkboard text-white overflow-hidden relative"
+          className="py-12 sm:py-16 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -250,16 +271,14 @@ export default function App() {
                 <MapPin size={14} />
                 <span>Statewide Reach</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance text-white">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
                 Our Impact Across <span className="text-pencil italic font-normal">Michigan</span>.
               </h2>
-              <p className="text-xl text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Explore the schools and districts we've supported. Every dot represents a classroom transformed by your generosity.
               </p>
             </div>
-            <Suspense fallback={<div className="w-full aspect-[4/3] bg-white/5 rounded-[3rem] animate-pulse" />}>
-              <MichiganMap />
-            </Suspense>
+            <MichiganMap />
           </div>
 
           {/* Background Accents */}
@@ -270,10 +289,10 @@ export default function App() {
         {/* Classroom Projects Section */}
         <section
           id="projects"
-          className="py-32 px-6 bg-paper relative overflow-hidden"
+          className="py-12 sm:py-16 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -283,24 +302,24 @@ export default function App() {
                 <BookOpen size={14} />
                 <span>Classroom Initiatives</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Classroom <span className="text-apple italic font-normal">Projects</span>.
               </h2>
-              <p className="text-xl text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Vote for the projects you believe in and help teachers reach their specific goals. Every vote brings them closer to a fully funded classroom.
               </p>
             </div>
-            <ClassroomProjects />
+            <ClassroomProjects onDonate={handleDonate} />
           </div>
         </section>
 
         {/* Teacher Leaderboard Section */}
         <section
           id="leaderboard"
-          className="py-32 px-6 bg-apple/5 relative overflow-hidden"
+          className="py-12 sm:py-16 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -310,10 +329,10 @@ export default function App() {
                 <Trophy size={14} />
                 <span>Excellence in Education</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Teacher <span className="text-pencil italic font-normal">Leaderboard</span>.
               </h2>
-              <p className="text-xl text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Recognizing the incredible engagement and dedication of our Michigan educators who go above and beyond for their students.
               </p>
             </div>
@@ -324,10 +343,10 @@ export default function App() {
         {/* Event Calendar Section */}
         <section
           id="events"
-          className="py-32 px-6 bg-ruler/5 relative overflow-hidden"
+          className="py-12 sm:py-16 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -337,24 +356,25 @@ export default function App() {
                 <Calendar size={14} />
                 <span>Community Engagement</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Upcoming <span className="text-ruler italic font-normal">Events</span>.
               </h2>
-              <p className="text-xl text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Join us for fundraisers, teacher appreciation days, and community showcases that celebrate the impact of education.
               </p>
             </div>
             <EventCalendar />
+            <PastEvents />
           </div>
         </section>
 
         {/* Donation Tiers Section */}
         <section
           id="tiers"
-          className="py-32 px-6 relative overflow-hidden bg-paper"
+          className="py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden bg-paper"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -364,24 +384,24 @@ export default function App() {
                 <Heart size={14} />
                 <span>Monthly Support</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Choose Your <span className="text-apple italic font-normal">Impact</span>.
               </h2>
-              <p className="text-xl text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Join our monthly giving program to provide consistent, reliable support for Michigan teachers and their students.
               </p>
             </div>
-            <DonationTiers />
+            <DonationTiers onDonate={handleDonate} />
           </div>
         </section>
 
         {/* Donor Wall Section */}
         <section
           id="donors"
-          className="py-32 px-6 bg-chalkboard text-white relative overflow-hidden"
+          className="py-16 md:py-32 px-6 bg-chalkboard text-white relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -391,10 +411,10 @@ export default function App() {
                 <Heart size={14} />
                 <span>Wall of Fame</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance text-white">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
                 Our <span className="text-pencil italic font-normal">Supporters</span>.
               </h2>
-              <p className="text-xl text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
                 A public thank you to the individuals and organizations making a difference in Michigan classrooms every single day.
               </p>
             </div>
@@ -408,10 +428,10 @@ export default function App() {
         {/* Teacher Stories Section */}
         <section
           id="stories"
-          className="py-32 px-6 bg-paper relative overflow-hidden"
+          className="py-12 sm:py-16 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-20">
+            <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -421,10 +441,10 @@ export default function App() {
                 <Sparkles size={14} />
                 <span>Impact Stories</span>
               </motion.div>
-              <h2 className="text-6xl md:text-8xl font-serif font-bold mb-8 leading-tight text-balance">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Voices from the <span className="text-apple italic font-normal">Classroom</span>.
               </h2>
-              <p className="text-xl text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Real stories from educators whose classrooms were changed by your generosity. Every story is a testament to the power of community.
               </p>
             </div>
@@ -436,7 +456,7 @@ export default function App() {
         <Newsletter />
 
         {/* Contact Section */}
-        <section id="contact" className="py-24 px-6 bg-paper">
+        <section id="contact" className="py-12 sm:py-16 px-4 sm:px-6 bg-paper">
           <div className="max-w-7xl mx-auto">
             <ContactForm />
           </div>
@@ -444,29 +464,25 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer id="footer" className="bg-chalkboard text-white py-32 px-6 relative overflow-hidden">
+      <footer id="footer" className="bg-chalkboard text-white py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid md:grid-cols-4 gap-20 mb-20">
-            <div className="col-span-2">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 bg-apple rounded-2xl flex items-center justify-center text-white shadow-2xl rotate-3">
-                  <BookOpen size={28} />
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-10">
+            <div className="sm:col-span-2">
+              <div className="flex items-center gap-3 mb-6 sm:mb-8">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-2xl rotate-3 shrink-0">
+                  <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                 </div>
-                <span className="font-serif text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>
+                <span className="font-serif text-xl sm:text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>
               </div>
               <p className="text-white/50 max-w-md mb-10 text-lg font-light leading-relaxed">
                 A student-led 501(c)(3) nonprofit organization dedicated to empowering Michigan's educators and transforming classrooms through community support.
               </p>
               <div className="flex gap-6">
-                <a href="https://twitter.com/FundingMITeach" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest" aria-label="Follow us on Twitter">
-                  Twitter
-                </a>
-                <a href="https://instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest" aria-label="Follow us on Instagram">
-                  Instagram
-                </a>
-                <a href="https://linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest" aria-label="Connect on LinkedIn">
-                  LinkedIn
-                </a>
+                {['Twitter', 'Instagram', 'LinkedIn'].map(social => (
+                  <a key={social} href="#" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">
+                    {social}
+                  </a>
+                ))}
               </div>
             </div>
 
@@ -506,13 +522,6 @@ export default function App() {
             </div>
             <div className="flex items-center gap-6">
               <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <button
-                onClick={() => setShowAdmin(true)}
-                className="hover:text-white/60 transition-colors"
-                aria-label="Open admin panel"
-              >
-                Admin
-              </button>
             </div>
           </div>
         </div>
@@ -523,16 +532,31 @@ export default function App() {
       </footer>
 
       {/* FAQ Assistant */}
-      <Suspense fallback={null}>
-        <FAQAssistant />
-      </Suspense>
+      <FAQAssistant />
+
+      {/* Admin Button — hidden in production; re-enable by removing 'hidden' class */}
+      <motion.button
+        onClick={() => setShowAdmin(true)}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.5 }}
+        title="Open Admin Panel"
+        className="hidden fixed bottom-6 left-6 z-40 flex items-center gap-2 bg-chalkboard text-white px-4 py-2.5 rounded-2xl shadow-xl hover:bg-apple transition-all hover:scale-105 active:scale-95 text-xs font-bold uppercase tracking-widest"
+      >
+        <Settings size={15} />
+        Admin
+      </motion.button>
 
       {/* Admin Panel */}
-      {showAdmin && (
-        <Suspense fallback={null}>
-          <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
-        </Suspense>
-      )}
+      <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
+
+      {/* Donation Modal */}
+      <DonationModal
+        isOpen={showDonation}
+        onClose={() => setShowDonation(false)}
+        amount={donationAmount}
+        frequency="monthly"
+      />
     </div>
   );
 }

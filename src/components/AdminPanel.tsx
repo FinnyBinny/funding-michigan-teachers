@@ -2,16 +2,15 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus, Save, Trash2, X, Layout, Users, Calendar,
-  BookOpen, MapPin, Heart, Lock, Download, Eye, EyeOff, Edit2,
+  BookOpen, MapPin, Heart, Lock, Eye, EyeOff, Edit2, Loader2,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
+import { supabase } from '../lib/supabase';
+import { rowToEvent, rowToLocation } from '../hooks/useLocalData';
 import type { Event, Donor, Project, Story, Location } from '../data/initialData';
 
-// ─── Change this password to something secret before deploying ───
 const ADMIN_PASSWORD = 'FMT2025!';
 
-// Shared Tailwind class strings
 const inp = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-apple/20 outline-none';
 const lbl = 'block text-[10px] uppercase tracking-widest font-bold opacity-40 mb-1';
 const btnSave = 'flex-[2] bg-apple text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-apple/90 transition-all';
@@ -19,37 +18,38 @@ const btnCancel = 'flex-1 bg-chalkboard/10 text-chalkboard py-3 rounded-xl font-
 
 type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations';
 
-function nextNumId(arr: any[]): number {
-  return Math.max(0, ...arr.map(i => Number(i.id) || 0)) + 1;
-}
-
 export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  // Auth
   const [authed, setAuthed] = useState(false);
   const [pw, setPw] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [pwError, setPwError] = useState(false);
 
-  // Tab & list
   const [activeTab, setActiveTab] = useState<Tab>('stories');
   const [items, setItems] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | number | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  // Form states (abbreviated names for readability)
   const [sf, setSf] = useState({ name: '', bio: '', impact: '', school: '', location: '', image: '' });
   const [ef, setEf] = useState({ title: '', date: '', description: '', location: '', type: 'fundraiser' });
   const [pf, setPf] = useState({ teacher_name: '', school_name: '', title: '', description: '', goal: 0 });
   const [df, setDf] = useState({ name: '', amount: 0, tier: 'Pencil Pal', message: '' });
   const [lf, setLf] = useState({ name: '', district: '', impact: '', amount: '', lat: 42.3314, lng: -83.0458, students: '', low_income: '', diversity: '', projects: '' });
 
-  // Reset auth when modal closes
   useEffect(() => {
     if (!isOpen) { setAuthed(false); setPw(''); setPwError(false); }
   }, [isOpen]);
 
-  // Load items when tab or auth changes
+  const loadItems = async (tab: Tab) => {
+    if (!supabase) { setItems([]); return; }
+    const { data: rows } = await supabase.from(tab).select('*').order('id');
+    if (!rows) { setItems([]); return; }
+    if (tab === 'events') setItems(rows.map(rowToEvent));
+    else if (tab === 'locations') setItems(rows.map(rowToLocation));
+    else setItems(rows);
+  };
+
   useEffect(() => {
-    if (authed) setItems(readLS(STORAGE_KEYS[activeTab], []));
+    if (authed) loadItems(activeTab);
     setEditingId(null);
     resetAll();
   }, [activeTab, authed]); // eslint-disable-line
@@ -60,13 +60,6 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     setPf({ teacher_name: '', school_name: '', title: '', description: '', goal: 0 });
     setDf({ name: '', amount: 0, tier: 'Pencil Pal', message: '' });
     setLf({ name: '', district: '', impact: '', amount: '', lat: 42.3314, lng: -83.0458, students: '', low_income: '', diversity: '', projects: '' });
-  };
-
-  const commit = (key: string, updated: any[]) => {
-    saveLS(key, updated);
-    setItems(updated);
-    resetAll();
-    setEditingId(null);
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -89,76 +82,72 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       setLf({ name: item.name, district: item.district, impact: item.impact, amount: item.amount, lat: item.lat, lng: item.lng, students: item.demographics?.students || '', low_income: item.demographics?.lowIncome || '', diversity: item.demographics?.diversity || '', projects: (item.projects || []).join(', ') });
   };
 
-  const handleDelete = (id: any) => {
-    if (!confirm('Delete this item? This cannot be undone.')) return;
-    commit(STORAGE_KEYS[activeTab], items.filter(i => i.id !== id));
+  // Generic Supabase save (insert or update)
+  const dbSave = async (table: Tab, payload: any, id?: string | number) => {
+    if (!supabase) return;
+    setSaving(true);
+    try {
+      if (id !== null && id !== undefined) {
+        const numId = table === 'locations' ? Number(id) : id;
+        await supabase.from(table).update(payload).eq('id', numId);
+      } else {
+        await supabase.from(table).insert(payload);
+      }
+      await loadItems(table);
+      window.dispatchEvent(new Event('fmt-data-changed'));
+      resetAll();
+      setEditingId(null);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Form submit handlers
+  const handleDelete = async (id: any) => {
+    if (!confirm('Delete this item? This cannot be undone.')) return;
+    if (!supabase) return;
+    const numId = activeTab === 'locations' ? Number(id) : id;
+    await supabase.from(activeTab).delete().eq('id', numId);
+    await loadItems(activeTab);
+    window.dispatchEvent(new Event('fmt-data-changed'));
+  };
+
   const onStory = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated: Story[] = editingId !== null
-      ? items.map(i => i.id === editingId ? { ...i, ...sf } : i)
-      : [...items, { id: nextNumId(items), ...sf }];
-    commit(STORAGE_KEYS.stories, updated);
+    dbSave('stories', sf, editingId ?? undefined);
   };
 
   const onEvent = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated: Event[] = editingId !== null
-      ? items.map(i => i.id === editingId ? { ...i, ...ef } : i)
-      : [...items, { id: nextNumId(items), ...ef }];
-    commit(STORAGE_KEYS.events, updated);
+    dbSave('events', {
+      title: ef.title, date: ef.date, description: ef.description,
+      location: ef.location, type: ef.type,
+    }, editingId ?? undefined);
   };
 
   const onProject = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated: Project[] = editingId !== null
-      ? items.map(i => i.id === editingId ? { ...i, ...pf } : i)
-      : [...items, { id: nextNumId(items), raised: 0, votes: 0, ...pf }];
-    commit(STORAGE_KEYS.projects, updated);
+    const payload = editingId !== null
+      ? { teacher_name: pf.teacher_name, school_name: pf.school_name, title: pf.title, description: pf.description, goal: pf.goal }
+      : { teacher_name: pf.teacher_name, school_name: pf.school_name, title: pf.title, description: pf.description, goal: pf.goal, raised: 0, votes: 0 };
+    dbSave('projects', payload, editingId ?? undefined);
   };
 
   const onDonor = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated: Donor[] = editingId !== null
-      ? items.map(i => i.id === editingId ? { ...i, ...df } : i)
-      : [...items, { id: nextNumId(items), pos_x: 0, pos_y: 0, ...df }];
-    commit(STORAGE_KEYS.donors, updated);
+    const payload = editingId !== null
+      ? { name: df.name, amount: df.amount, tier: df.tier, message: df.message }
+      : { name: df.name, amount: df.amount, tier: df.tier, message: df.message, pos_x: 0, pos_y: 0 };
+    dbSave('donors', payload, editingId ?? undefined);
   };
 
   const onLocation = (e: React.FormEvent) => {
     e.preventDefault();
-    const locData: Location = {
-      id: editingId !== null ? String(editingId) : String(nextNumId(items)),
+    dbSave('locations', {
       name: lf.name, district: lf.district, impact: lf.impact, amount: lf.amount,
       lat: lf.lat, lng: lf.lng,
       demographics: { students: lf.students, lowIncome: lf.low_income, diversity: lf.diversity },
-      projects: lf.projects.split(',').map(p => p.trim()).filter(Boolean),
-    };
-    const updated: Location[] = editingId !== null
-      ? items.map(i => i.id === String(editingId) ? locData : i)
-      : [...items, locData];
-    commit(STORAGE_KEYS.locations, updated);
-  };
-
-  const handleExport = () => {
-    const ts = `// Exported from Admin Panel — paste into src/data/initialData.ts (replace the matching constants)
-
-export const EVENTS: Event[] = ${JSON.stringify(readLS(STORAGE_KEYS.events, []), null, 2)};
-
-export const DONORS: Donor[] = ${JSON.stringify(readLS(STORAGE_KEYS.donors, []), null, 2)};
-
-export const PROJECTS: Project[] = ${JSON.stringify(readLS(STORAGE_KEYS.projects, []), null, 2)};
-
-export const STORIES: Story[] = ${JSON.stringify(readLS(STORAGE_KEYS.stories, []), null, 2)};
-
-export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locations, []), null, 2)};
-`;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([ts], { type: 'text/plain' }));
-    a.download = 'fmt-data-export.ts';
-    a.click();
+      projects: lf.projects.split(',').map((p: string) => p.trim()).filter(Boolean),
+    }, editingId ?? undefined);
   };
 
   const TABS = [
@@ -188,31 +177,21 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
           className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
           onClick={e => e.stopPropagation()}
         >
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="bg-chalkboard p-8 text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Layout className="text-pencil" size={24} />
               <div>
                 <h2 className="text-2xl font-bold leading-none">Admin Dashboard</h2>
-                <p className="text-white/50 text-xs mt-1">Manage stories, events, projects, and more.</p>
+                <p className="text-white/50 text-xs mt-1">Changes save instantly to the database — live for all visitors.</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {authed && (
-                <button
-                  onClick={handleExport}
-                  className="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all"
-                >
-                  <Download size={14} /> Export Data
-                </button>
-              )}
-              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                <X size={20} />
-              </button>
-            </div>
+            <button aria-label="Close admin panel" onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+              <X size={20} />
+            </button>
           </div>
 
-          {/* ── Password Screen ── */}
+          {/* Password Screen */}
           {!authed ? (
             <div className="p-16 flex flex-col items-center justify-center min-h-[400px]">
               <div className="w-16 h-16 bg-apple/10 rounded-2xl flex items-center justify-center mb-6">
@@ -230,7 +209,7 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                     placeholder="Password"
                     autoFocus
                   />
-                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-chalkboard/30 hover:text-chalkboard transition-colors p-1">
+                  <button type="button" aria-label={showPw ? 'Hide password' : 'Show password'} onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-chalkboard/30 hover:text-chalkboard transition-colors p-1">
                     {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
@@ -243,7 +222,7 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
 
           ) : (
             <>
-              {/* ── Tabs ── */}
+              {/* Tabs */}
               <div className="flex border-b border-chalkboard/5 overflow-x-auto">
                 {TABS.map(tab => (
                   <button
@@ -259,7 +238,7 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                 ))}
               </div>
 
-              {/* ── Form + List ── */}
+              {/* Form + List */}
               <div className="grid lg:grid-cols-2 divide-x divide-chalkboard/5">
                 {/* Left: Form */}
                 <div className="p-8">
@@ -268,7 +247,6 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                     {editingId !== null ? 'Edit' : 'Add'} {activeTab === 'stories' ? 'Story' : activeTab === 'events' ? 'Event' : activeTab === 'projects' ? 'Project' : activeTab === 'donors' ? 'Supporter' : 'Location'}
                   </h3>
 
-                  {/* STORIES */}
                   {activeTab === 'stories' && (
                     <form onSubmit={onStory} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
@@ -276,17 +254,16 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                         <div><label className={lbl}>School</label><input required value={sf.school} onChange={e => setSf({ ...sf, school: e.target.value })} className={inp} placeholder="Cass Technical High" /></div>
                       </div>
                       <div><label className={lbl}>Location (City, MI)</label><input required value={sf.location} onChange={e => setSf({ ...sf, location: e.target.value })} className={inp} placeholder="Detroit, MI" /></div>
-                      <div><label className={lbl}>Photo URL (optional)</label><input value={sf.image} onChange={e => setSf({ ...sf, image: e.target.value })} className={inp} placeholder="https://picsum.photos/seed/teacher/800/800" /></div>
+                      <div><label className={lbl}>Photo URL (optional)</label><input value={sf.image} onChange={e => setSf({ ...sf, image: e.target.value })} className={inp} placeholder="https://..." /></div>
                       <div><label className={lbl}>Bio</label><textarea required rows={2} value={sf.bio} onChange={e => setSf({ ...sf, bio: e.target.value })} className={inp} placeholder="Brief teacher biography..." /></div>
                       <div><label className={lbl}>Impact Story</label><textarea required rows={3} value={sf.impact} onChange={e => setSf({ ...sf, impact: e.target.value })} className={inp} placeholder="How did the funding help?" /></div>
                       <div className="flex gap-3 pt-1">
                         {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
-                        <button type="submit" className={btnSave}>{editingId !== null ? <><Save size={15} />Update Story</> : <><Plus size={15} />Add Story</>}</button>
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Story</> : <><Plus size={15} />Add Story</>}</button>
                       </div>
                     </form>
                   )}
 
-                  {/* EVENTS */}
                   {activeTab === 'events' && (
                     <form onSubmit={onEvent} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
@@ -305,12 +282,11 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                       </div>
                       <div className="flex gap-3 pt-1">
                         {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
-                        <button type="submit" className={btnSave}>{editingId !== null ? <><Save size={15} />Update Event</> : <><Plus size={15} />Add Event</>}</button>
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Event</> : <><Plus size={15} />Add Event</>}</button>
                       </div>
                     </form>
                   )}
 
-                  {/* PROJECTS */}
                   {activeTab === 'projects' && (
                     <form onSubmit={onProject} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
@@ -322,12 +298,11 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                       <div><label className={lbl}>Funding Goal ($)</label><input required type="number" min={1} value={pf.goal || ''} onChange={e => setPf({ ...pf, goal: Number(e.target.value) })} className={inp} placeholder="500" /></div>
                       <div className="flex gap-3 pt-1">
                         {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
-                        <button type="submit" className={btnSave}>{editingId !== null ? <><Save size={15} />Update Project</> : <><Plus size={15} />Add Project</>}</button>
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Project</> : <><Plus size={15} />Add Project</>}</button>
                       </div>
                     </form>
                   )}
 
-                  {/* DONORS */}
                   {activeTab === 'donors' && (
                     <form onSubmit={onDonor} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
@@ -337,19 +312,21 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                       <div><label className={lbl}>Donor Tier</label>
                         <select value={df.tier} onChange={e => setDf({ ...df, tier: e.target.value })} className={inp}>
                           <option value="Pencil Pal">Pencil Pal ($10/mo)</option>
+                          <option value="Bell Ringer">Bell Ringer ($25)</option>
+                          <option value="Honor Roll">Honor Roll ($50/mo)</option>
                           <option value="Ruler Rockstar">Ruler Rockstar ($50/mo)</option>
+                          <option value="Hall of Fame">Hall of Fame ($250+)</option>
                           <option value="Textbook Tycoon">Textbook Tycoon ($250/mo)</option>
                         </select>
                       </div>
                       <div><label className={lbl}>Message (optional)</label><textarea rows={2} value={df.message} onChange={e => setDf({ ...df, message: e.target.value })} className={inp} placeholder="Supporter message..." /></div>
                       <div className="flex gap-3 pt-1">
                         {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
-                        <button type="submit" className={cn(btnSave, 'bg-ruler hover:bg-ruler/90')}>{editingId !== null ? <><Save size={15} />Update Supporter</> : <><Plus size={15} />Add Supporter</>}</button>
+                        <button type="submit" disabled={saving} className={cn(btnSave, 'bg-ruler hover:bg-ruler/90')}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Supporter</> : <><Plus size={15} />Add Supporter</>}</button>
                       </div>
                     </form>
                   )}
 
-                  {/* LOCATIONS */}
                   {activeTab === 'locations' && (
                     <form onSubmit={onLocation} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
@@ -372,7 +349,7 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                       <div><label className={lbl}>Funded Projects (comma-separated)</label><input value={lf.projects} onChange={e => setLf({ ...lf, projects: e.target.value })} className={inp} placeholder="Robotics Lab, STEM Kits, Art Supplies" /></div>
                       <div className="flex gap-3 pt-1">
                         {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
-                        <button type="submit" className={btnSave}>{editingId !== null ? <><Save size={15} />Update Location</> : <><Plus size={15} />Add Location</>}</button>
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Location</> : <><Plus size={15} />Add Location</>}</button>
                       </div>
                     </form>
                   )}
@@ -394,14 +371,14 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                           <div className="min-w-0">
                             <p className="font-bold text-sm truncate">{item.title || item.name}</p>
                             <p className="text-[10px] text-chalkboard/40 truncate mt-0.5">
-                              {item.school || item.school_name || item.district || item.date || (item.amount !== undefined ? `$${item.amount}` : '')}
+                              {item.school || item.school_name || item.district || item.date || (item.amount !== undefined && typeof item.amount === 'number' ? `$${item.amount}` : item.amount || '')}
                             </p>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <button onClick={() => loadForEdit(item)} title="Edit" className="p-2 text-chalkboard/20 hover:text-ruler hover:bg-ruler/5 rounded-lg transition-all">
+                            <button onClick={() => loadForEdit(item)} aria-label="Edit item" className="p-2 text-chalkboard/20 hover:text-ruler hover:bg-ruler/5 rounded-lg transition-all">
                               <Edit2 size={14} />
                             </button>
-                            <button onClick={() => handleDelete(item.id)} title="Delete" className="p-2 text-chalkboard/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                            <button onClick={() => handleDelete(item.id)} aria-label="Delete item" className="p-2 text-chalkboard/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                               <Trash2 size={14} />
                             </button>
                           </div>
@@ -412,22 +389,10 @@ export const LOCATIONS: Location[] = ${JSON.stringify(readLS(STORAGE_KEYS.locati
                 </div>
               </div>
 
-              {/* ── Export Banner ── */}
-              <div className="px-8 py-5 bg-chalkboard/5 border-t border-chalkboard/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-bold">Make changes permanent for all visitors</p>
-                  <p className="text-xs text-chalkboard/50 mt-0.5">
-                    Export your data and paste the constants into{' '}
-                    <code className="bg-chalkboard/10 px-1 rounded text-[10px] font-mono">src/data/initialData.ts</code>,
-                    then push to GitHub to redeploy.
-                  </p>
-                </div>
-                <button
-                  onClick={handleExport}
-                  className="shrink-0 flex items-center gap-2 bg-chalkboard text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-apple transition-all"
-                >
-                  <Download size={14} /> Export .ts file
-                </button>
+              {/* Footer */}
+              <div className="px-8 py-5 bg-apple/5 border-t border-apple/10 flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-apple animate-pulse" />
+                <p className="text-sm font-bold text-apple">Live — all changes save instantly to Supabase and appear for every visitor in real time.</p>
               </div>
             </>
           )}

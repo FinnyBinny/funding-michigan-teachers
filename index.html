@@ -7,8 +7,6 @@
     <meta name="description" content="Funding Michigan Teachers is a student-led 501(c)(3) nonprofit dedicated to providing Michigan educators with the resources they need to inspire the next generation." />
     <meta name="keywords" content="Michigan teachers, nonprofit, education funding, classroom resources, student-led, Michigan schools" />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#1a1c1d" />
-    <link rel="canonical" href="https://fundingmichiganteachers.org" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -23,40 +21,61 @@
     <meta name="twitter:description" content="A student-led nonprofit supporting Michigan educators." />
     <meta name="twitter:image" content="https://fundingmichiganteachers.org/og-image.png" />
 
+    <!-- Canonical -->
+    <link rel="canonical" href="https://www.fundingmichiganteachers.org" />
+
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <!-- Fonts: preconnect then load all weights used by the app -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&family=Architects+Daughter&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-
-    <!-- Structured Data -->
+    <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "NonprofitOrganization",
+      "@type": "NGO",
       "name": "Funding Michigan Teachers",
-      "url": "https://fundingmichiganteachers.org",
-      "logo": "https://fundingmichiganteachers.org/favicon.svg",
-      "description": "A student-led 501(c)(3) nonprofit organization dedicated to providing Michigan educators with the resources they need to inspire the next generation.",
+      "alternateName": "FMT",
+      "url": "https://www.fundingmichiganteachers.org",
+      "logo": "https://www.fundingmichiganteachers.org/images/fmt-logo-lc.png",
+      "description": "A student-led 501(c)(3) nonprofit dedicated to providing Michigan educators with the resources they need to inspire the next generation.",
+      "foundingDate": "2023",
+      "areaServed": "Michigan",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Okemos",
         "addressRegion": "MI",
         "addressCountry": "US"
       },
-      "email": "hello@fundingmichiganteachers.org",
-      "taxID": "93-4485967",
-      "foundingDate": "2023",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "hello@fundingmichiganteachers.org",
+        "contactType": "customer support"
+      },
       "sameAs": [
-        "https://fundingmichiganteachers.org"
-      ]
+        "https://www.instagram.com/fundingmichiganteachers"
+      ],
+      "taxID": "93-4485967",
+      "nonprofitStatus": "Nonprofit501c3"
     }
     </script>
+
+    <!-- Preconnect to external origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.zeffy.com" />
+    <link rel="preconnect" href="https://zeffy-scripts.s3.ca-central-1.amazonaws.com" />
+
+    <!-- Fonts (non-render-blocking) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" /></noscript>
+
+    <!-- Preload LCP hero image -->
+    <link rel="preload" as="image" href="/images/finn-and-mrs-freeman-opt.jpg" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script defer src="https://zeffy-scripts.s3.ca-central-1.amazonaws.com/embed-form-script.min.js"></script>
   </body>
 </html>

@@ -18,9 +18,9 @@ export default function TeacherStories() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="relative bg-white rounded-[4rem] shadow-[0_30px_100px_rgba(0,0,0,0.08)] overflow-hidden border border-chalkboard/5 group/card">
-        <div className="grid md:grid-cols-2 min-h-[700px]">
+        <div className="grid md:grid-cols-2 min-h-[380px]">
           {/* Image Section */}
-          <div className="relative h-[500px] md:h-auto overflow-hidden">
+          <div className="relative h-[260px] md:h-auto overflow-hidden">
             <AnimatePresence mode="wait">
               {currentStory.image ? (
                 <motion.img
@@ -30,11 +30,8 @@ export default function TeacherStories() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   src={currentStory.image}
-                  width="600"
-                  height="700"
-                  className="w-full h-full object-cover"
-                  alt={`Portrait of ${currentStory.name}`}
-                  loading="lazy"
+                  className="w-full h-full object-cover object-top"
+                  alt={currentStory.name}
                   referrerPolicy="no-referrer"
                 />
               ) : (
@@ -65,10 +62,10 @@ export default function TeacherStories() {
           </div>
 
           {/* Content Section */}
-          <div className="p-16 md:p-20 flex flex-col justify-center relative bg-paper/30">
+          <div className="p-7 md:p-10 flex flex-col justify-center relative bg-paper/30">
             <Quote className="absolute top-12 right-12 text-apple/5 w-40 h-40 -z-10 rotate-12" />
             
-            <div className="hidden md:block mb-12">
+            <div className="hidden md:block mb-7">
               <motion.div
                 key={currentStory.name}
                 initial={{ opacity: 0, y: 20 }}
@@ -89,7 +86,7 @@ export default function TeacherStories() {
               </motion.div>
             </div>
 
-            <div className="space-y-10">
+            <div className="space-y-6">
               <motion.div
                 key={`bio-${currentIndex}`}
                 initial={{ opacity: 0, x: 20 }}
@@ -107,28 +104,28 @@ export default function TeacherStories() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-white p-10 rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-chalkboard/5 relative overflow-hidden group/impact"
+                className="bg-white p-6 rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-chalkboard/5 relative overflow-hidden group/impact"
               >
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-apple" />
-                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-4">The Impact</h4>
-                <p className="text-2xl font-serif leading-relaxed text-chalkboard group-hover/impact:text-apple transition-colors duration-500">
+                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-3">The Impact</h4>
+                <p className="text-lg font-serif leading-relaxed text-chalkboard group-hover/impact:text-apple transition-colors duration-500">
                   {currentStory.impact}
                 </p>
               </motion.div>
             </div>
 
-            <div className="mt-16 flex flex-wrap items-center justify-between gap-8">
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
               <div className="flex gap-4">
                 <button
                   onClick={prevStory}
-                  aria-label="Previous story"
+                  aria-label="Previous teacher story"
                   className="p-4 rounded-2xl border-2 border-chalkboard/5 hover:border-apple hover:text-apple transition-all active:scale-90 bg-white shadow-sm"
                 >
                   <ChevronLeft size={28} />
                 </button>
                 <button
                   onClick={nextStory}
-                  aria-label="Next story"
+                  aria-label="Next teacher story"
                   className="p-4 rounded-2xl border-2 border-chalkboard/5 hover:border-apple hover:text-apple transition-all active:scale-90 bg-white shadow-sm"
                 >
                   <ChevronRight size={28} />
@@ -148,12 +145,11 @@ export default function TeacherStories() {
 
       {/* Pagination dots */}
       <div className="flex justify-center gap-3 mt-12">
-        {stories.map((story, i) => (
+        {stories.map((s, i) => (
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}
-            aria-label={`View story ${i + 1}: ${story.name}`}
-            aria-current={currentIndex === i ? 'true' : undefined}
+            aria-label={`View story ${i + 1}: ${s.name}`}
             className={cn(
               "h-2 rounded-full transition-all duration-500",
               currentIndex === i ? "bg-apple w-12" : "bg-chalkboard/10 w-2 hover:bg-chalkboard/30"

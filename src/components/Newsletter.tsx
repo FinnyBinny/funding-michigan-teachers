@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
+import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -9,28 +12,49 @@ export default function Newsletter() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
-    try {
-      const res = await fetch('https://formspree.io/f/xpwrqkbv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, _subject: 'Newsletter Signup - Funding Michigan Teachers' })
+    let submitted = false;
+
+    // Try Supabase first
+    if (supabase) {
+      const { error } = await supabase.from('contact_submissions').insert({
+        name: 'Newsletter Signup',
+        email,
+        type: 'newsletter',
       });
-      if (res.ok) {
-        setStatus('success');
-        setEmail('');
-        setTimeout(() => setStatus('idle'), 5000);
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
+      if (!error) submitted = true;
+    }
+
+    // Fallback: try Web3Forms
+    if (!submitted && WEB3FORMS_KEY) {
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: 'Newsletter Signup — Funding Michigan Teachers',
+            email,
+            from_name: 'FMT Newsletter Signup',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) submitted = true;
+      } catch { /* ignore */ }
+    }
+
+    if (submitted) {
+      setStatus('success');
+      setEmail('');
+      setTimeout(() => setStatus('idle'), 5000);
+    } else {
       setStatus('error');
     }
   };
 
   return (
-    <section className="py-32 px-6 bg-chalkboard relative overflow-hidden">
+    <section className="py-16 md:py-32 px-6 bg-chalkboard relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -41,12 +65,12 @@ export default function Newsletter() {
               <Sparkles size={14} />
               <span>Stay Informed</span>
             </div>
-            <h2 className="text-6xl md:text-8xl font-serif font-bold text-white mb-8 leading-[0.9] tracking-tight">
+            <h2 className="text-4xl sm:text-6xl md:text-8xl font-serif font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight">
               The <span className="text-apple italic font-normal">Impact</span> <br />
               Report.
             </h2>
             <p className="text-xl text-white/60 font-light leading-relaxed max-w-lg">
-              Join 2,400+ supporters receiving monthly stories of how your generosity is transforming Michigan classrooms.
+              Get real updates on exactly where your support goes — teacher appreciation events, funded classrooms, and the students who benefit. No filler. Just impact.
             </p>
           </motion.div>
 
@@ -57,7 +81,7 @@ export default function Newsletter() {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-12 rounded-[3rem] shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-10 lg:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 ml-2">Email Address</label>

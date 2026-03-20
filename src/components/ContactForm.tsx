@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -9,26 +12,51 @@ export default function ContactForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
-    try {
-      const res = await fetch('https://formspree.io/f/xpwrqkbv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, _subject: `Contact from ${form.name} - Funding Michigan Teachers` })
+    let submitted = false;
+
+    // Try Supabase first
+    if (supabase) {
+      const { error } = await supabase.from('contact_submissions').insert({
+        name: form.name,
+        email: form.email,
+        message: form.message,
+        type: 'contact',
       });
-      if (res.ok) {
-        setStatus('success');
-        setForm({ name: '', email: '', message: '' });
-        setTimeout(() => setStatus('idle'), 5000);
-      } else {
-        setStatus('error');
-      }
-    } catch (err) {
+      if (!error) submitted = true;
+    }
+
+    // Fallback: try Web3Forms
+    if (!submitted && WEB3FORMS_KEY) {
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: `Contact from ${form.name} — Funding Michigan Teachers`,
+            name: form.name,
+            email: form.email,
+            message: form.message,
+            replyto: form.email,
+            from_name: form.name,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) submitted = true;
+      } catch { /* ignore */ }
+    }
+
+    if (submitted) {
+      setStatus('success');
+      setForm({ name: '', email: '', message: '' });
+      setTimeout(() => setStatus('idle'), 5000);
+    } else {
       setStatus('error');
     }
   };
 
   return (
-    <div className="grid lg:grid-cols-2 gap-24 items-start">
+    <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-start">
       <motion.div
         initial={{ opacity: 0, x: -30 }}
         whileInView={{ opacity: 1, x: 0 }}
@@ -39,10 +67,10 @@ export default function ContactForm() {
           <MessageSquare size={14} />
           <span>Get in Touch</span>
         </div>
-        <h2 className="text-7xl font-serif font-bold mb-8 leading-[0.9] tracking-tight text-chalkboard">
+        <h2 className="text-4xl sm:text-5xl lg:text-7xl font-serif font-bold mb-6 sm:mb-8 leading-[0.9] tracking-tight text-chalkboard">
           Let's <span className="text-apple italic font-normal">Connect</span>.
         </h2>
-        <p className="text-xl text-chalkboard/60 mb-12 font-light leading-relaxed max-w-md">
+        <p className="text-lg sm:text-xl text-chalkboard/60 mb-8 sm:mb-12 font-light leading-relaxed max-w-md">
           Have questions about our mission or want to get involved? We're here to help you make an impact.
         </p>
 
@@ -69,7 +97,7 @@ export default function ContactForm() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="bg-white p-12 rounded-[4rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] border border-chalkboard/5 relative"
+        className="bg-white p-6 sm:p-10 lg:p-12 rounded-[2rem] sm:rounded-[4rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] border border-chalkboard/5 relative"
       >
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid md:grid-cols-2 gap-8">
