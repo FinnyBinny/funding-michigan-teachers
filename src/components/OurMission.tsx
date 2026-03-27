@@ -50,7 +50,7 @@ export default function OurMission() {
             Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
           </p>
           <p className="text-base text-chalkboard/70 leading-relaxed font-light">
-            Since founding, FMT has raised over $4,000, served Okemos High School staff at every monthly meeting, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with 100% of donations going directly to teachers.
+            Since founding, FMT has raised over $4,000, served Okemos High School staff at every monthly meeting during the 2025–2026 school year, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with 100% of donations going directly to teachers.
           </p>
 
           <AnimatePresence>
@@ -70,7 +70,7 @@ export default function OurMission() {
                     That tradition continued through middle school and into high school. In November 2023, during his freshman year, Finn decided to make it permanent. He founded Funding Michigan Teachers as a student-led nonprofit, bringing in community partners and donors to sustain and scale the appreciation effort year-round.
                   </p>
                   <p className="text-base text-chalkboard/60 leading-relaxed font-light">
-                    FMT has hosted two door decorating competitions awarding $500–$700 in prizes, delivered surprise staff meals from Chick-Fil-A, Dunkin', Nothing Bundt Cakes, and Hungry Howie's, organized a student-written Valentine's Day letter campaign, and funded a dissection lab grant at Okemos High School. Every initiative is entirely student-run — because Finn believes young people can make a real difference in their communities.
+                    FMT has hosted two door decorating competitions awarding $500–$700 in prizes, delivered surprise staff meals from Chick-Fil-A, Dunkin', Nothing Bundt Cakes, and Hungry Howie's at staff meetings, and organized a student-written Valentine's Day letter campaign. Every initiative is entirely student-run — because Finn believes young people can make a real difference in their communities.
                   </p>
                 </div>
               </motion.div>
