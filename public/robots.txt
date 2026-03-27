@@ -1,4 +1,39 @@
+# Funding Michigan Teachers — fundingmichiganteachers.org
+
 User-agent: *
 Allow: /
+
+# ——— AI Search & Citation Bots (explicitly allowed) ———
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Anthropic / Claude
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Google Gemini & AI Overviews
+User-agent: Google-Extended
+Allow: /
+
+# Microsoft Copilot (via Bing)
+User-agent: Bingbot
+Allow: /
+
+# ——— Block training-only scrapers (does not affect search citations) ———
+
+User-agent: CCBot
+Disallow: /
 
 Sitemap: https://www.fundingmichiganteachers.org/sitemap.xml

@@ -23,17 +23,19 @@ export default function TeacherLeaderboard() {
   }, []);
 
   const leaderboard = useMemo(() => Object.values(
-    projects.reduce((acc, p) => {
-      const key = `${p.teacher_name}|${p.school_name}`;
-      if (!acc[key]) {
-        acc[key] = { teacher_name: p.teacher_name, school_name: p.school_name, project_count: 0, total_votes: 0, total_raised: 0 };
-      }
-      acc[key].project_count += 1;
-      // Use Supabase vote count if available, otherwise fall back to stored value
-      acc[key].total_votes += supaVotes[p.id] !== undefined ? supaVotes[p.id] : p.votes;
-      acc[key].total_raised += p.raised;
-      return acc;
-    }, {} as Record<string, { teacher_name: string; school_name: string; project_count: number; total_votes: number; total_raised: number }>)
+    projects
+      .filter(p => p.teacher_name !== 'Submit a Project' && p.school_name !== 'Your Classroom')
+      .reduce((acc, p) => {
+        const key = `${p.teacher_name}|${p.school_name}`;
+        if (!acc[key]) {
+          acc[key] = { teacher_name: p.teacher_name, school_name: p.school_name, project_count: 0, total_votes: 0, total_raised: 0 };
+        }
+        acc[key].project_count += 1;
+        // Use Supabase vote count if available, otherwise fall back to stored value
+        acc[key].total_votes += supaVotes[p.id] !== undefined ? supaVotes[p.id] : p.votes;
+        acc[key].total_raised += p.raised;
+        return acc;
+      }, {} as Record<string, { teacher_name: string; school_name: string; project_count: number; total_votes: number; total_raised: number }>)
   ).sort((a, b) => b.total_votes - a.total_votes), [projects, supaVotes]);
 
   return (

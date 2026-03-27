@@ -169,7 +169,7 @@ export default function App() {
                 </button>
                 <button
                   onClick={() => document.getElementById('mission')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="btn-secondary"
+                  className="px-8 py-4 rounded-2xl font-bold text-base text-chalkboard/60 border border-chalkboard/15 hover:border-chalkboard/30 hover:text-chalkboard transition-all flex items-center gap-2"
                 >
                   Our Mission
                 </button>
@@ -229,13 +229,13 @@ export default function App() {
                     className="h-full bg-apple rounded-full"
                   />
                 </div>
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-2xl font-bold font-mono text-chalkboard leading-none">$4,000+</p>
+                <div className="flex justify-between items-end min-w-0 gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xl font-bold font-mono text-chalkboard leading-none">$4,000+</p>
                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">raised so far</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold font-mono text-chalkboard/30 leading-none">$10,000</p>
+                  <div className="text-right shrink-0">
+                    <p className="text-xl font-bold font-mono text-chalkboard/30 leading-none">$10,000</p>
                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">school year goal</p>
                   </div>
                 </div>

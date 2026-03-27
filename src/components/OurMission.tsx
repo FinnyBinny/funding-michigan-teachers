@@ -1,5 +1,6 @@
-import { motion } from 'motion/react';
-import { Coffee, BookOpen, Star, GraduationCap, Apple } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Coffee, BookOpen, Star, GraduationCap, Apple, ChevronDown } from 'lucide-react';
 
 const MISSION_POINTS = [
   {
@@ -26,6 +27,8 @@ const MISSION_POINTS = [
 ];
 
 export default function OurMission() {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="grid lg:grid-cols-2 gap-12 items-start">
@@ -42,49 +45,47 @@ export default function OurMission() {
           <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-[1.1] text-balance">
             Empowering Educators to <span className="text-apple italic font-normal">Inspire</span> the Next Generation.
           </h2>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Funding Michigan Teachers began with something simple: appreciation.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Our founder, Finn Regan, grew up watching his mother work as a teacher. From a young age, he saw how much time, effort, and personal money teachers invest into their classrooms. Teachers were not just doing their jobs — they were constantly buying supplies, decorating classrooms, and creating opportunities for students using their own money.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  At the same time, Finn noticed something else: teachers often did not receive the recognition they deserved.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Even in elementary school, he wanted to show his teachers how much they meant to him.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Beginning in first through fourth grade, Finn and his friends would deliver coffee and donuts to teachers and staff around the school as a simple way to say thank you. What started as a small act of appreciation became a tradition that continued again in seventh and eighth grade, and later in high school.
-</p>
 
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  In November 2023, during his freshman year of high school, Finn decided to turn that tradition into something larger. He founded Funding Michigan Teachers, a student-led nonprofit initiative dedicated to supporting and appreciating educators.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Since its founding, Funding Michigan Teachers has organized numerous events to celebrate teachers and give back to the educators who invest so much into their students and classrooms.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  The organization has hosted teacher appreciation events, delivered coffee and donuts to staff members, provided food for teachers during staff meetings, and created appreciation gift baskets for educators throughout the school year.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Funding Michigan Teachers has also hosted two door decorating competitions that brought creativity and school spirit into classrooms while recognizing the effort teachers put into their learning environments. Through these competitions, the organization awarded approximately $500–$700 in prizes to teachers.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  At the end of the school year, the organization also hosts a Teacher Appreciation Event where educators are recognized with Teacher Appreciation Certificates for their dedication, hard work, and impact on students.
-</p>
+          <p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
+            Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
+          </p>
+          <p className="text-base text-chalkboard/70 leading-relaxed font-light">
+            Since founding, FMT has raised over $4,000, served Okemos High School staff at every monthly meeting, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with 100% of donations going directly to teachers.
+          </p>
 
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  What began as a small act of gratitude has grown into a larger mission: to support, recognize, and uplift teachers across Michigan. Through student leadership, community support, and appreciation-driven initiatives, Funding Michigan Teachers works to ensure educators know how valued they truly are.
-</p>
-<p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-  Because the teachers who shape our futures deserve to be supported today.
-</p>
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="overflow-hidden"
+              >
+                <div className="mt-5 space-y-4 border-l-2 border-apple/20 pl-5">
+                  <p className="text-base text-chalkboard/60 leading-relaxed font-light">
+                    Finn grew up watching his mother work as a teacher — seeing firsthand how much time, effort, and personal money educators invest in their classrooms without recognition. Beginning in elementary school, he and his friends would deliver coffee and donuts to school staff as a simple gesture of thanks.
+                  </p>
+                  <p className="text-base text-chalkboard/60 leading-relaxed font-light">
+                    That tradition continued through middle school and into high school. In November 2023, during his freshman year, Finn decided to make it permanent. He founded Funding Michigan Teachers as a student-led nonprofit, bringing in community partners and donors to sustain and scale the appreciation effort year-round.
+                  </p>
+                  <p className="text-base text-chalkboard/60 leading-relaxed font-light">
+                    FMT has hosted two door decorating competitions awarding $500–$700 in prizes, delivered surprise staff meals from Chick-Fil-A, Dunkin', Nothing Bundt Cakes, and Hungry Howie's, organized a student-written Valentine's Day letter campaign, and funded a dissection lab grant at Okemos High School. Every initiative is entirely student-run — because Finn believes young people can make a real difference in their communities.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-<p className="text-xl text-chalkboard font-medium leading-relaxed">
-  Together, we can transform the education landscape, empowering teachers to reach their full potential and inspire generations to come.
-
-</p>
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="mt-5 mb-8 flex items-center gap-2 text-apple font-bold text-sm hover:text-apple/80 transition-colors"
+          >
+            <span>{expanded ? 'Show less' : 'Read the full story'}</span>
+            <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
+              <ChevronDown size={16} />
+            </motion.div>
+          </button>
 
           
           <div className="grid sm:grid-cols-2 gap-8">
