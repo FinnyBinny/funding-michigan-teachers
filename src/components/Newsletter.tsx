@@ -52,7 +52,7 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="py-16 md:py-32 px-6 bg-chalkboard relative overflow-hidden">
+    <section className="py-12 sm:py-16 px-4 sm:px-6 bg-chalkboard relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div
@@ -65,12 +65,11 @@ export default function Newsletter() {
               <Sparkles size={14} />
               <span>Stay Informed</span>
             </div>
-            <h2 className="text-4xl sm:text-6xl md:text-8xl font-serif font-bold text-white mb-6 sm:mb-8 leading-[0.9] tracking-tight">
-              The <span className="text-apple italic font-normal">Impact</span> <br />
-              Report.
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white mb-5 leading-tight">
+              Get the <span className="text-apple italic font-normal">Impact</span> Report.
             </h2>
-            <p className="text-xl text-white/60 font-light leading-relaxed max-w-lg">
-              Get real updates on exactly where your support goes — teacher appreciation events, funded classrooms, and the students who benefit. No filler. Just impact.
+            <p className="text-base text-white/60 font-light leading-relaxed max-w-lg">
+              Monthly updates on exactly where your support goes — teacher appreciation events, funded classrooms, and the students who benefit. No filler. Just impact.
             </p>
           </motion.div>
 
@@ -92,22 +91,22 @@ export default function Newsletter() {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="Enter your email"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-8 py-6 text-white placeholder:text-white/20 focus:ring-4 focus:ring-apple/20 outline-none transition-all text-lg"
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 focus:ring-4 focus:ring-apple/20 outline-none transition-all text-base"
                     />
                   </div>
                 </div>
-                <button 
+                <button
                   type="submit"
                   disabled={status === 'loading'}
-                  className="w-full bg-apple text-white py-6 rounded-2xl font-bold text-xl hover:bg-white hover:text-apple transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 group"
+                  className="w-full bg-apple text-white py-4 rounded-2xl font-bold text-base hover:bg-white hover:text-apple transition-all shadow-xl flex items-center justify-center gap-3 disabled:opacity-50 group"
                 >
                   {status === 'loading' ? (
-                    <Loader2 className="animate-spin" size={24} />
+                    <Loader2 className="animate-spin" size={20} />
                   ) : status === 'success' ? (
-                    <CheckCircle2 size={24} />
+                    <CheckCircle2 size={20} />
                   ) : (
                     <>
-                      <span>Subscribe Now</span>
+                      <span>Get Impact Updates</span>
                       <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                     </>
                   )}

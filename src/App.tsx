@@ -27,12 +27,14 @@ import FAQAssistant from './components/FAQAssistant';
 import AdminPanel from './components/AdminPanel';
 import DonationModal from './components/DonationModal';
 import PastEvents from './components/PastEvents';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showDonation, setShowDonation] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
 
   const handleDonate = (amount?: number) => {
@@ -62,6 +64,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-paper selection:bg-pencil/30">
+      {/* Announcement Bar */}
+      <div className="bg-apple text-white text-center py-2.5 px-4 text-xs font-bold uppercase tracking-widest relative z-50">
+        <span className="mr-3">🥚 Easter Egg Hunt Fundraiser — Orders due March 30th!</span>
+        <a
+          href="sms:+15173031652&body=Hi! I'd like to place an Easter Egg Hunt order."
+          className="underline underline-offset-2 hover:no-underline opacity-90 hover:opacity-100 transition-opacity"
+        >
+          Text to Order →
+        </a>
+      </div>
+
       {/* Navbar */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4",
@@ -160,20 +173,25 @@ export default function App() {
               <p className="text-lg text-chalkboard/70 max-w-xl mb-8 leading-relaxed font-light">
                 Founded by Finn Regan at age 14 — because he grew up watching teachers spend their own money on classrooms while no one said thank you. We exist to change that.
               </p>
-              <div className="flex flex-wrap gap-5">
+              <div className="flex flex-wrap gap-4">
                 <button
-                  onClick={() => document.getElementById('impact')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' })}
                   className="btn-primary"
                 >
-                  Start Supporting <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                  Donate to a Teacher <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => document.getElementById('mission')?.scrollIntoView({ behavior: 'smooth' })}
                   className="px-8 py-4 rounded-2xl font-bold text-base text-chalkboard/60 border border-chalkboard/15 hover:border-chalkboard/30 hover:text-chalkboard transition-all flex items-center gap-2"
                 >
-                  Our Mission
+                  Our Story
                 </button>
               </div>
+              <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
+                <span className="inline-block w-4 h-px bg-chalkboard/20" />
+                501(c)(3) Nonprofit · EIN 93-4485967 · 100% to teachers
+                <span className="inline-block w-4 h-px bg-chalkboard/20" />
+              </p>
               <div className="mt-10 flex items-center gap-6">
                 <div className="flex flex-col">
                   <span className="text-apple font-bold text-2xl leading-none">1,200+</span>
@@ -253,6 +271,33 @@ export default function App() {
           className="py-12 sm:py-16 px-4 sm:px-6 bg-white relative overflow-hidden"
         >
           <OurMission />
+        </section>
+
+        {/* Donation Tiers Section — placed early so warm visitors can convert immediately */}
+        <section
+          id="tiers"
+          className="py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden bg-paper"
+        >
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest"
+              >
+                <Heart size={14} />
+                <span>Monthly Support</span>
+              </motion.div>
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
+                Choose Your <span className="text-apple italic font-normal">Impact</span>.
+              </h2>
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+                Monthly giving is the most powerful way to support Michigan teachers — it lets us plan ahead, show up consistently, and make every staff meeting feel special.
+              </p>
+            </div>
+            <DonationTiers onDonate={handleDonate} />
+          </div>
         </section>
 
         {/* Impact Map Section */}
@@ -368,33 +413,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Donation Tiers Section */}
-        <section
-          id="tiers"
-          className="py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden bg-paper"
-        >
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest"
-              >
-                <Heart size={14} />
-                <span>Monthly Support</span>
-              </motion.div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
-                Choose Your <span className="text-apple italic font-normal">Impact</span>.
-              </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
-                Join our monthly giving program to provide consistent, reliable support for Michigan teachers and their students.
-              </p>
-            </div>
-            <DonationTiers onDonate={handleDonate} />
-          </div>
-        </section>
-
         {/* Donor Wall Section */}
         <section
           id="donors"
@@ -478,11 +496,9 @@ export default function App() {
                 A student-led 501(c)(3) nonprofit organization dedicated to empowering Michigan's educators and transforming classrooms through community support.
               </p>
               <div className="flex gap-6">
-                {['Twitter', 'Instagram', 'LinkedIn'].map(social => (
-                  <a key={social} href="#" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">
-                    {social}
-                  </a>
-                ))}
+                <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>
+                <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Instagram</a>
+                <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">LinkedIn</a>
               </div>
             </div>
 
@@ -521,7 +537,7 @@ export default function App() {
               <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
             </div>
             <div className="flex items-center gap-6">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <button onClick={() => setShowPrivacy(true)} className="hover:text-white transition-colors">Privacy Policy</button>
             </div>
           </div>
         </div>
@@ -557,6 +573,9 @@ export default function App() {
         amount={donationAmount}
         frequency="monthly"
       />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicy isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
     </div>
   );
 }
