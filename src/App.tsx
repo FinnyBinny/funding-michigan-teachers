@@ -64,17 +64,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-paper selection:bg-pencil/30">
-      {/* Announcement Bar */}
-      <div className="bg-apple text-white text-center py-2.5 px-4 text-xs font-bold uppercase tracking-widest relative z-50">
-        <span className="mr-3">🥚 Easter Egg Hunt Fundraiser — Orders due March 30th!</span>
-        <a
-          href="sms:+15173031652&body=Hi! I'd like to place an Easter Egg Hunt order."
-          className="underline underline-offset-2 hover:no-underline opacity-90 hover:opacity-100 transition-opacity"
-        >
-          Text to Order →
-        </a>
-      </div>
-
       {/* Navbar */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4",
