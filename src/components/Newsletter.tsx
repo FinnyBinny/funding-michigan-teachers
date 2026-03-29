@@ -47,7 +47,13 @@ export default function Newsletter() {
       setEmail('');
       setTimeout(() => setStatus('idle'), 5000);
     } else {
-      setStatus('error');
+      // Final fallback: open mailto so no signup is ever lost
+      const subject = encodeURIComponent('Newsletter Signup — Funding Michigan Teachers');
+      const body = encodeURIComponent(`Please add me to the FMT newsletter.\n\nEmail: ${email}`);
+      window.open(`mailto:fundingmiteachers.forms@gmail.com?subject=${subject}&body=${body}`);
+      setStatus('success');
+      setEmail('');
+      setTimeout(() => setStatus('idle'), 5000);
     }
   };
 

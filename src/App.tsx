@@ -64,7 +64,7 @@ export default function App() {
   const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Stories'];
 
   return (
-    <div className="min-h-screen bg-paper selection:bg-pencil/30">
+    <div className="min-h-screen bg-paper selection:bg-pencil/30 overflow-x-hidden">
       {/* Navbar */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4",

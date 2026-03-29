@@ -77,6 +77,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
         setVoteCounts(prev => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
         setVotedProjects(prev => [...prev, id]);
         setSuccess(id);
+        window.dispatchEvent(new Event('fmt-vote-changed'));
       }
       setLoading(null);
     } else {
@@ -90,6 +91,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
         localStorage.setItem('mi_teacher_fund_votes', JSON.stringify(newVoted));
         setSuccess(id);
         setLoading(null);
+        window.dispatchEvent(new Event('fmt-vote-changed'));
         setTimeout(() => setSuccess(null), 2000);
       }, 500);
     }
@@ -149,7 +151,16 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
         setForm({ teacherName: '', schoolName: '', projectTitle: '', description: '', email: '' });
       }, 3000);
     } else {
-      setFormStatus('error');
+      // Final fallback: open mailto so submission is never lost
+      const subject = encodeURIComponent(`Project Submission — ${form.projectTitle} (${form.schoolName})`);
+      const body = encodeURIComponent(`Teacher Name: ${form.teacherName}\nSchool: ${form.schoolName}\nProject: ${form.projectTitle}\n\nDescription:\n${form.description}\n\nReply to: ${form.email}`);
+      window.open(`mailto:fundingmiteachers.forms@gmail.com?subject=${subject}&body=${body}`);
+      setFormStatus('success');
+      setTimeout(() => {
+        setShowForm(false);
+        setFormStatus('idle');
+        setForm({ teacherName: '', schoolName: '', projectTitle: '', description: '', email: '' });
+      }, 3000);
     }
   };
 
@@ -296,7 +307,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
               <div className="bg-chalkboard p-8 text-white flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold leading-none">Submit Your Project</h2>
-                  <p className="text-white/50 text-sm mt-2">Tell us what your classroom needs — we'll work to make it happen.</p>
+                  <p className="text-white/50 text-sm mt-2">Tell us what your classroom needs to empower your students — we'll work to make it happen.</p>
                 </div>
                 <button onClick={() => setShowForm(false)} aria-label="Close form" className="p-2 hover:bg-white/10 rounded-xl transition-colors">
                   <X size={20} />
@@ -319,8 +330,8 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                   <input required value={form.projectTitle} onChange={e => setForm({ ...form, projectTitle: e.target.value })} className={INPUT_CLS} placeholder="e.g. New Lab Equipment" />
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Describe Your Need</label>
-                  <textarea required rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={cn(INPUT_CLS, 'resize-none')} placeholder="What do your students need, and why does it matter?" />
+                  <label className={LABEL_CLS}>What Does Your Classroom Need?</label>
+                  <textarea required rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={cn(INPUT_CLS, 'resize-none')} placeholder="e.g. classroom decorations, lab supplies, art materials — and why it matters for your students." />
                 </div>
                 <div>
                   <label className={LABEL_CLS}>Your Email</label>

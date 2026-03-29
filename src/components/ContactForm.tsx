@@ -51,7 +51,13 @@ export default function ContactForm() {
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 5000);
     } else {
-      setStatus('error');
+      // Final fallback: open mailto so no message is ever lost
+      const subject = encodeURIComponent(`Contact from ${form.name} — Funding Michigan Teachers`);
+      const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\nMessage:\n${form.message}`);
+      window.open(`mailto:fundingmiteachers.forms@gmail.com?subject=${subject}&body=${body}`);
+      setStatus('success');
+      setForm({ name: '', email: '', message: '' });
+      setTimeout(() => setStatus('idle'), 5000);
     }
   };
 

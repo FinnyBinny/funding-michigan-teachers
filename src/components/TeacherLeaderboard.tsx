@@ -9,17 +9,22 @@ export default function TeacherLeaderboard() {
   const projects = useProjects();
   const [supaVotes, setSupaVotes] = useState<Record<number, number>>({});
 
-  // Fetch real vote counts from Supabase
+  // Fetch real vote counts from Supabase, and re-fetch whenever a vote is cast
   useEffect(() => {
-    if (!supabase) return;
-    supabase.from('project_votes').select('project_id').then(({ data }) => {
-      if (!data) return;
-      const counts: Record<number, number> = {};
-      for (const row of data) {
-        counts[row.project_id] = (counts[row.project_id] ?? 0) + 1;
-      }
-      setSupaVotes(counts);
-    });
+    const fetchVotes = () => {
+      if (!supabase) return;
+      supabase.from('project_votes').select('project_id').then(({ data }) => {
+        if (!data) return;
+        const counts: Record<number, number> = {};
+        for (const row of data) {
+          counts[row.project_id] = (counts[row.project_id] ?? 0) + 1;
+        }
+        setSupaVotes(counts);
+      });
+    };
+    fetchVotes();
+    window.addEventListener('fmt-vote-changed', fetchVotes);
+    return () => window.removeEventListener('fmt-vote-changed', fetchVotes);
   }, []);
 
   const leaderboard = useMemo(() => Object.values(
