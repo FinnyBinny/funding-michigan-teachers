@@ -26,6 +26,7 @@ import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
 import AdminPanel from './components/AdminPanel';
 import DonationModal from './components/DonationModal';
+import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import PrivacyPolicy from './components/PrivacyPolicy';
 
@@ -565,6 +566,9 @@ export default function App() {
 
       {/* Privacy Policy Modal */}
       <PrivacyPolicy isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
+
+      {/* 5-minute donation nudge */}
+      <DonationNudge onDonate={() => handleDonate()} />
     </div>
   );
 }
