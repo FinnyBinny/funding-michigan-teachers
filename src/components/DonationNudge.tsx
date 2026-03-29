@@ -14,7 +14,6 @@ export default function DonationNudge({ onDonate }: DonationNudgeProps) {
 
   useEffect(() => {
     if (sessionStorage.getItem(STORAGE_KEY)) return;
-
     const timer = setTimeout(() => setVisible(true), DELAY_MS);
     return () => clearTimeout(timer);
   }, []);
@@ -37,14 +36,14 @@ export default function DonationNudge({ onDonate }: DonationNudgeProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 40, scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-          className="fixed bottom-6 right-6 z-[60] w-80 bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-chalkboard/5 overflow-hidden"
+          className="fixed bottom-6 right-6 z-[60] w-80 bg-paper rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-chalkboard/5 overflow-hidden"
           role="dialog"
           aria-label="Donation prompt"
         >
-          {/* Green accent bar */}
+          {/* Red accent bar matching primary brand color */}
           <div className="h-1 bg-apple w-full" />
 
-          <div className="p-6">
+          <div className="p-6 relative">
             <button
               onClick={dismiss}
               className="absolute top-4 right-4 text-chalkboard/30 hover:text-chalkboard/60 transition-colors"
@@ -53,16 +52,16 @@ export default function DonationNudge({ onDonate }: DonationNudgeProps) {
               <X size={16} />
             </button>
 
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-apple/10 flex items-center justify-center shrink-0">
                 <Heart size={18} className="text-apple" />
               </div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-apple">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-apple">
                 Support Teachers
               </p>
             </div>
 
-            <h3 className="text-lg font-serif font-bold text-chalkboard leading-snug mb-2">
+            <h3 className="font-serif text-lg font-bold text-chalkboard leading-snug mb-2">
               Michigan teachers give everything. Can you give a little back?
             </h3>
             <p className="text-sm text-chalkboard/55 font-light leading-relaxed mb-5">
@@ -71,7 +70,7 @@ export default function DonationNudge({ onDonate }: DonationNudgeProps) {
 
             <button
               onClick={handleDonate}
-              className="w-full bg-apple text-white py-3 rounded-2xl font-bold text-sm hover:bg-apple/90 active:scale-95 transition-all shadow-sm"
+              className="btn-primary w-full justify-center text-sm py-3 px-6 text-base"
             >
               Donate to a Teacher →
             </button>
