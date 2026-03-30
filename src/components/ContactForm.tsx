@@ -14,19 +14,8 @@ export default function ContactForm() {
     setStatus('loading');
     let submitted = false;
 
-    // Try Supabase first
-    if (supabase) {
-      const { error } = await supabase.from('contact_submissions').insert({
-        name: form.name,
-        email: form.email,
-        message: form.message,
-        type: 'contact',
-      });
-      if (!error) submitted = true;
-    }
-
-    // Fallback: try Web3Forms
-    if (!submitted && WEB3FORMS_KEY) {
+    // Always try Web3Forms for email notifications
+    if (WEB3FORMS_KEY) {
       try {
         const res = await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
@@ -44,6 +33,17 @@ export default function ContactForm() {
         const data = await res.json();
         if (data.success) submitted = true;
       } catch { /* ignore */ }
+    }
+
+    // Also save to Supabase for records
+    if (supabase) {
+      supabase.from('contact_submissions').insert({
+        name: form.name,
+        email: form.email,
+        message: form.message,
+        type: 'contact',
+      });
+      submitted = true;
     }
 
     if (submitted) {
@@ -89,9 +89,9 @@ export default function ContactForm() {
               <div className="w-16 h-16 bg-white border border-chalkboard/5 text-apple rounded-2xl flex items-center justify-center group-hover:bg-apple group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-xl group-hover:-translate-y-1">
                 <item.icon size={28} />
               </div>
-              <div className="pt-1">
+              <div className="pt-1 min-w-0">
                 <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted mb-1">{item.label}</div>
-                <div className="text-xl font-bold text-chalkboard">{item.value}</div>
+                <div className="text-base sm:text-xl font-bold text-chalkboard break-all">{item.value}</div>
               </div>
             </div>
           ))}

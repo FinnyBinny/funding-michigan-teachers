@@ -14,18 +14,8 @@ export default function Newsletter() {
     setStatus('loading');
     let submitted = false;
 
-    // Try Supabase first
-    if (supabase) {
-      const { error } = await supabase.from('contact_submissions').insert({
-        name: 'Newsletter Signup',
-        email,
-        type: 'newsletter',
-      });
-      if (!error) submitted = true;
-    }
-
-    // Fallback: try Web3Forms
-    if (!submitted && WEB3FORMS_KEY) {
+    // Always try Web3Forms for email notifications
+    if (WEB3FORMS_KEY) {
       try {
         const res = await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
@@ -40,6 +30,16 @@ export default function Newsletter() {
         const data = await res.json();
         if (data.success) submitted = true;
       } catch { /* ignore */ }
+    }
+
+    // Also save to Supabase for records
+    if (supabase) {
+      supabase.from('contact_submissions').insert({
+        name: 'Newsletter Signup',
+        email,
+        type: 'newsletter',
+      });
+      submitted = true;
     }
 
     if (submitted) {

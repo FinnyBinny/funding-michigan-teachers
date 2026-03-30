@@ -37,8 +37,8 @@ export default function TeacherLeaderboard() {
         }
         acc[key].project_count += 1;
         // Use Supabase vote count if available, otherwise fall back to stored value
-        acc[key].total_votes += supaVotes[p.id] !== undefined ? supaVotes[p.id] : p.votes;
-        acc[key].total_raised += p.raised;
+        acc[key].total_votes += supaVotes[p.id] !== undefined ? supaVotes[p.id] : Number(p.votes);
+        acc[key].total_raised += Number(p.raised);
         return acc;
       }, {} as Record<string, { teacher_name: string; school_name: string; project_count: number; total_votes: number; total_raised: number }>)
   ).sort((a, b) => b.total_votes - a.total_votes), [projects, supaVotes]);
