@@ -48,7 +48,7 @@ const SPONSOR_TIERS = [
       'Everything in Pencil Partner',
       'Featured spotlight in FMT\'s monthly newsletter',
       'Dedicated Instagram post every quarter',
-      'Your name on teacher thank-you cards given at staff meetings',
+      'Your name on teacher thank-you flyers shown at staff meetings',
       'Personalized certificate of appreciation for your business',
     ],
   },
@@ -65,7 +65,7 @@ const SPONSOR_TIERS = [
       'For organizations committed to making a visible, trackable impact in Okemos classrooms — and proving it to their community.',
     perks: [
       'Everything in Campus Champion',
-      'Your logo on physical appreciation banners, cards, and bags',
+      'Your logo on physical appreciation banners, flyers, and pinned post',
       'Personal thank-you video from a teacher you helped fund',
       'Quarterly impact report tied to your specific contribution',
       '"Sponsored by [Business]" callout at one staff meeting per semester',
@@ -86,7 +86,7 @@ const SPONSOR_TIERS = [
       'Our highest honor, reserved for partners who believe deeply in the future of Michigan education and want to help define it.',
     perks: [
       'Everything in Principal\'s Circle',
-      'Named sponsorship — e.g., "[Business] Teacher Appreciation Month"',
+      'Named sponsorship fund — e.g., "[Business] Teacher Appreciation Fund"',
       'Co-branded social content published throughout the year',
       'First pick of which school or project your dollars fund',
       'Direct monthly check-ins with FMT founder Finn Regan',
