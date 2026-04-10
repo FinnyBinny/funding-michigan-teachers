@@ -29,7 +29,6 @@ import DonationModal from './components/DonationModal';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import PrivacyPolicy from './components/PrivacyPolicy';
-import CorporateSponsors from './components/CorporateSponsors';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
@@ -62,7 +61,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Sponsors', 'Stories'];
+  const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Stories'];
 
   return (
     <div className="min-h-screen bg-paper selection:bg-pencil/30 overflow-x-hidden">
@@ -404,36 +403,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Corporate Sponsors Section */}
-        <section
-          id="sponsors"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-paper relative overflow-hidden"
-        >
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-ruler/20"
-              >
-                <BookOpen size={14} />
-                <span>Corporate Partnerships</span>
-              </motion.div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
-                Partner With <span className="text-ruler italic font-normal">FMT</span>.
-              </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
-                Corporate sponsors are the backbone of what we do. Your business can put its name behind Michigan's most dedicated educators — and earn real, visible recognition for it.
-              </p>
-            </div>
-            <CorporateSponsors
-              onDonate={handleDonate}
-              onContact={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            />
-          </div>
-        </section>
-
         {/* Donor Wall Section */}
         <section
           id="donors"
@@ -530,7 +499,7 @@ export default function App() {
                 <li><a href="#impact" className="hover:text-white transition-colors">Impact Map</a></li>
                 <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>
                 <li><a href="#leaderboard" className="hover:text-white transition-colors">Leaderboard</a></li>
-                <li><a href="#sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
+                <li><a href="/sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
                 <li><a href="#donors" className="hover:text-white transition-colors">Supporter Wall</a></li>
               </ul>
             </div>

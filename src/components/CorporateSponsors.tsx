@@ -23,13 +23,12 @@ const SPONSOR_TIERS = [
     accent: 'bg-pencil',
     accentText: 'text-chalkboard',
     border: 'border-pencil/30',
-    badge: 'bg-pencil/15 text-chalkboard',
     description:
       'An accessible entry point for local businesses that want to stand behind Michigan teachers and get recognized for it.',
     perks: [
-      'Logo on FMT website sponsor page',
-      'Name in event programs & printed materials',
-      'One social media shout-out',
+      'Logo featured on the FMT website sponsors page',
+      'Business name in printed materials at teacher appreciation events',
+      'One dedicated social media shout-out',
       'Tax-deductible 501(c)(3) contribution',
     ],
   },
@@ -42,16 +41,15 @@ const SPONSOR_TIERS = [
     accent: 'bg-ruler',
     accentText: 'text-white',
     border: 'border-ruler/30',
-    badge: 'bg-ruler/15 text-ruler',
     popular: true,
     description:
       'The sweet spot for businesses ready to show up for teachers consistently and earn meaningful community visibility.',
     perks: [
       'Everything in Pencil Partner',
-      'Featured spotlight in monthly newsletter',
+      'Featured spotlight in FMT\'s monthly newsletter',
       'Dedicated Instagram post every quarter',
-      '2 VIP invites to annual appreciation event',
-      'Personalized certificate of appreciation',
+      'Your name on teacher thank-you cards given at staff meetings',
+      'Personalized certificate of appreciation for your business',
     ],
   },
   {
@@ -63,15 +61,14 @@ const SPONSOR_TIERS = [
     accent: 'bg-apple',
     accentText: 'text-white',
     border: 'border-apple/30',
-    badge: 'bg-apple/15 text-apple',
     description:
       'For organizations committed to making a visible, trackable impact in Okemos classrooms — and proving it to their community.',
     perks: [
       'Everything in Campus Champion',
-      'Branded signage displayed at all events',
-      'Personal thank-you video from a funded teacher',
-      'Quarterly impact report tied to your dollars',
-      '4 VIP invites to appreciation events',
+      'Your logo on physical appreciation banners, cards, and bags',
+      'Personal thank-you video from a teacher you helped fund',
+      'Quarterly impact report tied to your specific contribution',
+      '"Sponsored by [Business]" callout at one staff meeting per semester',
       'Input into which classroom projects get funded',
     ],
   },
@@ -84,18 +81,17 @@ const SPONSOR_TIERS = [
     accent: 'bg-chalkboard',
     accentText: 'text-pencil',
     border: 'border-chalkboard/20',
-    badge: 'bg-chalkboard/10 text-chalkboard',
     premium: true,
     description:
       'Our highest honor, reserved for partners who believe deeply in the future of Michigan education and want to help define it.',
     perks: [
       'Everything in Principal\'s Circle',
-      'Named sponsorship fund or branded event',
-      'Dedicated wall-of-honor recognition',
-      'Co-branded social campaigns all year long',
-      'Unlimited event invites for your whole team',
-      'Direct relationship with FMT leadership',
-      'Early access to new programs & initiatives',
+      'Named sponsorship — e.g., "[Business] Teacher Appreciation Month"',
+      'Co-branded social content published throughout the year',
+      'First pick of which school or project your dollars fund',
+      'Direct monthly check-ins with FMT founder Finn Regan',
+      'Permanent wall-of-honor recognition on the FMT website',
+      'Early access to new programs and initiatives',
     ],
   },
 ];
@@ -133,7 +129,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
   return (
     <div>
 
-      {/* Why Sponsor FMT */}
+      {/* Impact Stats */}
       <div className="grid md:grid-cols-3 gap-6 mb-16 md:mb-24">
         {WHY_STATS.map((stat, index) => (
           <motion.div
@@ -251,7 +247,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
           </h3>
           <p className="text-white/55 max-w-lg leading-relaxed font-light">
             We're happy to build a sponsorship package around your goals — whether that's a specific school,
-            a branded supply drive, or an in-kind donation. Reach out and let's talk.
+            a branded supply drive, or an in-kind food donation. Reach out and let's talk.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-4 shrink-0">
