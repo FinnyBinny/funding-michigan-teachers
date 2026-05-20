@@ -1,40 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Heart, ArrowLeft, Building2 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { Heart, ArrowLeft, Building2, ExternalLink } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
 import DonationModal from '../components/DonationModal';
-
-const FOOD_PARTNERS = [
-  {
-    month: 'September',
-    business: 'Chick-Fil-A Okemos',
-    detail: 'Cookies + free meal coupons for every staff member',
-    avif: '/images/IMG_3714(CFA).avif',
-    image: '/images/IMG_3714(CFA)-opt.jpg',
-  },
-  {
-    month: 'October',
-    business: "Tailgaters / Dunkin', Okemos",
-    detail: 'Fresh donuts for the whole staff',
-    avif: '/images/IMG_4369(DNK).avif',
-    image: '/images/IMG_4369(DNK)-opt.jpg',
-  },
-  {
-    month: 'January',
-    business: 'Nothing Bundt Cakes, Okemos',
-    detail: 'Mini Bundt Cakes — the perfect January pick-me-up',
-    avif: '/images/IMG_5678(NBC).avif',
-    image: '/images/IMG_5678(NBC)-opt.jpg',
-  },
-  {
-    month: 'March',
-    business: "Hungry Howie's, Okemos",
-    detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan',
-    avif: '/images/IMG_6308(FR).avif',
-    image: '/images/IMG_6308(FR)-opt.jpg',
-  },
-];
+import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -44,6 +13,8 @@ function navigate(path: string) {
 export default function SponsorsPage() {
   const [showDonation, setShowDonation] = useState(false);
   const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
+  const foodPartners = useFoodPartners();
+  const sponsors = useSponsors().filter(s => s.active !== false);
 
   const handleDonate = (amount?: number) => {
     setDonationAmount(amount);
@@ -132,8 +103,79 @@ export default function SponsorsPage() {
           </div>
         </section>
 
+        {/* Current Sponsors Wall — driven by admin */}
+        {sponsors.length > 0 && (
+          <section className="py-16 sm:py-24 px-4 sm:px-6 bg-paper relative">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-12">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="inline-flex items-center gap-2 bg-ruler/10 text-ruler ring-1 ring-ruler/20 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.24em]"
+                >
+                  <Building2 size={11} />
+                  Our Corporate Partners
+                </motion.div>
+                <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 leading-tight tracking-[-0.01em]">
+                  Standing with us <span className="text-ruler italic font-normal">today</span>.
+                </h2>
+                <p className="text-chalkboard/60 max-w-xl mx-auto font-light leading-relaxed">
+                  These businesses chose to back Michigan teachers in a visible, public way. They didn't have to — they did.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+                {sponsors.map((sponsor, i) => (
+                  <motion.a
+                    key={sponsor.id ?? sponsor.name}
+                    href={sponsor.website || '#'}
+                    target={sponsor.website ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                    initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
+                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    viewport={{ once: true, margin: '-60px' }}
+                    transition={{ duration: 0.7, delay: i * 0.06, ease: [0.32, 0.72, 0, 1] }}
+                    className="group block"
+                  >
+                    {/* Outer bezel */}
+                    <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[1.75rem] p-1.5 group-hover:ring-chalkboard/15 transition-all">
+                      {/* Inner core */}
+                      <div className="bg-white rounded-[calc(1.75rem-0.375rem)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-5">
+                          <span className="text-[9px] uppercase tracking-[0.22em] font-bold text-apple bg-apple/10 px-2.5 py-1 rounded-full">
+                            {sponsor.tier}
+                          </span>
+                          {sponsor.website && (
+                            <ExternalLink size={13} className="text-chalkboard/30 group-hover:text-chalkboard transition-colors" />
+                          )}
+                        </div>
+                        {sponsor.logo ? (
+                          <div className="bg-chalkboard/[0.03] rounded-xl h-20 flex items-center justify-center mb-4 p-3">
+                            <img src={sponsor.logo} alt={sponsor.name} className="max-h-full max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        ) : (
+                          <div className="h-20 mb-4 flex items-center">
+                            <p className="font-serif font-bold text-2xl text-chalkboard leading-tight tracking-[-0.01em]">{sponsor.name}</p>
+                          </div>
+                        )}
+                        {sponsor.logo && (
+                          <p className="font-serif font-bold text-lg text-chalkboard mb-2">{sponsor.name}</p>
+                        )}
+                        {sponsor.description && (
+                          <p className="text-chalkboard/55 text-xs leading-relaxed font-light mt-auto">{sponsor.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Current In-Kind Partners */}
-        <section className="py-12 sm:py-16 px-6 bg-chalkboard relative overflow-hidden">
+        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-chalkboard relative overflow-hidden">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <motion.div
@@ -154,10 +196,10 @@ export default function SponsorsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-              {FOOD_PARTNERS.map((partner, index) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+              {foodPartners.map((partner, index) => (
                 <motion.div
-                  key={partner.business}
+                  key={partner.id ?? partner.business}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -165,16 +207,20 @@ export default function SponsorsPage() {
                   className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
                 >
                   <div className="aspect-[3/4] w-full">
-                    <picture>
-                      <source srcSet={partner.avif} type="image/avif" />
-                      <img
-                        src={partner.image}
-                        alt={`${partner.business} — ${partner.month}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </picture>
+                    {partner.image ? (
+                      <picture>
+                        {partner.avif && <source srcSet={partner.avif} type="image/avif" />}
+                        <img
+                          src={partner.image}
+                          alt={`${partner.business} — ${partner.month}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </picture>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-pencil/30 to-apple/20" />
+                    )}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/85 via-chalkboard/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -205,6 +251,12 @@ export default function SponsorsPage() {
               className="hover:text-white transition-colors cursor-pointer"
             >
               Back to Main Site
+            </button>
+            <button
+              onClick={() => navigate('/for-schools')}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              For Schools
             </button>
             <a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white transition-colors">
               hello@fundingmichiganteachers.org

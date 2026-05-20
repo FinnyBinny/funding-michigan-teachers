@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   EVENTS, DONORS, PROJECTS, STORIES, LOCATIONS,
+  SPONSORS, FOOD_PARTNERS, TEACHERS_OF_THE_MONTH,
 } from '../data/initialData';
-import type { Event, Donor, Project, Story, Location } from '../data/initialData';
+import type {
+  Event, Donor, Project, Story, Location,
+  Sponsor, FoodPartner, TeacherOfTheMonth,
+} from '../data/initialData';
 import { supabase } from '../lib/supabase';
 
-export type { Event, Donor, Project, Story, Location };
+export type { Event, Donor, Project, Story, Location, Sponsor, FoodPartner, TeacherOfTheMonth };
 
 export const STORAGE_KEYS = {
   events: 'fmt_events',
@@ -13,6 +17,9 @@ export const STORAGE_KEYS = {
   projects: 'fmt_projects',
   stories: 'fmt_stories',
   locations: 'fmt_locations',
+  sponsors: 'fmt_sponsors',
+  food_partners: 'fmt_food_partners',
+  teachers_of_month: 'fmt_teachers_of_month',
 } as const;
 
 // Kept for fallback / export feature
@@ -82,8 +89,34 @@ function useSupabaseArray<T>(
   return data;
 }
 
-export const useEvents    = () => useSupabaseArray<Event>('events', EVENTS, rowToEvent);
-export const useDonors    = () => useSupabaseArray<Donor>('donors', DONORS);
-export const useProjects  = () => useSupabaseArray<Project>('projects', PROJECTS);
-export const useStories   = () => useSupabaseArray<Story>('stories', STORIES);
-export const useLocations = () => useSupabaseArray<Location>('locations', LOCATIONS, rowToLocation);
+export const useEvents          = () => useSupabaseArray<Event>('events', EVENTS, rowToEvent);
+export const useDonors          = () => useSupabaseArray<Donor>('donors', DONORS);
+export const useProjects        = () => useSupabaseArray<Project>('projects', PROJECTS);
+export const useStories         = () => useSupabaseArray<Story>('stories', STORIES);
+export const useLocations       = () => useSupabaseArray<Location>('locations', LOCATIONS, rowToLocation);
+export const useSponsors        = () => useSupabaseArray<Sponsor>('sponsors', SPONSORS);
+export const useFoodPartners    = () => useSupabaseArrayOrdered<FoodPartner>('food_partners', FOOD_PARTNERS);
+export const useTeachersOfMonth = () => useSupabaseArrayOrdered<TeacherOfTheMonth>('teachers_of_month', TEACHERS_OF_THE_MONTH);
+
+// Variant that orders by display_order (falls back to id when not set)
+function useSupabaseArrayOrdered<T>(table: string, fallback: T[]): T[] {
+  const [data, setData] = useState<T[]>(fallback);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!supabase) return;
+      const { data: rows, error } = await supabase
+        .from(table)
+        .select('*')
+        .order('display_order', { ascending: true, nullsFirst: false });
+      if (!error && rows && rows.length > 0) {
+        setData(rows as unknown as T[]);
+      }
+    };
+    fetchData();
+    window.addEventListener('fmt-data-changed', fetchData);
+    return () => window.removeEventListener('fmt-data-changed', fetchData);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return data;
+}

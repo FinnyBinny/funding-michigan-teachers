@@ -70,6 +70,38 @@ export interface Location {
   projects: string[];
 }
 
+export interface Sponsor {
+  id?: number;
+  name: string;
+  tier: string;
+  website?: string;
+  logo?: string;
+  description?: string;
+  amount?: number;
+  active?: boolean;
+}
+
+export interface FoodPartner {
+  id?: number;
+  month: string;
+  business: string;
+  detail: string;
+  image?: string;
+  avif?: string;
+  display_order?: number;
+}
+
+export interface TeacherOfTheMonth {
+  id?: number;
+  month: string;
+  teacher_name: string;
+  school: string;
+  why: string;
+  image?: string;
+  subject?: string;
+  display_order?: number;
+}
+
 export const EVENTS: Event[] = [
   {
     id: 2,
@@ -152,6 +184,52 @@ export const LOCATIONS: Location[] = [
     lng: -84.4333,
     demographics: { students: '1,800', lowIncome: '18%', diversity: '34%' },
     projects: ['Monthly Staff Meeting Food', 'Classroom Supply Grants', 'Door Decorating Competition', 'Teacher Appreciation Events'],
+  },
+];
+
+export const SPONSORS: Sponsor[] = [
+  { id: 1, name: 'Walmart Okemos', tier: 'Principal\'s Circle', amount: 250, description: 'Proud to support the Okemos community.', active: true },
+];
+
+export const FOOD_PARTNERS: FoodPartner[] = [
+  { id: 1, month: 'September', business: 'Chick-Fil-A Okemos', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
+  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos", detail: 'Fresh donuts for the whole staff', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
+  { id: 3, month: 'January', business: 'Nothing Bundt Cakes, Okemos', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
+  { id: 4, month: 'March', business: "Hungry Howie's, Okemos", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
+  { id: 5, month: 'May', business: 'Chick-Fil-A Okemos (W Grand River)', detail: 'Teacher Appreciation Week — "Be our guest" meal cards distributed to every staff member across all Okemos schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
+  { id: 6, month: 'May', business: "Dunkin' Okemos", detail: 'Teacher Appreciation Week — coffee + donuts brought to the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
+];
+
+export const TEACHERS_OF_THE_MONTH: TeacherOfTheMonth[] = [
+  {
+    id: 1,
+    month: 'May 2026',
+    teacher_name: 'Mrs. Turner',
+    school: 'Okemos High School',
+    subject: 'Educator',
+    why: 'Students describe Mrs. Turner as a consistently positive and caring presence in the classroom. She goes out of her way to ensure every student understands the material — explaining things clearly and patiently — while also checking in on students personally to make sure they feel seen, included, and welcome. Her calm classroom environment and understanding nature, whether it comes to absences, late work, or just day-to-day support, make her someone students genuinely appreciate having in their corner.',
+    image: '',
+    display_order: 1,
+  },
+  {
+    id: 2,
+    month: 'May 2026',
+    teacher_name: 'Miss Abbott',
+    school: 'Okemos High School',
+    subject: 'Science',
+    why: "Students love Miss Abbott for making learning fun, engaging, and meaningful. She brings personal experiences into her lessons, runs exciting labs, and creates a welcoming classroom environment through thoughtful touches like rotating seating pods that help students connect with one another. What stands out most is her intentionality — she backs everything she does with evidence, from mindset activities to mental health practices, showing students she truly cares about their growth inside and outside of academics.",
+    image: '',
+    display_order: 2,
+  },
+  {
+    id: 3,
+    month: 'May 2026',
+    teacher_name: 'Miss Richter',
+    school: 'Okemos High School',
+    subject: 'Chemistry',
+    why: "Students say Miss Richter has a gift for making chemistry approachable and enjoyable, using real-life examples and patient, clear explanations that help even those who don't love science find the subject fun. She creates a safe, welcoming classroom where students feel free to express themselves, and her carefully crafted lessons leave a lasting impression — with more than one student saying she's changed the way they think about the subject entirely.",
+    image: '',
+    display_order: 3,
   },
 ];
 
