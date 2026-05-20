@@ -3,11 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus, Save, Trash2, X, Layout, Users, Calendar,
   BookOpen, MapPin, Heart, Lock, Eye, EyeOff, Edit2, Loader2,
+  Building2, UtensilsCrossed, Award,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { rowToEvent, rowToLocation } from '../hooks/useLocalData';
-import type { Event, Donor, Project, Story, Location } from '../data/initialData';
+// import types as values via re-import alias to silence unused warnings
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { Event, Donor, Project, Story, Location, Sponsor, FoodPartner, TeacherOfTheMonth } from '../data/initialData';
 
 const ADMIN_PASSWORD = 'FMT2025!';
 
@@ -16,10 +19,10 @@ const lbl = 'block text-[10px] uppercase tracking-widest font-bold opacity-40 mb
 const btnSave = 'flex-[2] bg-apple text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-apple/90 transition-all';
 const btnCancel = 'flex-1 bg-chalkboard/10 text-chalkboard py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-chalkboard/20 transition-all';
 
-type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations';
+type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations' | 'sponsors' | 'food_partners' | 'teachers_of_month';
 
-export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [authed, setAuthed] = useState(false);
+export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isOpen: boolean; onClose: () => void; preAuthed?: boolean }) {
+  const [authed, setAuthed] = useState(preAuthed);
   const [pw, setPw] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [pwError, setPwError] = useState(false);
@@ -34,10 +37,13 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
   const [pf, setPf] = useState({ teacher_name: '', school_name: '', title: '', description: '', goal: 0 });
   const [df, setDf] = useState({ name: '', amount: 0, tier: 'Pencil Pal', message: '' });
   const [lf, setLf] = useState({ name: '', district: '', impact: '', amount: '', lat: 42.3314, lng: -83.0458, students: '', low_income: '', diversity: '', projects: '' });
+  const [spf, setSpf] = useState({ name: '', tier: 'Campus Champion', website: '', logo: '', description: '', amount: 0, active: true });
+  const [fpf, setFpf] = useState({ month: '', business: '', detail: '', image: '', avif: '', display_order: 0 });
+  const [tomf, setTomf] = useState({ month: '', teacher_name: '', school: '', subject: '', why: '', image: '', display_order: 0 });
 
   useEffect(() => {
-    if (!isOpen) { setAuthed(false); setPw(''); setPwError(false); }
-  }, [isOpen]);
+    if (!isOpen) { setAuthed(preAuthed); setPw(''); setPwError(false); }
+  }, [isOpen, preAuthed]);
 
   const loadItems = async (tab: Tab) => {
     if (!supabase) { setItems([]); return; }
@@ -60,6 +66,9 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     setPf({ teacher_name: '', school_name: '', title: '', description: '', goal: 0 });
     setDf({ name: '', amount: 0, tier: 'Pencil Pal', message: '' });
     setLf({ name: '', district: '', impact: '', amount: '', lat: 42.3314, lng: -83.0458, students: '', low_income: '', diversity: '', projects: '' });
+    setSpf({ name: '', tier: 'Campus Champion', website: '', logo: '', description: '', amount: 0, active: true });
+    setFpf({ month: '', business: '', detail: '', image: '', avif: '', display_order: 0 });
+    setTomf({ month: '', teacher_name: '', school: '', subject: '', why: '', image: '', display_order: 0 });
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -80,6 +89,12 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
       setDf({ name: item.name, amount: item.amount, tier: item.tier, message: item.message || '' });
     else if (activeTab === 'locations')
       setLf({ name: item.name, district: item.district, impact: item.impact, amount: item.amount, lat: item.lat, lng: item.lng, students: item.demographics?.students || '', low_income: item.demographics?.lowIncome || '', diversity: item.demographics?.diversity || '', projects: (item.projects || []).join(', ') });
+    else if (activeTab === 'sponsors')
+      setSpf({ name: item.name, tier: item.tier, website: item.website || '', logo: item.logo || '', description: item.description || '', amount: item.amount || 0, active: item.active !== false });
+    else if (activeTab === 'food_partners')
+      setFpf({ month: item.month, business: item.business, detail: item.detail || '', image: item.image || '', avif: item.avif || '', display_order: item.display_order || 0 });
+    else if (activeTab === 'teachers_of_month')
+      setTomf({ month: item.month, teacher_name: item.teacher_name, school: item.school || '', subject: item.subject || '', why: item.why || '', image: item.image || '', display_order: item.display_order || 0 });
   };
 
   // Generic Supabase save (insert or update)
@@ -150,12 +165,30 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
     }, editingId ?? undefined);
   };
 
+  const onSponsor = (e: React.FormEvent) => {
+    e.preventDefault();
+    dbSave('sponsors', spf, editingId ?? undefined);
+  };
+
+  const onFoodPartner = (e: React.FormEvent) => {
+    e.preventDefault();
+    dbSave('food_partners', fpf, editingId ?? undefined);
+  };
+
+  const onTeacherOfMonth = (e: React.FormEvent) => {
+    e.preventDefault();
+    dbSave('teachers_of_month', tomf, editingId ?? undefined);
+  };
+
   const TABS = [
     { id: 'stories' as Tab, label: 'Stories', icon: Users },
     { id: 'events' as Tab, label: 'Events', icon: Calendar },
     { id: 'projects' as Tab, label: 'Projects', icon: BookOpen },
     { id: 'donors' as Tab, label: 'Supporters', icon: Heart },
     { id: 'locations' as Tab, label: 'Impact Map', icon: MapPin },
+    { id: 'sponsors' as Tab, label: 'Sponsors', icon: Building2 },
+    { id: 'food_partners' as Tab, label: 'Food Partners', icon: UtensilsCrossed },
+    { id: 'teachers_of_month' as Tab, label: 'Teacher of Month', icon: Award },
   ];
 
   if (!isOpen) return null;
@@ -174,7 +207,7 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.97 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="w-full max-w-5xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+          className="w-full max-w-6xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
@@ -229,11 +262,11 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      'flex-1 min-w-[110px] py-4 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-widest transition-all whitespace-nowrap',
+                      'flex-1 min-w-[120px] py-4 px-3 flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-all whitespace-nowrap',
                       activeTab === tab.id ? 'text-apple border-b-2 border-apple bg-paper/60' : 'text-chalkboard/40 hover:text-chalkboard'
                     )}
                   >
-                    <tab.icon size={15} /> {tab.label}
+                    <tab.icon size={14} /> {tab.label}
                   </button>
                 ))}
               </div>
@@ -244,7 +277,16 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                 <div className="p-8">
                   <h3 className="text-base font-bold mb-5 flex items-center gap-2">
                     {editingId !== null ? <Save size={16} className="text-apple" /> : <Plus size={16} className="text-apple" />}
-                    {editingId !== null ? 'Edit' : 'Add'} {activeTab === 'stories' ? 'Story' : activeTab === 'events' ? 'Event' : activeTab === 'projects' ? 'Project' : activeTab === 'donors' ? 'Supporter' : 'Location'}
+                    {editingId !== null ? 'Edit' : 'Add'} {
+                      activeTab === 'stories' ? 'Story'
+                        : activeTab === 'events' ? 'Event'
+                        : activeTab === 'projects' ? 'Project'
+                        : activeTab === 'donors' ? 'Supporter'
+                        : activeTab === 'locations' ? 'Location'
+                        : activeTab === 'sponsors' ? 'Sponsor'
+                        : activeTab === 'food_partners' ? 'Food Partner'
+                        : 'Teacher of the Month'
+                    }
                   </h3>
 
                   {activeTab === 'stories' && (
@@ -353,13 +395,91 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                       </div>
                     </form>
                   )}
+
+                  {activeTab === 'sponsors' && (
+                    <form onSubmit={onSponsor} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className={lbl}>Business Name</label><input required value={spf.name} onChange={e => setSpf({ ...spf, name: e.target.value })} className={inp} placeholder="Walmart Okemos" /></div>
+                        <div><label className={lbl}>Sponsorship Tier</label>
+                          <select value={spf.tier} onChange={e => setSpf({ ...spf, tier: e.target.value })} className={inp}>
+                            <option value="Pencil Partner">Pencil Partner ($250/yr)</option>
+                            <option value="Campus Champion">Campus Champion ($500/yr)</option>
+                            <option value="Principal's Circle">Principal's Circle ($1,000/yr)</option>
+                            <option value="Founding Patron">Founding Patron ($2,500/yr)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className={lbl}>Website (optional)</label><input value={spf.website} onChange={e => setSpf({ ...spf, website: e.target.value })} className={inp} placeholder="https://walmart.com" /></div>
+                        <div><label className={lbl}>Amount Contributed ($)</label><input type="number" min={0} value={spf.amount || ''} onChange={e => setSpf({ ...spf, amount: Number(e.target.value) })} className={inp} placeholder="500" /></div>
+                      </div>
+                      <div><label className={lbl}>Logo URL (optional)</label><input value={spf.logo} onChange={e => setSpf({ ...spf, logo: e.target.value })} className={inp} placeholder="https://... or /images/logo.png" /></div>
+                      <div><label className={lbl}>Short Description</label><textarea rows={2} value={spf.description} onChange={e => setSpf({ ...spf, description: e.target.value })} className={inp} placeholder="Proud to support the Okemos community." /></div>
+                      <label className="flex items-center gap-2 text-xs font-bold text-chalkboard/60">
+                        <input type="checkbox" checked={spf.active} onChange={e => setSpf({ ...spf, active: e.target.checked })} className="w-4 h-4" />
+                        Show on sponsors page
+                      </label>
+                      <div className="flex gap-3 pt-1">
+                        {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Sponsor</> : <><Plus size={15} />Add Sponsor</>}</button>
+                      </div>
+                    </form>
+                  )}
+
+                  {activeTab === 'food_partners' && (
+                    <form onSubmit={onFoodPartner} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className={lbl}>Month</label><input required value={fpf.month} onChange={e => setFpf({ ...fpf, month: e.target.value })} className={inp} placeholder="September" /></div>
+                        <div><label className={lbl}>Business Name</label><input required value={fpf.business} onChange={e => setFpf({ ...fpf, business: e.target.value })} className={inp} placeholder="Chick-Fil-A Okemos" /></div>
+                      </div>
+                      <div><label className={lbl}>What They Donated</label><textarea required rows={2} value={fpf.detail} onChange={e => setFpf({ ...fpf, detail: e.target.value })} className={inp} placeholder="Cookies and free meal coupons for every staff member" /></div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className={lbl}>Image URL (.jpg)</label><input value={fpf.image} onChange={e => setFpf({ ...fpf, image: e.target.value })} className={inp} placeholder="/images/partner.jpg" /></div>
+                        <div><label className={lbl}>AVIF Variant (optional)</label><input value={fpf.avif} onChange={e => setFpf({ ...fpf, avif: e.target.value })} className={inp} placeholder="/images/partner.avif" /></div>
+                      </div>
+                      <div><label className={lbl}>Display Order</label><input type="number" value={fpf.display_order} onChange={e => setFpf({ ...fpf, display_order: Number(e.target.value) })} className={inp} placeholder="1" /></div>
+                      <div className="flex gap-3 pt-1">
+                        {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Partner</> : <><Plus size={15} />Add Partner</>}</button>
+                      </div>
+                    </form>
+                  )}
+
+                  {activeTab === 'teachers_of_month' && (
+                    <form onSubmit={onTeacherOfMonth} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className={lbl}>Month / Year</label><input required value={tomf.month} onChange={e => setTomf({ ...tomf, month: e.target.value })} className={inp} placeholder="March 2026" /></div>
+                        <div><label className={lbl}>Teacher Name</label><input required value={tomf.teacher_name} onChange={e => setTomf({ ...tomf, teacher_name: e.target.value })} className={inp} placeholder="Mrs. Freeman" /></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div><label className={lbl}>School</label><input value={tomf.school} onChange={e => setTomf({ ...tomf, school: e.target.value })} className={inp} placeholder="Okemos High School" /></div>
+                        <div><label className={lbl}>Subject</label><input value={tomf.subject} onChange={e => setTomf({ ...tomf, subject: e.target.value })} className={inp} placeholder="Health & PE" /></div>
+                      </div>
+                      <div><label className={lbl}>Photo URL (optional)</label><input value={tomf.image} onChange={e => setTomf({ ...tomf, image: e.target.value })} className={inp} placeholder="/images/teacher.jpg" /></div>
+                      <div><label className={lbl}>Why They Were Chosen</label><textarea required rows={4} value={tomf.why} onChange={e => setTomf({ ...tomf, why: e.target.value })} className={inp} placeholder="For showing up — every day, in every hallway..." /></div>
+                      <div><label className={lbl}>Display Order</label><input type="number" value={tomf.display_order} onChange={e => setTomf({ ...tomf, display_order: Number(e.target.value) })} className={inp} placeholder="1" /></div>
+                      <div className="flex gap-3 pt-1">
+                        {editingId !== null && <button type="button" onClick={() => { setEditingId(null); resetAll(); }} className={btnCancel}><X size={15} />Cancel</button>}
+                        <button type="submit" disabled={saving} className={btnSave}>{saving ? <Loader2 size={15} className="animate-spin" /> : editingId !== null ? <><Save size={15} />Update Teacher</> : <><Plus size={15} />Add Teacher</>}</button>
+                      </div>
+                    </form>
+                  )}
                 </div>
 
                 {/* Right: Item List */}
                 <div className="p-8 bg-paper/30">
                   <h3 className="text-base font-bold mb-5 flex items-center gap-2">
                     <Layout size={16} className="text-chalkboard/40" />
-                    Existing {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                    Existing {
+                      activeTab === 'stories' ? 'Stories'
+                        : activeTab === 'events' ? 'Events'
+                        : activeTab === 'projects' ? 'Projects'
+                        : activeTab === 'donors' ? 'Supporters'
+                        : activeTab === 'locations' ? 'Locations'
+                        : activeTab === 'sponsors' ? 'Sponsors'
+                        : activeTab === 'food_partners' ? 'Food Partners'
+                        : 'Teachers of the Month'
+                    }
                     <span className="ml-auto text-[10px] font-bold text-chalkboard/30 bg-chalkboard/5 px-2 py-0.5 rounded-full">{items.length}</span>
                   </h3>
                   <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
@@ -369,9 +489,9 @@ export default function AdminPanel({ isOpen, onClose }: { isOpen: boolean; onClo
                       items.map(item => (
                         <div key={item.id} className="bg-white p-4 rounded-xl border border-chalkboard/5 flex items-center justify-between gap-2 hover:border-apple/20 transition-all group">
                           <div className="min-w-0">
-                            <p className="font-bold text-sm truncate">{item.title || item.name}</p>
+                            <p className="font-bold text-sm truncate">{item.title || item.business || item.teacher_name || item.name}</p>
                             <p className="text-[10px] text-chalkboard/40 truncate mt-0.5">
-                              {item.school || item.school_name || item.district || item.date || (item.amount !== undefined && typeof item.amount === 'number' ? `$${item.amount}` : item.amount || '')}
+                              {item.school || item.school_name || item.district || item.tier || item.month || item.date || (item.amount !== undefined && typeof item.amount === 'number' ? `$${item.amount}` : item.amount || '')}
                             </p>
                           </div>
                           <div className="flex gap-1 shrink-0">

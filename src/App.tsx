@@ -10,7 +10,6 @@ import {
   Calendar,
   Menu,
   X,
-  Settings
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import MichiganMap from './components/MichiganMap';
@@ -24,7 +23,6 @@ import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
 import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
-import AdminPanel from './components/AdminPanel';
 import DonationModal from './components/DonationModal';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
@@ -33,7 +31,6 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
   const [showDonation, setShowDonation] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
@@ -47,18 +44,6 @@ export default function App() {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Secret keyboard shortcut to open admin: Ctrl+Shift+A (or Cmd+Shift+A on Mac)
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
-        e.preventDefault();
-        setShowAdmin(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
   const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Stories'];
@@ -145,8 +130,8 @@ export default function App() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        <section className="relative min-h-[100dvh] flex items-center pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
+          <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -258,7 +243,7 @@ export default function App() {
         {/* Our Mission Section */}
         <section
           id="mission"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-white relative overflow-hidden"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden"
         >
           <OurMission />
         </section>
@@ -266,9 +251,9 @@ export default function App() {
         {/* Donation Tiers Section — placed early so warm visitors can convert immediately */}
         <section
           id="tiers"
-          className="py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden bg-paper"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 relative overflow-hidden bg-paper"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -293,9 +278,9 @@ export default function App() {
         {/* Impact Map Section */}
         <section
           id="impact"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -324,9 +309,9 @@ export default function App() {
         {/* Classroom Projects Section */}
         <section
           id="projects"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-paper relative overflow-hidden"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -351,9 +336,9 @@ export default function App() {
         {/* Teacher Leaderboard Section */}
         <section
           id="leaderboard"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -378,9 +363,9 @@ export default function App() {
         {/* Event Calendar Section */}
         <section
           id="events"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -406,9 +391,9 @@ export default function App() {
         {/* Donor Wall Section */}
         <section
           id="donors"
-          className="py-16 md:py-32 px-6 bg-chalkboard text-white relative overflow-hidden"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 md:py-32 px-4 sm:px-6 bg-chalkboard text-white relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -436,9 +421,9 @@ export default function App() {
         {/* Teacher Stories Section */}
         <section
           id="stories"
-          className="py-12 sm:py-16 px-4 sm:px-6 bg-paper relative overflow-hidden"
+          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -464,8 +449,8 @@ export default function App() {
         <Newsletter />
 
         {/* Contact Section */}
-        <section id="contact" className="py-12 sm:py-16 px-4 sm:px-6 bg-paper">
-          <div className="max-w-7xl mx-auto">
+        <section id="contact" className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-paper">
+          <div className="max-w-7xl mx-auto w-full">
             <ContactForm />
           </div>
         </section>
@@ -500,6 +485,7 @@ export default function App() {
                 <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>
                 <li><a href="#leaderboard" className="hover:text-white transition-colors">Leaderboard</a></li>
                 <li><a href="/sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
+                <li><a href="/for-schools" className="hover:text-white transition-colors inline-flex items-center gap-2">For Schools <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-1.5 py-0.5 rounded-full">New</span></a></li>
                 <li><a href="#donors" className="hover:text-white transition-colors">Supporter Wall</a></li>
               </ul>
             </div>
@@ -540,22 +526,6 @@ export default function App() {
 
       {/* FAQ Assistant */}
       <FAQAssistant />
-
-      {/* Admin Button — hidden in production; re-enable by removing 'hidden' class */}
-      <motion.button
-        onClick={() => setShowAdmin(true)}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.5 }}
-        title="Open Admin Panel"
-        className="hidden fixed bottom-6 left-6 z-40 flex items-center gap-2 bg-chalkboard text-white px-4 py-2.5 rounded-2xl shadow-xl hover:bg-apple transition-all hover:scale-105 active:scale-95 text-xs font-bold uppercase tracking-widest"
-      >
-        <Settings size={15} />
-        Admin
-      </motion.button>
-
-      {/* Admin Panel */}
-      <AdminPanel isOpen={showAdmin} onClose={() => setShowAdmin(false)} />
 
       {/* Donation Modal */}
       <DonationModal
