@@ -35,18 +35,23 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
     const voterId = getVoterId();
 
     (async () => {
-      const { data } = await supabase.from('project_votes').select('project_id, voter_id');
-      if (data) {
-        const counts: Record<number, number> = {};
-        const mine: number[] = [];
-        for (const row of data) {
-          counts[row.project_id] = (counts[row.project_id] ?? 0) + 1;
-          if (row.voter_id === voterId) mine.push(row.project_id);
+      try {
+        const { data } = await supabase.from('project_votes').select('project_id, voter_id');
+        if (data) {
+          const counts: Record<number, number> = {};
+          const mine: number[] = [];
+          for (const row of data) {
+            counts[row.project_id] = (counts[row.project_id] ?? 0) + 1;
+            if (row.voter_id === voterId) mine.push(row.project_id);
+          }
+          setVoteCounts(counts);
+          setVotedProjects(mine);
         }
-        setVoteCounts(counts);
-        setVotedProjects(mine);
+      } catch {
+        // Network error — don't strand the user with disabled buttons forever.
+      } finally {
+        setSupabaseReady(true);
       }
-      setSupabaseReady(true);
     })();
   }, []);
 
@@ -66,6 +71,8 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
     }
     setLoading(id);
 
+    let voted = false;
+
     if (supabase) {
       // ── Supabase path ──────────────────────────────────────────────────
       const voterId = getVoterId();
@@ -76,27 +83,29 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
       if (!error) {
         setVoteCounts(prev => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
         setVotedProjects(prev => [...prev, id]);
-        setSuccess(id);
-        window.dispatchEvent(new Event('fmt-vote-changed'));
+        voted = true;
       }
       setLoading(null);
     } else {
       // ── localStorage fallback ──────────────────────────────────────────
-      setTimeout(() => {
-        const current = readLS(STORAGE_KEYS.projects, PROJECTS);
-        const updated = current.map(p => p.id === id ? { ...p, votes: p.votes + 1 } : p);
-        saveLS(STORAGE_KEYS.projects, updated);
-        const newVoted = [...votedProjects, id];
-        setVotedProjects(newVoted);
-        localStorage.setItem('mi_teacher_fund_votes', JSON.stringify(newVoted));
-        setSuccess(id);
-        setLoading(null);
-        window.dispatchEvent(new Event('fmt-vote-changed'));
-        setTimeout(() => setSuccess(null), 2000);
-      }, 500);
+      await new Promise(res => setTimeout(res, 500));
+      const current = readLS(STORAGE_KEYS.projects, PROJECTS);
+      const updated = current.map(p => p.id === id ? { ...p, votes: p.votes + 1 } : p);
+      saveLS(STORAGE_KEYS.projects, updated);
+      setVotedProjects(prev => {
+        const next = [...prev, id];
+        localStorage.setItem('mi_teacher_fund_votes', JSON.stringify(next));
+        return next;
+      });
+      setLoading(null);
+      voted = true;
     }
 
-    if (success !== id) setTimeout(() => setSuccess(null), 2000);
+    if (voted) {
+      setSuccess(id);
+      window.dispatchEvent(new Event('fmt-vote-changed'));
+      setTimeout(() => setSuccess(null), 2000);
+    }
   };
 
   // ── Project submission form ───────────────────────────────────────────────
@@ -134,13 +143,13 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
 
     // Also save to Supabase for records
     if (supabase) {
-      supabase.from('contact_submissions').insert({
+      const { error } = await supabase.from('contact_submissions').insert({
         name: form.teacherName,
         email: form.email,
         type: 'project',
         extra: { schoolName: form.schoolName, projectTitle: form.projectTitle, description: form.description },
       });
-      submitted = true;
+      if (!error) submitted = true;
     }
 
     if (submitted) {

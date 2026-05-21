@@ -37,13 +37,13 @@ export default function ContactForm() {
 
     // Also save to Supabase for records
     if (supabase) {
-      supabase.from('contact_submissions').insert({
+      const { error } = await supabase.from('contact_submissions').insert({
         name: form.name,
         email: form.email,
         message: form.message,
         type: 'contact',
       });
-      submitted = true;
+      if (!error) submitted = true;
     }
 
     if (submitted) {

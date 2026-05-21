@@ -31,6 +31,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
   const [items, setItems] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [opError, setOpError] = useState<string | null>(null);
 
   const [sf, setSf] = useState({ name: '', bio: '', impact: '', school: '', location: '', image: '' });
   const [ef, setEf] = useState({ title: '', date: '', description: '', location: '', type: 'fundraiser' });
@@ -47,7 +48,12 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
 
   const loadItems = async (tab: Tab) => {
     if (!supabase) { setItems([]); return; }
-    const { data: rows } = await supabase.from(tab).select('*').order('id');
+    const { data: rows, error } = await supabase.from(tab).select('*').order('id');
+    if (error) {
+      setOpError(`Couldn't load ${tab}: ${error.message}`);
+      setItems([]);
+      return;
+    }
     if (!rows) { setItems([]); return; }
     if (tab === 'events') setItems(rows.map(rowToEvent));
     else if (tab === 'locations') setItems(rows.map(rowToLocation));
@@ -56,8 +62,10 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
 
   useEffect(() => {
     if (authed) loadItems(activeTab);
+    // Reset edit state on tab change, but don't wipe form fields — let the
+    // user keep their unsaved typing if they switch tabs and come back.
     setEditingId(null);
-    resetAll();
+    setOpError(null);
   }, [activeTab, authed]); // eslint-disable-line
 
   const resetAll = () => {
@@ -99,19 +107,27 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
 
   // Generic Supabase save (insert or update)
   const dbSave = async (table: Tab, payload: any, id?: string | number) => {
-    if (!supabase) return;
+    if (!supabase) {
+      setOpError('Supabase is not configured — changes cannot be saved.');
+      return;
+    }
     setSaving(true);
+    setOpError(null);
     try {
-      if (id !== null && id !== undefined) {
-        const numId = table === 'locations' ? Number(id) : id;
-        await supabase.from(table).update(payload).eq('id', numId);
-      } else {
-        await supabase.from(table).insert(payload);
+      const op = id !== null && id !== undefined
+        ? supabase.from(table).update(payload).eq('id', table === 'locations' ? Number(id) : id)
+        : supabase.from(table).insert(payload);
+      const { error } = await op;
+      if (error) {
+        setOpError(`Save failed: ${error.message}`);
+        return;
       }
       await loadItems(table);
       window.dispatchEvent(new Event('fmt-data-changed'));
       resetAll();
       setEditingId(null);
+    } catch (e: any) {
+      setOpError(`Save failed: ${e?.message ?? 'unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -119,9 +135,17 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
 
   const handleDelete = async (id: any) => {
     if (!confirm('Delete this item? This cannot be undone.')) return;
-    if (!supabase) return;
+    if (!supabase) {
+      setOpError('Supabase is not configured — changes cannot be saved.');
+      return;
+    }
+    setOpError(null);
     const numId = activeTab === 'locations' ? Number(id) : id;
-    await supabase.from(activeTab).delete().eq('id', numId);
+    const { error } = await supabase.from(activeTab).delete().eq('id', numId);
+    if (error) {
+      setOpError(`Delete failed: ${error.message}`);
+      return;
+    }
     await loadItems(activeTab);
     window.dispatchEvent(new Event('fmt-data-changed'));
   };
@@ -510,10 +534,23 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
               </div>
 
               {/* Footer */}
-              <div className="px-8 py-5 bg-apple/5 border-t border-apple/10 flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-apple animate-pulse" />
-                <p className="text-sm font-bold text-apple">Live — all changes save instantly to Supabase and appear for every visitor in real time.</p>
-              </div>
+              {opError ? (
+                <div className="px-8 py-5 bg-red-50 border-t border-red-200 flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-red-700">{opError}</p>
+                    <p className="text-xs text-red-600/80 mt-0.5">If this keeps happening, confirm the Supabase tables exist (run SUPABASE_SETUP.sql) and RLS policies allow writes.</p>
+                  </div>
+                  <button onClick={() => setOpError(null)} aria-label="Dismiss error" className="p-1 text-red-500 hover:text-red-700 transition-colors">
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div className="px-8 py-5 bg-apple/5 border-t border-apple/10 flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-apple animate-pulse" />
+                  <p className="text-sm font-bold text-apple">Live — all changes save instantly to Supabase and appear for every visitor in real time.</p>
+                </div>
+              )}
             </>
           )}
         </motion.div>
