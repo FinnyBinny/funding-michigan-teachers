@@ -130,7 +130,7 @@ export default function ForSchoolsPage() {
       {/* HERO — Editorial Split layout */}
       <section
         ref={heroRef}
-        className="relative min-h-[100dvh] flex items-center px-4 sm:px-6 lg:px-10 pt-32 pb-16 overflow-hidden"
+        className="viewport-section px-4 sm:px-6 lg:px-10 pt-32 pb-16 overflow-hidden"
       >
         {/* Ambient orbs */}
         <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/8 rounded-full blur-[140px]" />
@@ -254,7 +254,7 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* PROGRAMS — Asymmetrical Bento */}
-      <section id="programs" className="relative min-h-[100dvh] py-24 sm:py-32 px-4 sm:px-6 lg:px-10 flex items-center">
+      <section id="programs" className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-16">
             <motion.div
@@ -523,7 +523,7 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* FOOD PARTNERS — proof of monthly cadence */}
-      <section className="relative min-h-[100dvh] py-24 sm:py-32 px-4 sm:px-6 lg:px-10 flex items-center">
+      <section className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
@@ -599,7 +599,7 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* TRIAL YEAR ROADMAP */}
-      <section id="roadmap" className="relative min-h-[100dvh] py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-paper flex items-center">
+      <section id="roadmap" className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-paper">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
@@ -671,7 +671,7 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* CTA */}
-      <section id="cta" className="relative min-h-[100dvh] py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white flex items-center overflow-hidden">
+      <section id="cta" className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white overflow-hidden">
         <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/12 rounded-full blur-[160px]" />
         <div className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] bg-ruler/12 rounded-full blur-[140px]" />
 
@@ -756,6 +756,8 @@ export default function ForSchoolsPage() {
       </footer>
 
       <DonationModal isOpen={showDonation} onClose={() => setShowDonation(false)} />
+
+      <div className="grain-overlay" aria-hidden="true" />
     </div>
   );
 }
