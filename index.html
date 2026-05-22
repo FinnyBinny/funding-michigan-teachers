@@ -231,10 +231,13 @@
     <link rel="preconnect" href="https://www.zeffy.com" />
     <link rel="preconnect" href="https://zeffy-scripts.s3.ca-central-1.amazonaws.com" />
 
-    <!-- Fonts (non-render-blocking) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&display=swap" /></noscript>
+    <!-- Premium typography pairing:
+         Display: Fraunces (variable serif with optical sizing — Apple-tier)
+         Body:    Plus Jakarta Sans (modern grotesk, distinct from Inter)
+         Hand:    Architects Daughter (legacy accent for marginalia) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Architects+Daughter&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Architects+Daughter&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Architects+Daughter&display=swap" /></noscript>
 
     <!-- Preload LCP hero image -->
     <link rel="preload" as="image" href="/images/finn-and-mrs-freeman-opt.jpg" />

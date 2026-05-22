@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -10,8 +10,10 @@ import {
   Calendar,
   Menu,
   X,
+  ArrowRight,
 } from 'lucide-react';
 import { cn } from './lib/utils';
+import { Button, ButtonTrailing } from './components/ui/button';
 import MichiganMap from './components/MichiganMap';
 import DonationTiers from './components/DonationTiers';
 import TeacherStories from './components/TeacherStories';
@@ -27,6 +29,10 @@ import DonationModal from './components/DonationModal';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import PrivacyPolicy from './components/PrivacyPolicy';
+
+// Three.js scene is code-split — adds ~150KB gz that only loads after
+// the initial paint, so it never blocks LCP.
+const HeroCanvas = lazy(() => import('./components/HeroCanvas'));
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
@@ -130,37 +136,55 @@ export default function App() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-[100dvh] flex items-center pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
-          <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center">
+        <section className="viewport-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
+          {/* Three.js ambient scene — lazy-loaded so it doesn't block FCP */}
+          <Suspense fallback={null}>
+            <HeroCanvas />
+          </Suspense>
+
+
+          <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-[2]">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1] }}
+              className="lg:col-span-7"
             >
-              <div className="inline-flex items-center gap-2 bg-pencil/20 text-ink px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 border border-pencil/30 uppercase tracking-widest">
-                <Sparkles size={14} className="text-pencil-dark" />
-                <span>Student-Led · Founded Okemos 2023</span>
-              </div>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[0.95] mb-6 text-balance">
-                Michigan teachers give everything.<br />
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.1, ease: [0.32, 0.72, 0, 1] }}
+                className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-apple animate-pulse" />
+                Student-Led · 501(c)(3) · Founded Okemos 2023
+              </motion.div>
+              <h1 className="font-serif font-bold leading-[0.95] tracking-[-0.025em] mb-7 text-[clamp(2.5rem,4.6vw,4.5rem)]">
+                Michigan teachers give everything.{' '}
                 <span className="text-apple italic font-normal">We give back.</span>
               </h1>
-              <p className="text-lg text-chalkboard/70 max-w-xl mb-8 leading-relaxed font-light">
+              <p className="text-lg text-chalkboard/65 max-w-xl mb-10 leading-relaxed font-light text-pretty">
                 Founded by Finn Regan at age 14 — because he grew up watching teachers spend their own money on classrooms while no one said thank you. We exist to change that.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <button
+              <div className="flex flex-wrap gap-3 items-center">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="group"
                   onClick={() => document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="btn-primary"
                 >
-                  Donate to a Teacher <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button
+                  Donate to a Teacher
+                  <ButtonTrailing dark>
+                    <ArrowRight size={14} />
+                  </ButtonTrailing>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
                   onClick={() => document.getElementById('mission')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="px-8 py-4 rounded-2xl font-bold text-base text-chalkboard/60 border border-chalkboard/15 hover:border-chalkboard/30 hover:text-chalkboard transition-all flex items-center gap-2"
                 >
                   Our Story
-                </button>
+                </Button>
               </div>
               <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
@@ -189,7 +213,7 @@ export default function App() {
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="relative hidden lg:block"
+              className="relative hidden lg:block lg:col-span-5"
             >
               {/* Real photo — Finn with Mrs. Freeman */}
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
@@ -243,7 +267,7 @@ export default function App() {
         {/* Our Mission Section */}
         <section
           id="mission"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden"
         >
           <OurMission />
         </section>
@@ -251,7 +275,7 @@ export default function App() {
         {/* Donation Tiers Section — placed early so warm visitors can convert immediately */}
         <section
           id="tiers"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 relative overflow-hidden bg-paper"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 relative overflow-hidden bg-paper"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -278,7 +302,7 @@ export default function App() {
         {/* Impact Map Section */}
         <section
           id="impact"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -309,7 +333,7 @@ export default function App() {
         {/* Classroom Projects Section */}
         <section
           id="projects"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -336,7 +360,7 @@ export default function App() {
         {/* Teacher Leaderboard Section */}
         <section
           id="leaderboard"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -363,7 +387,7 @@ export default function App() {
         {/* Event Calendar Section */}
         <section
           id="events"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -391,7 +415,7 @@ export default function App() {
         {/* Donor Wall Section */}
         <section
           id="donors"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 md:py-32 px-4 sm:px-6 bg-chalkboard text-white relative overflow-hidden"
+          className="viewport-section py-20 sm:py-24 md:py-32 px-4 sm:px-6 bg-chalkboard text-white relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -421,7 +445,7 @@ export default function App() {
         {/* Teacher Stories Section */}
         <section
           id="stories"
-          className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
+          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl mx-auto w-full">
             <div className="text-center mb-10">
@@ -449,7 +473,7 @@ export default function App() {
         <Newsletter />
 
         {/* Contact Section */}
-        <section id="contact" className="min-h-[100dvh] flex items-center py-20 sm:py-24 px-4 sm:px-6 bg-paper">
+        <section id="contact" className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-paper">
           <div className="max-w-7xl mx-auto w-full">
             <ContactForm />
           </div>
@@ -540,6 +564,9 @@ export default function App() {
 
       {/* 5-minute donation nudge */}
       <DonationNudge onDonate={() => handleDonate()} />
+
+      {/* Cinematic film-grain overlay — fixed, pointer-events-none, ultra-low opacity */}
+      <div className="grain-overlay" aria-hidden="true" />
     </div>
   );
 }
