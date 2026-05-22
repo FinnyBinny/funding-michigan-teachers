@@ -34,12 +34,12 @@ export default function Newsletter() {
 
     // Also save to Supabase for records
     if (supabase) {
-      supabase.from('contact_submissions').insert({
+      const { error } = await supabase.from('contact_submissions').insert({
         name: 'Newsletter Signup',
         email,
         type: 'newsletter',
       });
-      submitted = true;
+      if (!error) submitted = true;
     }
 
     if (submitted) {

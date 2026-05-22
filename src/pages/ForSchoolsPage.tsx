@@ -100,7 +100,7 @@ export default function ForSchoolsPage() {
           <button
             onClick={() => navigate('/')}
             className="group flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full hover:bg-chalkboard/5 transition-colors"
-            style={{ transition: `all 600ms ${EASE.join(',')}` }}
+            style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
           >
             <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10 transition-colors">
               <ArrowLeft size={13} />
@@ -117,7 +117,7 @@ export default function ForSchoolsPage() {
           <a
             href="mailto:hello@fundingmichiganteachers.org?subject=For%20Schools%20%E2%80%94%20Bring%20FMT%20to%20Our%20District"
             className="group flex items-center gap-2 bg-chalkboard text-white pl-4 pr-1 py-1 rounded-full hover:bg-apple transition-colors ml-1"
-            style={{ transition: `all 600ms ${EASE.join(',')}` }}
+            style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
           >
             <span className="text-[10px] uppercase tracking-[0.18em] font-bold">Get in Touch</span>
             <span className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
@@ -181,7 +181,7 @@ export default function ForSchoolsPage() {
               <button
                 onClick={() => scrollTo('cta')}
                 className="group flex items-center gap-2 bg-chalkboard text-white pl-7 pr-2 py-2 rounded-full font-bold text-sm shadow-[0_12px_30px_rgba(0,0,0,0.18)] active:scale-[0.98]"
-                style={{ transition: `all 600ms ${EASE.join(',')}` }}
+                style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
               >
                 <span className="uppercase tracking-[0.18em]">Bring FMT to Our School</span>
                 <span className="w-9 h-9 rounded-full bg-white/10 group-hover:bg-apple flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
@@ -304,12 +304,12 @@ export default function ForSchoolsPage() {
                 >
                   {/* Outer bezel shell */}
                   <div className="h-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-1.5 hover:ring-chalkboard/15 transition-all"
-                       style={{ transition: `all 700ms ${EASE.join(',')}` }}>
+                       style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}>
                     {/* Inner core */}
                     <div className="h-full bg-white rounded-[calc(2rem-0.375rem)] p-8 md:p-10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] flex flex-col">
                       <div className="flex items-start justify-between mb-7">
                         <div className={`w-12 h-12 rounded-2xl ${accent.bg} ring-1 ${accent.ring} flex items-center justify-center group-hover:rotate-6 transition-transform`}
-                             style={{ transition: `transform 700ms ${EASE.join(',')}` }}>
+                             style={{ transition: `transform 700ms cubic-bezier(${EASE.join(',')})` }}>
                           <Icon size={20} className={accent.text} />
                         </div>
                         <span className={`text-[10px] uppercase tracking-[0.24em] font-bold ${accent.text} px-2.5 py-1 rounded-full ${accent.bg}`}>
@@ -422,7 +422,7 @@ export default function ForSchoolsPage() {
               >
                 {/* Outer bezel shell — dark */}
                 <div className="h-full bg-white/[0.04] ring-1 ring-white/10 rounded-[2rem] p-1.5 group-hover:ring-white/20 transition-all"
-                     style={{ transition: `all 700ms ${EASE.join(',')}` }}>
+                     style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}>
                   {/* Inner core */}
                   <div className="h-full bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.375rem)] p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col">
                     {/* Month tag */}
@@ -566,7 +566,7 @@ export default function ForSchoolsPage() {
                 className="group"
               >
                 <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[1.75rem] p-1.5 group-hover:ring-chalkboard/15 transition-all"
-                     style={{ transition: `all 700ms ${EASE.join(',')}` }}>
+                     style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}>
                   <div className="relative aspect-[3/4] rounded-[calc(1.75rem-0.375rem)] overflow-hidden bg-chalkboard">
                     {partner.image ? (
                       <picture>
@@ -575,7 +575,7 @@ export default function ForSchoolsPage() {
                           src={partner.image}
                           alt={`${partner.business} — ${partner.month}`}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          style={{ transition: `transform 1200ms ${EASE.join(',')}` }}
+                          style={{ transition: `transform 1200ms cubic-bezier(${EASE.join(',')})` }}
                           loading="lazy"
                         />
                       </picture>
@@ -656,7 +656,7 @@ export default function ForSchoolsPage() {
 
                   {/* Content card */}
                   <div className="flex-1 bg-white ring-1 ring-chalkboard/8 rounded-[1.5rem] p-6 md:p-7 hover:ring-chalkboard/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all"
-                       style={{ transition: `all 700ms ${EASE.join(',')}` }}>
+                       style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}>
                     <div className="flex flex-wrap items-baseline gap-3 mb-2">
                       <span className="text-[10px] uppercase tracking-[0.24em] font-bold text-apple">{step.phase}</span>
                       <h3 className="font-serif font-bold text-2xl text-chalkboard tracking-[-0.01em]">{step.title}</h3>
@@ -699,7 +699,7 @@ export default function ForSchoolsPage() {
               <a
                 href="mailto:hello@fundingmichiganteachers.org?subject=For%20Schools%20%E2%80%94%20Bring%20FMT%20to%20Our%20District&body=Hi%20FMT%20team%2C%0A%0AOur%20school%20is%20interested%20in%20the%20FMT%20trial%20year.%20Here's%20a%20little%20about%20us%3A%0A%0A-%20School%20Name%3A%0A-%20District%3A%0A-%20Approximate%20Staff%20Size%3A%0A-%20Best%20Contact%20%3A%0A%0AThanks!"
                 className="group flex items-center gap-3 bg-apple text-white pl-7 pr-2 py-2 rounded-full font-bold shadow-[0_15px_40px_rgba(192,57,43,0.4)] active:scale-[0.98] text-sm uppercase tracking-[0.18em]"
-                style={{ transition: `all 700ms ${EASE.join(',')}` }}
+                style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}
               >
                 <Mail size={15} />
                 <span>Start the Conversation</span>

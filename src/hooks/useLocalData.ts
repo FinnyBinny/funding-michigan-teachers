@@ -77,7 +77,8 @@ function useSupabaseArray<T>(
     const fetchData = async () => {
       if (!supabase) return;
       const { data: rows, error } = await supabase.from(table).select('*').order('id');
-      if (!error && rows && rows.length > 0) {
+      // Reachable DB → trust it, even when empty. Only keep fallback on hard error.
+      if (!error && rows) {
         setData(transform ? rows.map(transform) : (rows as unknown as T[]));
       }
     };
@@ -98,7 +99,7 @@ export const useSponsors        = () => useSupabaseArray<Sponsor>('sponsors', SP
 export const useFoodPartners    = () => useSupabaseArrayOrdered<FoodPartner>('food_partners', FOOD_PARTNERS);
 export const useTeachersOfMonth = () => useSupabaseArrayOrdered<TeacherOfTheMonth>('teachers_of_month', TEACHERS_OF_THE_MONTH);
 
-// Variant that orders by display_order (falls back to id when not set)
+// Variant that orders by display_order then id for stable ties
 function useSupabaseArrayOrdered<T>(table: string, fallback: T[]): T[] {
   const [data, setData] = useState<T[]>(fallback);
 
@@ -108,8 +109,9 @@ function useSupabaseArrayOrdered<T>(table: string, fallback: T[]): T[] {
       const { data: rows, error } = await supabase
         .from(table)
         .select('*')
-        .order('display_order', { ascending: true, nullsFirst: false });
-      if (!error && rows && rows.length > 0) {
+        .order('display_order', { ascending: true, nullsFirst: false })
+        .order('id', { ascending: true });
+      if (!error && rows) {
         setData(rows as unknown as T[]);
       }
     };
