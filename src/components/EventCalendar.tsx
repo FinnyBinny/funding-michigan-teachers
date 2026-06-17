@@ -6,6 +6,43 @@ import { useEvents } from '../hooks/useLocalData';
 export default function EventCalendar() {
   const events = useEvents();
 
+  if (events.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
+        className="max-w-2xl mx-auto"
+      >
+        <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-1.5">
+          <div className="bg-white rounded-[calc(2rem-0.375rem)] p-10 md:p-12 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+            <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-ruler/10 text-ruler flex items-center justify-center">
+              <CalendarIcon size={22} strokeWidth={1.5} />
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-3">No Events Scheduled Yet</p>
+            <h3 className="font-serif font-bold text-2xl md:text-3xl text-chalkboard leading-tight mb-3">
+              The next one is being planned.
+            </h3>
+            <p className="text-chalkboard/55 text-sm md:text-base font-light leading-relaxed mb-7 max-w-md mx-auto">
+              We're working on our next staff appreciation event. Drop us a line and we'll let you know the moment it's on the calendar.
+            </p>
+            <a
+              href="mailto:hello@fundingmichiganteachers.org?subject=Notify%20Me%20About%20Upcoming%20Events"
+              className="inline-flex items-center gap-2 bg-chalkboard text-white pl-5 pr-1.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.18em] hover:bg-apple group active:scale-[0.98]"
+              style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
+            >
+              Get Notified
+              <span className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                →
+              </span>
+            </a>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
       {events.map((event, index) => (
