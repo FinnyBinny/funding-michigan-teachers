@@ -159,6 +159,30 @@
   z-index: 0;
 }
 
+/* Make every Lucide icon feel ultra-light per the premium spec.
+   Lucide adds `class="lucide ..."` to its <svg> output, so we can hit
+   them globally without touching individual components. Override is
+   automatic — components can still pass strokeWidth={X} to opt out. */
+svg.lucide {
+  stroke-width: 1.5;
+}
+
+/* Mobile-only persistent donate ribbon — appears once the user scrolls
+   past the hero. Provides a constant conversion path without disrupting
+   the desktop reading rhythm. */
+.donate-ribbon {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 60;
+  pointer-events: auto;
+  transition: opacity 700ms var(--ease-fluid), transform 700ms var(--ease-fluid);
+}
+@media (min-width: 1024px) {
+  .donate-ribbon { display: none; }
+}
+
 /* Refined scrollbar (premium feel, supported in Chromium + Webkit) */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }

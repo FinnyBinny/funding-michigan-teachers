@@ -42,9 +42,27 @@ export default function App() {
   const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
 
   const handleDonate = (amount?: number) => {
+    // Premium experience: dedicated /donate page with quick-amount tiles + inline Zeffy embed.
+    // The old in-page modal is kept as a fallback (still wired into setShowDonation) but
+    // every primary CTA now routes to the full donate experience.
+    if (amount && amount > 0) {
+      window.history.pushState({}, '', `/donate?amount=${amount}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else {
+      window.history.pushState({}, '', '/donate');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+    // Keep modal-state plumbing alive so legacy callers still compile
     setDonationAmount(amount);
-    setShowDonation(true);
   };
+
+  // Sticky mobile donate bar reveals after the user scrolls past the hero
+  const [showStickyDonate, setShowStickyDonate] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowStickyDonate(window.scrollY > 600);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -564,6 +582,26 @@ export default function App() {
 
       {/* 5-minute donation nudge */}
       <DonationNudge onDonate={() => handleDonate()} />
+
+      {/* Mobile sticky donate ribbon — always-available conversion path on phones */}
+      <AnimatePresence>
+        {showStickyDonate && (
+          <motion.button
+            onClick={() => handleDonate()}
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+            className="donate-ribbon group flex items-center gap-3 bg-apple text-white pl-5 pr-1.5 py-1.5 rounded-full font-bold text-xs uppercase tracking-[0.18em] shadow-[0_18px_40px_rgba(192,57,43,0.35)] active:scale-[0.98]"
+          >
+            <Heart size={13} strokeWidth={1.5} className="fill-current" />
+            <span>Donate Now</span>
+            <span className="w-8 h-8 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+              <ArrowRight size={12} strokeWidth={1.5} />
+            </span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Cinematic film-grain overlay — fixed, pointer-events-none, ultra-low opacity */}
       <div className="grain-overlay" aria-hidden="true" />

@@ -1,161 +1,163 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Quote, ChevronLeft, ChevronRight, School, MapPin } from 'lucide-react';
+import { Quote, ArrowLeft, ArrowRight, School, MapPin, Mail } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useStories } from '../hooks/useLocalData';
+
+const EASE = [0.32, 0.72, 0, 1] as const;
 
 export default function TeacherStories() {
   const stories = useStories();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-  const nextStory = () => setCurrentIndex((prev) => (prev + 1) % stories.length);
-  const prevStory = () => setCurrentIndex((prev) => (prev - 1 + stories.length) % stories.length);
+  const nextStory = () => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % stories.length);
+  };
+  const prevStory = () => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + stories.length) % stories.length);
+  };
 
   const currentStory = stories[currentIndex];
-
   if (!currentStory) return null;
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="relative bg-white rounded-[4rem] shadow-[0_30px_100px_rgba(0,0,0,0.08)] overflow-hidden border border-chalkboard/5 group/card">
-        <div className="grid md:grid-cols-2 min-h-[380px]">
-          {/* Image Section */}
-          <div className="relative h-[260px] md:h-auto overflow-hidden">
-            <AnimatePresence mode="wait">
-              {currentStory.image ? (
-                <motion.img
-                  key={currentStory.image}
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  src={currentStory.image}
-                  className="w-full h-full object-cover object-top"
-                  alt={currentStory.name}
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <motion.div
-                  key="placeholder"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="w-full h-full bg-apple/5 flex flex-col items-center justify-center gap-6 p-12 text-center"
-                >
-                  <div className="w-32 h-32 bg-apple/10 rounded-full flex items-center justify-center text-apple">
-                    <School size={64} />
-                  </div>
-                  <div>
-                    <h4 className="text-2xl font-serif font-bold text-chalkboard mb-2">{currentStory.name}</h4>
-                    <p className="text-muted uppercase tracking-widest text-xs font-bold">Dedicated Michigan Educator</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/80 via-chalkboard/20 to-transparent md:hidden" />
-            <div className="absolute bottom-10 left-10 text-white md:hidden">
-              <h3 className="text-4xl font-serif font-bold mb-2">{currentStory.name}</h3>
-              <p className="text-lg opacity-80 font-light">{currentStory.school}</p>
-            </div>
-            
-            {/* Overlay for desktop */}
-            <div className="absolute inset-0 bg-apple/10 opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none" />
-          </div>
+    <div className="max-w-3xl mx-auto">
+      {/* Double-bezel outer shell — tighter padding */}
+      <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+        {/* Inner core */}
+        <div className="bg-white rounded-[calc(2rem-0.375rem)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] overflow-hidden">
 
-          {/* Content Section */}
-          <div className="p-7 md:p-10 flex flex-col justify-center relative bg-paper/30">
-            <Quote className="absolute top-12 right-12 text-apple/5 w-40 h-40 -z-10 rotate-12" />
-            
-            <div className="hidden md:block mb-7">
+          {/* TOP: attribution row (portrait + name + meta) — compact horizontal bar */}
+          <div className="px-6 md:px-8 pt-6 pb-5 border-b border-chalkboard/5 flex items-center gap-4">
+            <AnimatePresence mode="wait">
               <motion.div
-                key={currentStory.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                key={`portrait-${currentStory.id ?? currentStory.name}`}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="shrink-0"
               >
-                <h3 className="text-5xl font-serif font-bold mb-4 leading-tight">{currentStory.name}</h3>
-                <div className="flex flex-wrap gap-6 text-sm font-bold text-muted uppercase tracking-widest">
-                  <div className="flex items-center gap-2">
-                    <School size={18} className="text-apple" />
-                    <span>{currentStory.school}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin size={18} className="text-apple" />
-                    <span>{currentStory.location}</span>
-                  </div>
+                <div className="bg-chalkboard/5 ring-1 ring-chalkboard/8 rounded-2xl p-1">
+                  {currentStory.image ? (
+                    <img
+                      src={currentStory.image}
+                      alt={currentStory.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-12 h-12 rounded-xl object-cover object-top"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-apple/15 to-pencil/15 flex items-center justify-center">
+                      <School size={18} strokeWidth={1.25} className="text-apple/70" />
+                    </div>
+                  )}
                 </div>
               </motion.div>
-            </div>
 
-            <div className="space-y-6">
               <motion.div
-                key={`bio-${currentIndex}`}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                key={`meta-${currentStory.id ?? currentStory.name}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
+                className="min-w-0 flex-1"
               >
-                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-3">The Educator</h4>
-                <p className="text-xl text-chalkboard/70 leading-relaxed font-light italic">
-                  "{currentStory.bio}"
+                <h3 className="font-serif font-bold text-base text-chalkboard leading-tight tracking-[-0.01em]">
+                  {currentStory.name}
+                </h3>
+                <p className="text-[11px] text-chalkboard/50 font-light mt-0.5 truncate">
+                  {currentStory.school} · {currentStory.location}
                 </p>
               </motion.div>
+            </AnimatePresence>
 
+            <span className="shrink-0 text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/30">
+              {String(currentIndex + 1).padStart(2, '0')} / {String(stories.length).padStart(2, '0')}
+            </span>
+          </div>
+
+          {/* MIDDLE: The quote — tight, readable, not screen-dominating */}
+          <div className="px-6 md:px-8 py-7 md:py-9 relative">
+            <Quote
+              className="absolute top-5 right-5 text-apple/[0.06] -z-0 rotate-12"
+              size={56}
+              strokeWidth={1.25}
+            />
+            <AnimatePresence mode="wait">
               <motion.div
-                key={`impact-${currentIndex}`}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="bg-white p-6 rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-chalkboard/5 relative overflow-hidden group/impact"
+                key={`quote-${currentStory.id ?? currentStory.name}`}
+                initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -10, filter: 'blur(3px)' }}
+                transition={{ duration: 0.6, ease: EASE }}
+                className="relative z-10"
               >
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-apple" />
-                <h4 className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-3">The Impact</h4>
-                <p className="text-lg font-serif leading-relaxed text-chalkboard group-hover/impact:text-apple transition-colors duration-500">
+                <blockquote className="font-serif text-[clamp(1.0625rem,1.5vw,1.25rem)] leading-[1.5] text-chalkboard/85 mb-4">
+                  <span className="text-apple italic font-normal">"</span>
                   {currentStory.impact}
+                  <span className="text-apple italic font-normal">"</span>
+                </blockquote>
+                <p className="text-chalkboard/50 text-xs leading-relaxed font-light">
+                  {currentStory.bio}
                 </p>
               </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* BOTTOM bar — pagination + nav + share CTA */}
+          <div className="border-t border-chalkboard/5 px-5 md:px-6 py-3 flex flex-wrap items-center justify-between gap-3 bg-paper/30">
+            <div className="flex items-center gap-1.5">
+              {stories.map((s, i) => (
+                <button
+                  key={s.id ?? s.name}
+                  onClick={() => { setDirection(i > currentIndex ? 1 : -1); setCurrentIndex(i); }}
+                  aria-label={`View story ${i + 1}: ${s.name}`}
+                  className={cn(
+                    'h-1 rounded-full',
+                    currentIndex === i ? 'bg-apple w-6' : 'bg-chalkboard/15 w-1 hover:bg-chalkboard/30',
+                  )}
+                  style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
+                />
+              ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
-              <div className="flex gap-4">
-                <button
-                  onClick={prevStory}
-                  aria-label="Previous teacher story"
-                  className="p-4 rounded-2xl border-2 border-chalkboard/5 hover:border-apple hover:text-apple transition-all active:scale-90 bg-white shadow-sm"
-                >
-                  <ChevronLeft size={28} />
-                </button>
-                <button
-                  onClick={nextStory}
-                  aria-label="Next teacher story"
-                  className="p-4 rounded-2xl border-2 border-chalkboard/5 hover:border-apple hover:text-apple transition-all active:scale-90 bg-white shadow-sm"
-                >
-                  <ChevronRight size={28} />
-                </button>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={prevStory}
+                aria-label="Previous teacher story"
+                className="w-8 h-8 rounded-full bg-white ring-1 ring-chalkboard/10 hover:ring-chalkboard/30 hover:bg-chalkboard hover:text-white flex items-center justify-center active:scale-95"
+                style={{ transition: 'all 500ms cubic-bezier(0.32,0.72,0,1)' }}
+              >
+                <ArrowLeft size={13} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={nextStory}
+                aria-label="Next teacher story"
+                className="w-8 h-8 rounded-full bg-white ring-1 ring-chalkboard/10 hover:ring-chalkboard/30 hover:bg-chalkboard hover:text-white flex items-center justify-center active:scale-95"
+                style={{ transition: 'all 500ms cubic-bezier(0.32,0.72,0,1)' }}
+              >
+                <ArrowRight size={13} strokeWidth={1.5} />
+              </button>
 
               <a
                 href="mailto:hello@fundingmichiganteachers.org?subject=Share%20My%20Story"
-                className="flex items-center gap-3 bg-chalkboard text-white px-10 py-5 rounded-2xl font-bold hover:bg-apple transition-all shadow-xl hover:scale-105 active:scale-95"
+                className="group flex items-center gap-1.5 bg-chalkboard text-white pl-3.5 pr-1 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] hover:bg-apple active:scale-[0.98] ml-1.5"
+                style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
-                <span className="text-lg">Share Your Story</span>
+                <Mail size={10} strokeWidth={1.5} />
+                <span>Share</span>
+                <span className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                  <ArrowRight size={10} strokeWidth={1.5} />
+                </span>
               </a>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Pagination dots */}
-      <div className="flex justify-center gap-3 mt-12">
-        {stories.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentIndex(i)}
-            aria-label={`View story ${i + 1}: ${s.name}`}
-            className={cn(
-              "h-2 rounded-full transition-all duration-500",
-              currentIndex === i ? "bg-apple w-12" : "bg-chalkboard/10 w-2 hover:bg-chalkboard/30"
-            )}
-          />
-        ))}
       </div>
     </div>
   );

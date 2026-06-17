@@ -4,6 +4,7 @@ import App from './App.tsx';
 import SponsorsPage from './pages/SponsorsPage.tsx';
 import ForSchoolsPage from './pages/ForSchoolsPage.tsx';
 import AccessPage from './pages/AccessPage.tsx';
+import DonatePage from './pages/DonatePage.tsx';
 import './index.css';
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
 
   if (path === '/sponsors') return <SponsorsPage />;
   if (path === '/for-schools') return <ForSchoolsPage />;
+  if (path === '/donate') return <DonatePage />;
   if (path === '/access') return <AccessPage />;
   return <App />;
 }
