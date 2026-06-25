@@ -215,8 +215,8 @@ export const SPONSORS: Sponsor[] = [
     name: 'Playmakers Okemos',
     tier: 'Community Partner',
     description: 'Proud neighbor and supporter of OHS teachers.',
-    website: 'https://www.playmakerssportsbistro.com',
-    logo: 'https://logo.clearbit.com/playmakerssportsbistro.com',
+    website: 'https://www.playmakers.com',
+    logo: 'https://logo.clearbit.com/playmakers.com',
     active: true,
   },
   {
@@ -324,7 +324,7 @@ export const PAST_EVENTS: PastEvent[] = [
 export const FAQ_DATA = [
   {
     question: 'How do I donate?',
-    answer: 'Click "Donate Now" at the top of the page, or scroll down and choose your impact level. All donations are processed securely through Zeffy — a free platform for nonprofits, meaning zero processing fees come out of your gift.',
+    answer: 'Click "Donate Now" at the top of the page or visit our Donate page to choose your amount. You can pay with Apple Pay, Google Pay, credit card, or bank transfer. 100% of every gift goes directly to Michigan teachers.',
   },
   {
     question: 'Are donations tax-deductible?',
