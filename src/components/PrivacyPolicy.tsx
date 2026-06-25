@@ -60,7 +60,7 @@ export default function PrivacyPolicy({ isOpen, onClose }: PrivacyPolicyProps) {
                   <li><strong>Newsletter signups</strong> — your email address</li>
                   <li><strong>Contact form submissions</strong> — your name, email, and message</li>
                   <li><strong>Project submissions</strong> — your name, school, email, and project details</li>
-                  <li><strong>Donations</strong> — processed securely by Zeffy; we do not store payment card data</li>
+                  <li><strong>Donations</strong> — processed securely by Stripe or Zeffy; we do not store payment card data</li>
                 </ul>
               </section>
 
