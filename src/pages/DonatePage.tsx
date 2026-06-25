@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowLeft, ArrowRight, Heart, Shield, Sparkles, Apple as AppleIcon,
-  CreditCard, ChevronRight, AlertCircle,
+  CreditCard, ChevronRight, AlertCircle, Check,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { getDonationUrl, isAnyStripeConfigured, openDonation, type DonationFrequency } from '../lib/donate';
+import { getDonationUrl, isAnyStripeConfigured, isStripeConfigured, openDonation, type DonationFrequency } from '../lib/donate';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -22,23 +22,35 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
+function calcFee(base: number): number {
+  return Math.round((base / (1 - 0.029) + 0.30 / (1 - 0.029) - base) * 100) / 100;
+}
+
 export default function DonatePage() {
   const [amount, setAmount] = useState<number | null>(null);
   const [customInput, setCustomInput] = useState('');
   const [frequency, setFrequency] = useState<DonationFrequency>('monthly');
+  const [coverFee, setCoverFee] = useState(false);
   const stripeReady = isAnyStripeConfigured();
+  const stripeMonthlyReady = isStripeConfigured('monthly');
+  const stripeOnceReady = isStripeConfigured('once');
+  const currentFreqReady = frequency === 'monthly' ? stripeMonthlyReady : stripeOnceReady;
 
   // Preselect from ?amount= URL param if present (set by callers like the
   // home-page DonationTiers cards). Lets us deep-link to a chosen amount.
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'Donate | Funding Michigan Teachers';
     const params = new URLSearchParams(window.location.search);
     const a = params.get('amount');
     const n = a ? parseInt(a, 10) : NaN;
     if (!isNaN(n) && n > 0) setAmount(n);
+    return () => { document.title = 'Funding Michigan Teachers'; };
   }, []);
 
-  const effectiveAmount = amount ?? (parseInt(customInput, 10) || 0);
+  const baseAmount = amount ?? (parseInt(customInput, 10) || 0);
+  const feeAmount = coverFee && currentFreqReady && baseAmount > 0 ? calcFee(baseAmount) : 0;
+  const effectiveAmount = baseAmount + feeAmount;
   const canDonate = effectiveAmount > 0;
   const checkoutHref = canDonate ? getDonationUrl({ amount: effectiveAmount, frequency }) : '#';
 
@@ -217,6 +229,36 @@ export default function DonatePage() {
             </div>
           </motion.div>
 
+          {/* Fee-covering toggle — only shown when Stripe is configured */}
+          {currentFreqReady && baseAmount > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="flex justify-center mb-8"
+            >
+              <button
+                onClick={() => setCoverFee(v => !v)}
+                className="flex items-center gap-3 bg-white ring-1 ring-chalkboard/10 hover:ring-chalkboard/20 rounded-2xl px-5 py-3.5 text-sm font-medium text-chalkboard/70 hover:text-chalkboard transition-all"
+                style={{ transition: 'all 400ms cubic-bezier(0.32,0.72,0,1)' }}
+              >
+                <span
+                  className={cn(
+                    'w-5 h-5 rounded-md ring-1 flex items-center justify-center flex-shrink-0 transition-colors',
+                    coverFee ? 'bg-apple ring-apple text-white' : 'bg-white ring-chalkboard/20',
+                  )}
+                >
+                  {coverFee && <Check size={11} strokeWidth={3} />}
+                </span>
+                <span>
+                  Cover the {(2.9).toFixed(1)}% + $0.30 processing fee{' '}
+                  {baseAmount > 0 && <span className="text-apple font-bold">(+${calcFee(baseAmount).toFixed(2)})</span>}
+                  {' '}so 100% reaches teachers
+                </span>
+              </button>
+            </motion.div>
+          )}
+
           {/* PRIMARY CTA — opens Stripe Checkout in a new tab */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -243,7 +285,7 @@ export default function DonatePage() {
               <Heart size={18} strokeWidth={1.5} className="fill-current" />
               <span className="uppercase tracking-[0.18em] text-sm">
                 {canDonate
-                  ? `Donate $${effectiveAmount}${frequency === 'monthly' ? '/mo' : ''}`
+                  ? `Donate $${effectiveAmount}${feeAmount > 0 ? ` ($${baseAmount} + fee)` : ''}${frequency === 'monthly' ? '/mo' : ''}`
                   : 'Pick an amount above'}
               </span>
               <span className="w-11 h-11 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">

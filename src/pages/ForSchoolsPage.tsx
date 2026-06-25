@@ -89,6 +89,8 @@ export default function ForSchoolsPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'For Schools | Funding Michigan Teachers';
+    return () => { document.title = 'Funding Michigan Teachers'; };
   }, []);
 
   return (

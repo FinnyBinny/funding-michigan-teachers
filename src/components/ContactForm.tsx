@@ -114,7 +114,7 @@ export default function ContactForm() {
                 value={form.name}
                 onChange={e => setForm({...form, name: e.target.value})}
                 className="w-full bg-paper border border-chalkboard/5 rounded-2xl px-6 py-5 text-lg focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
-                placeholder="Sarah Jenkins"
+                placeholder="Your name"
               />
             </div>
             <div className="space-y-3">

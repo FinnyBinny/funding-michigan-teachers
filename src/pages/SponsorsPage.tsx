@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Heart, ArrowLeft, Building2, ExternalLink } from 'lucide-react';
+import { Heart, ArrowLeft, ArrowRight, Building2, ExternalLink } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
 import DonationModal from '../components/DonationModal';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
+
+const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -16,6 +18,11 @@ export default function SponsorsPage() {
   const foodPartners = useFoodPartners();
   const sponsors = useSponsors().filter(s => s.active !== false);
 
+  useEffect(() => {
+    document.title = 'Partners & Sponsors | Funding Michigan Teachers';
+    return () => { document.title = 'Funding Michigan Teachers'; };
+  }, []);
+
   const handleDonate = (amount?: number) => {
     setDonationAmount(amount);
     setShowDonation(true);
@@ -24,47 +31,41 @@ export default function SponsorsPage() {
   return (
     <div className="min-h-screen bg-paper overflow-x-hidden">
 
-      {/* Minimal Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-chalkboard/5 shadow-[0_2px_20px_rgba(0,0,0,0.04)]">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-
-          {/* Logo + back */}
-          <div className="flex items-center gap-5">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-1.5 text-chalkboard/50 hover:text-chalkboard transition-colors text-sm font-bold uppercase tracking-widest cursor-pointer"
-            >
-              <ArrowLeft size={15} />
-              <span className="hidden sm:inline">Home</span>
-            </button>
-
-            <div className="w-px h-6 bg-chalkboard/10" />
-
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-3 group cursor-pointer"
-            >
-              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md transform -rotate-3 group-hover:rotate-0 transition-transform shrink-0">
-                <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" />
-              </div>
-              <span className="font-serif text-base font-bold tracking-tight hidden sm:block">Funding Michigan Teachers</span>
-            </button>
-          </div>
-
-          {/* Donate button only */}
+      {/* Floating glass nav island */}
+      <nav className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
+        <div className="pointer-events-auto bg-white/80 backdrop-blur-2xl ring-1 ring-chalkboard/10 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex items-center gap-1 pl-2 pr-2 py-2">
           <button
-            onClick={() => handleDonate()}
-            className="bg-chalkboard text-white px-6 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold text-sm cursor-pointer"
+            onClick={() => navigate('/')}
+            className="group flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full hover:bg-chalkboard/5 transition-colors"
+            style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
           >
-            Donate Now
+            <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10 transition-colors">
+              <ArrowLeft size={13} />
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hidden sm:inline">Home</span>
           </button>
+          <div className="w-px h-6 bg-chalkboard/10 mx-1" />
+          <div className="hidden md:flex items-center gap-0.5">
+            <button onClick={() => navigate('/for-schools')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">For Schools</button>
+            <button onClick={() => navigate('/donate')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Donate</button>
+          </div>
+          <a
+            href="mailto:hello@fundingmichiganteachers.org?subject=Corporate%20Sponsorship%20Inquiry"
+            className="group flex items-center gap-2 bg-chalkboard text-white pl-4 pr-1 py-1 rounded-full hover:bg-apple transition-colors ml-1"
+            style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
+          >
+            <span className="text-[10px] uppercase tracking-[0.18em] font-bold">Become a Sponsor</span>
+            <span className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+              <ArrowRight size={12} />
+            </span>
+          </a>
         </div>
-      </header>
+      </nav>
 
-      <main>
+      <main id="main-content">
 
         {/* Page Hero */}
-        <section className="py-16 sm:py-24 px-6 classroom-grid relative overflow-hidden">
+        <section className="pt-32 pb-16 sm:pt-36 sm:pb-24 px-6 classroom-grid relative overflow-hidden">
           <div className="max-w-7xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

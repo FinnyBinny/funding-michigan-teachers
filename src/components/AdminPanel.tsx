@@ -316,7 +316,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
                   {activeTab === 'stories' && (
                     <form onSubmit={onStory} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
-                        <div><label className={lbl}>Teacher Name</label><input required value={sf.name} onChange={e => setSf({ ...sf, name: e.target.value })} className={inp} placeholder="Sarah Jenkins" /></div>
+                        <div><label className={lbl}>Teacher Name</label><input required value={sf.name} onChange={e => setSf({ ...sf, name: e.target.value })} className={inp} placeholder="Teacher's name" /></div>
                         <div><label className={lbl}>School</label><input required value={sf.school} onChange={e => setSf({ ...sf, school: e.target.value })} className={inp} placeholder="Cass Technical High" /></div>
                       </div>
                       <div><label className={lbl}>Location (City, MI)</label><input required value={sf.location} onChange={e => setSf({ ...sf, location: e.target.value })} className={inp} placeholder="Detroit, MI" /></div>

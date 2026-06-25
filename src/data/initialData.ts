@@ -33,6 +33,7 @@ export interface Project {
   goal: number;
   raised: number;
   votes: number;
+  image?: string;
 }
 
 export interface Story {
@@ -123,6 +124,17 @@ export const PROJECTS: Project[] = [
     votes: 0,
   },
   {
+    id: 3,
+    teacher_name: 'Christina Abbott',
+    school_name: 'Okemos High School',
+    title: 'Greenhouse & Botany Supplies',
+    description: 'Miss Abbott\'s horticulture students are growing real plants, running a real greenhouse — but the equipment hasn\'t kept up. We\'re raising $550 to get her a utility dump cart for hauling soil and supplies, two commercial shelving units for seedling trays, and three bales of professional-grade growing medium. These are the basics that turn a classroom greenhouse into a real learning environment.',
+    goal: 550,
+    raised: 0,
+    votes: 0,
+    image: '/images/abbott-horticulture-class.jpg',
+  },
+  {
     id: 2,
     teacher_name: 'Submit a Project',
     school_name: 'Your Classroom',
@@ -179,7 +191,43 @@ export const LOCATIONS: Location[] = [
 ];
 
 export const SPONSORS: Sponsor[] = [
-  { id: 1, name: 'Walmart Okemos', tier: 'Principal\'s Circle', amount: 250, description: 'Proud to support the Okemos community.', active: true },
+  {
+    id: 1,
+    name: 'Walmart Okemos',
+    tier: 'Community Partner',
+    amount: 250,
+    description: 'Proud to support the Okemos community.',
+    website: 'https://www.walmart.com',
+    logo: 'https://logo.clearbit.com/walmart.com',
+    active: true,
+  },
+  {
+    id: 2,
+    name: 'Cottage Inn Pizza Okemos',
+    tier: 'Community Partner',
+    description: 'Local Okemos favorite supporting Michigan teachers.',
+    website: 'https://www.cottageinnonline.com',
+    logo: 'https://logo.clearbit.com/cottageinnonline.com',
+    active: true,
+  },
+  {
+    id: 3,
+    name: 'Playmakers Okemos',
+    tier: 'Community Partner',
+    description: 'Proud neighbor and supporter of OHS teachers.',
+    website: 'https://www.playmakerssportsbistro.com',
+    logo: 'https://logo.clearbit.com/playmakerssportsbistro.com',
+    active: true,
+  },
+  {
+    id: 4,
+    name: 'Plas-Labs',
+    tier: 'Community Partner',
+    description: 'Lansing-based laboratory equipment manufacturer — proud to support science education in Michigan.',
+    website: 'https://www.plas-labs.com',
+    logo: 'https://www.plas-labs.com/packages/ae_theme/themes/ae/images/logo.png',
+    active: true,
+  },
 ];
 
 export const FOOD_PARTNERS: FoodPartner[] = [

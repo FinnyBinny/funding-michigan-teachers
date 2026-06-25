@@ -70,6 +70,11 @@ export default function App() {
 
   const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Stories'];
 
+  function navigateTo(path: string) {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
   return (
     <div className="min-h-screen bg-paper selection:bg-pencil/30 overflow-x-hidden">
       {/* Navbar */}
@@ -89,7 +94,7 @@ export default function App() {
           </div>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-10 font-medium text-xs uppercase tracking-[0.15em]">
+          <div className="hidden lg:flex items-center gap-6 font-medium text-xs uppercase tracking-[0.15em]">
             {navItems.map((item) => (
               <a
                 key={item}
@@ -100,9 +105,24 @@ export default function App() {
                 <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-apple transition-all group-hover:w-full" />
               </a>
             ))}
+            <div className="w-px h-5 bg-chalkboard/15 mx-1" />
+            <button
+              onClick={() => navigateTo('/for-schools')}
+              className="hover:text-apple transition-colors relative group"
+            >
+              For Schools
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-apple transition-all group-hover:w-full" />
+            </button>
+            <button
+              onClick={() => navigateTo('/sponsors')}
+              className="hover:text-apple transition-colors relative group"
+            >
+              Sponsors
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-apple transition-all group-hover:w-full" />
+            </button>
             <button
               onClick={() => handleDonate()}
-              className="bg-chalkboard text-white px-8 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer"
+              className="ml-2 bg-chalkboard text-white px-8 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer"
             >
               Donate Now
             </button>
@@ -139,6 +159,20 @@ export default function App() {
                   {item}
                 </a>
               ))}
+              <div className="border-t border-chalkboard/10 mt-2 pt-2 flex flex-col gap-4">
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigateTo('/for-schools'); }}
+                  className="text-left text-lg font-bold uppercase tracking-widest hover:text-apple transition-colors py-2 border-b border-chalkboard/5"
+                >
+                  For Schools
+                </button>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigateTo('/sponsors'); }}
+                  className="text-left text-lg font-bold uppercase tracking-widest hover:text-apple transition-colors py-2 border-b border-chalkboard/5"
+                >
+                  Sponsors
+                </button>
+              </div>
               <button
                 onClick={() => { setMobileMenuOpen(false); handleDonate(); }}
                 className="mt-4 bg-apple text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-apple/90 transition-all cursor-pointer"
@@ -150,7 +184,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <main>
+      <main id="main-content">
         {/* Hero Section */}
         <section className="viewport-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
           {/* Ambient brand glows — atmospheric depth without the moving particles */}

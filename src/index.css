@@ -51,6 +51,34 @@
   }
 }
 
+/* Skip navigation link — visually hidden until focused (ADA) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+  background: #1a1c1d;
+  color: #fcfaf5;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Respect reduced motion — disable all Motion animations for users who request it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer components {
   .crafted-card {
     @apply bg-white border border-chalkboard/5 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300;

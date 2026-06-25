@@ -194,12 +194,24 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
               transition={{ delay: index * 0.1 }}
               className="bg-white rounded-[40px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 overflow-hidden flex flex-col hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group"
             >
+              {project.image && !isSubmitCard && (
+                <div className="relative h-52 overflow-hidden">
+                  <img
+                    src={project.image}
+                    alt={`${project.teacher_name}'s class`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
+                </div>
+              )}
               <div className="p-10">
                 <div className="flex justify-between items-start mb-8">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-apple/10 text-apple rounded-2xl flex items-center justify-center shadow-sm group-hover:rotate-6 transition-transform">
-                      <School size={28} />
-                    </div>
+                    {!project.image && (
+                      <div className="w-14 h-14 bg-apple/10 text-apple rounded-2xl flex items-center justify-center shadow-sm group-hover:rotate-6 transition-transform">
+                        <School size={28} />
+                      </div>
+                    )}
                     <div>
                       <h4 className="font-serif font-bold text-lg leading-none">{project.school_name}</h4>
                       <p className="text-xs font-bold text-muted uppercase tracking-widest mt-1.5">{project.teacher_name}</p>
