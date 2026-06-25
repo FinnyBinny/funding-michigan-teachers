@@ -68,25 +68,42 @@
     @apply bg-white border-2 border-chalkboard/10 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-chalkboard/5 transition-all flex items-center gap-2;
   }
 
-  /* Premium viewport-fit section utility.
-     - Default: at least one full viewport tall, flex-centered content
-     - Mobile: drop the min-height when content overflows so text never gets clipped
-     - Uses 100dvh (dynamic vh) on supporting browsers to avoid iOS Safari address-bar jumps */
+  /* Premium viewport-fit section utility — adaptive across device sizes.
+     Strategy by viewport:
+       • Desktop (≥1024px): full 100dvh, flex-centered. The "Apple keynote" rhythm.
+       • Tablet (768–1023px): full 100dvh too, just with safe-area padding.
+       • Mobile (<768px): switch to align-items: flex-start and min-h: 100svh so
+         short content still feels intentional but tall content can grow without
+         clipping. iOS Safari's address-bar jumps are avoided by svh/dvh units.
+       • Short-but-wide (landscape phones, half-screen laptops): cap to 100svh
+         so we don't force scrolling within a section that doesn't need it.
+     All variants use dynamic-viewport units (svh/dvh) for iOS reliability. */
   .viewport-section {
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100vh;             /* legacy fallback */
+    min-height: 100dvh;            /* preferred — accounts for browser chrome */
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   @media (max-width: 767px) {
     .viewport-section {
-      min-height: auto;
-      padding-top: 5rem;
-      padding-bottom: 5rem;
+      min-height: 100svh;
+      padding-top: 4.5rem;
+      padding-bottom: 4.5rem;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-height: 700px) and (min-width: 768px) {
+    .viewport-section {
+      min-height: 100svh;
+      padding-top: 6rem;
+      padding-bottom: 4rem;
     }
   }
 

@@ -102,16 +102,7 @@ export interface TeacherOfTheMonth {
   display_order?: number;
 }
 
-export const EVENTS: Event[] = [
-  {
-    id: 2,
-    title: "Teacher Appreciation Event — Details Coming Soon",
-    date: '2026-05-07',
-    description: "We're planning our next teacher appreciation event during Teacher Appreciation Week. Stay tuned for details — register your interest below and we'll keep you updated!",
-    location: "Okemos, Michigan",
-    type: 'appreciation',
-  },
-];
+export const EVENTS: Event[] = [];
 
 export const DONORS: Donor[] = [
   { id: 1, name: 'Finn Regan', amount: 250, tier: 'Hall of Fame', message: 'Because someone has to say thank you first.', pos_x: 0, pos_y: 0 },

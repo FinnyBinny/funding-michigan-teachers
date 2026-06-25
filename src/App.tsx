@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
@@ -29,10 +29,7 @@ import DonationModal from './components/DonationModal';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import PrivacyPolicy from './components/PrivacyPolicy';
-
-// Three.js scene is code-split — adds ~150KB gz that only loads after
-// the initial paint, so it never blocks LCP.
-const HeroCanvas = lazy(() => import('./components/HeroCanvas'));
+import { openDonation } from './lib/donate';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
@@ -42,17 +39,18 @@ export default function App() {
   const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
 
   const handleDonate = (amount?: number) => {
-    // Premium experience: dedicated /donate page with quick-amount tiles + inline Zeffy embed.
-    // The old in-page modal is kept as a fallback (still wired into setShowDonation) but
-    // every primary CTA now routes to the full donate experience.
+    // 3-click donation flow:
+    //   1. Click "Donate" (or pick a tier) — we open Stripe Checkout in a new tab
+    //   2. On Checkout, tap Apple Pay / Google Pay
+    //   3. Confirm with Face ID / Touch ID — done.
+    // If a specific amount is known we open Stripe directly, skipping the /donate page entirely.
+    // For generic "Donate Now" with no amount yet, route to /donate so the user picks a tile.
     if (amount && amount > 0) {
-      window.history.pushState({}, '', `/donate?amount=${amount}`);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      openDonation({ amount, frequency: 'monthly' });
     } else {
       window.history.pushState({}, '', '/donate');
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
-    // Keep modal-state plumbing alive so legacy callers still compile
     setDonationAmount(amount);
   };
 
@@ -155,11 +153,9 @@ export default function App() {
       <main>
         {/* Hero Section */}
         <section className="viewport-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
-          {/* Three.js ambient scene — lazy-loaded so it doesn't block FCP */}
-          <Suspense fallback={null}>
-            <HeroCanvas />
-          </Suspense>
-
+          {/* Ambient brand glows — atmospheric depth without the moving particles */}
+          <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/[0.04] rounded-full blur-[140px]" />
+          <div className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] bg-pencil/[0.06] rounded-full blur-[120px]" />
 
           <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-[2]">
             <motion.div
