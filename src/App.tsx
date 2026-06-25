@@ -586,7 +586,7 @@ export default function App() {
               <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
             </div>
             <div className="flex items-center gap-6">
-              <button onClick={() => setShowPrivacy(true)} className="hover:text-white transition-colors">Privacy Policy</button>
+              <button onClick={() => navigateTo('/privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
             </div>
           </div>
         </div>
