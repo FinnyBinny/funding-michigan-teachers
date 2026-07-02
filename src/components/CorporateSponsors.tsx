@@ -99,22 +99,22 @@ const SPONSOR_TIERS = [
 const WHY_STATS = [
   {
     icon: Users,
-    value: '1,200+',
-    label: 'Teachers Reached',
+    value: '1,000+',
+    label: 'Educators Reached',
     color: 'text-ruler',
     bg: 'bg-ruler/10',
   },
   {
     icon: TrendingUp,
-    value: '$4,000+',
+    value: '$15K+',
     label: 'Raised for Classrooms',
     color: 'text-apple',
     bg: 'bg-apple/10',
   },
   {
     icon: Heart,
-    value: '3+',
-    label: 'Schools Served',
+    value: '8',
+    label: 'Schools Supported',
     color: 'text-pencil-dark',
     bg: 'bg-pencil/20',
   },

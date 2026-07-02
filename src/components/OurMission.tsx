@@ -54,7 +54,7 @@ export default function OurMission() {
             Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
           </p>
           <p className="text-base text-chalkboard/70 leading-relaxed font-light">
-            Since founding, FMT has raised over $4,000, served Okemos High School staff at every monthly meeting during the 2025–2026 school year, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with 100% of donations going directly to teachers.
+            Since founding, FMT has raised over $15,000, served Okemos High School staff at every monthly meeting during the 2025–2026 school year, reached 1,000+ educators across 8 schools during Teacher Appreciation Week, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with 100% of donations going directly to teachers.
           </p>
 
           <AnimatePresence>
@@ -98,8 +98,8 @@ export default function OurMission() {
               <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Direct to Classrooms</div>
             </div>
             <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-ruler/20 transition-colors">
-              <div className="text-3xl font-serif font-bold text-ruler mb-1 group-hover:scale-110 transition-transform origin-left">3</div>
-              <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Schools Reached</div>
+              <div className="text-3xl font-serif font-bold text-ruler mb-1 group-hover:scale-110 transition-transform origin-left">8</div>
+              <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Schools Supported</div>
             </div>
           </div>
         </motion.div>

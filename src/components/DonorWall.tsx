@@ -1,7 +1,7 @@
 import { motion } from 'motion/react';
-import { Award, Star, Heart } from 'lucide-react';
+import { Award, Star, Heart, Building2, ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useDonors } from '../hooks/useLocalData';
+import { useDonors, useSponsors } from '../hooks/useLocalData';
 
 const FOOD_PARTNERS = [
   {
@@ -36,6 +36,7 @@ const FOOD_PARTNERS = [
 
 export default function DonorWall() {
   const donors = useDonors();
+  const sponsors = useSponsors().filter((s) => s.active !== false);
 
   return (
     <div className="space-y-20">
@@ -95,6 +96,53 @@ export default function DonorWall() {
             <p className="text-sm font-bold text-white/40">Your name here</p>
             <p className="text-[10px] text-white/25 mt-1">Donate today</p>
           </motion.div>
+        </div>
+      </div>
+
+      {/* Corporate Sponsors — distinct from individuals and in-kind partners */}
+      <div>
+        <p className="text-center text-[10px] uppercase tracking-[0.25em] font-bold text-white/50 mb-3">
+          Corporate Sponsors
+        </p>
+        <p className="text-center text-sm text-white/50 mb-10 font-light max-w-lg mx-auto">
+          Businesses that put real dollars behind Michigan teachers — publicly, proudly, year after year.
+        </p>
+        <div className="flex flex-wrap justify-center gap-5">
+          {sponsors.map((sponsor, index) => (
+            <motion.div
+              key={sponsor.id ?? sponsor.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.08 }}
+              className="bg-white/[0.06] ring-1 ring-white/12 rounded-2xl px-7 py-6 flex flex-col items-center text-center max-w-[220px] hover:ring-pencil/40 transition-all"
+            >
+              <div className="w-11 h-11 mb-4 rounded-xl bg-pencil/20 ring-1 ring-pencil/30 flex items-center justify-center text-pencil">
+                <Building2 size={18} strokeWidth={1.5} />
+              </div>
+              <h4 className="font-serif font-bold text-base leading-tight text-white">{sponsor.name}</h4>
+              <p className="text-[9px] uppercase tracking-[0.22em] font-bold text-pencil/80 mt-1.5">{sponsor.tier}</p>
+              {sponsor.description && (
+                <p className="text-[11px] italic mt-3 text-white/60 leading-snug font-light">"{sponsor.description}"</p>
+              )}
+            </motion.div>
+          ))}
+
+          {/* Open slot — recruit the next sponsor */}
+          <motion.a
+            href="/sponsors"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: sponsors.length * 0.08 }}
+            className="group border border-dashed border-white/20 rounded-2xl px-7 py-6 flex flex-col items-center justify-center text-center max-w-[220px] hover:border-pencil/50 transition-colors"
+          >
+            <div className="w-11 h-11 mb-4 rounded-xl border-2 border-dashed border-white/25 flex items-center justify-center text-white/30 group-hover:text-pencil group-hover:border-pencil/40 transition-colors">
+              <ArrowRight size={16} strokeWidth={1.5} />
+            </div>
+            <p className="text-sm font-bold text-white/40 group-hover:text-white/70 transition-colors">Your business here</p>
+            <p className="text-[10px] text-white/25 mt-1">Become a sponsor</p>
+          </motion.a>
         </div>
       </div>
 

@@ -207,18 +207,18 @@ export default function App() {
               </p>
               <div className="mt-10 flex items-center gap-6">
                 <div className="flex flex-col">
-                  <span className="text-apple font-bold text-2xl leading-none">1,200+</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Teachers Impacted</span>
+                  <span className="text-apple font-bold text-2xl leading-none">1,000+</span>
+                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Educators Reached</span>
                 </div>
                 <div className="w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col">
-                  <span className="text-ruler font-bold text-2xl leading-none">$4,000+</span>
+                  <span className="text-ruler font-bold text-2xl leading-none">$15K+</span>
                   <span className="text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
                 </div>
                 <div className="w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col">
-                  <span className="text-pencil font-bold text-2xl leading-none">3</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Schools Reached</span>
+                  <span className="text-pencil font-bold text-2xl leading-none">8</span>
+                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Schools Supported</span>
                 </div>
               </div>
             </motion.div>
@@ -246,28 +246,23 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Real fundraising progress */}
+              {/* All-time impact card */}
               <div className="mt-5 bg-white rounded-[2rem] p-7 shadow-xl border border-chalkboard/5">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted">2025–26 Goal Progress</p>
-                  <span className="text-apple font-mono font-bold">40%</span>
-                </div>
-                <div className="w-full h-3 bg-chalkboard/5 rounded-full overflow-hidden my-3">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '40%' }}
-                    transition={{ duration: 1.8, delay: 0.8, ease: "easeOut" }}
-                    className="h-full bg-apple rounded-full"
-                  />
-                </div>
-                <div className="flex justify-between items-end min-w-0 gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xl font-bold font-mono text-chalkboard leading-none">$4,000+</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">raised so far</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted mb-4">Impact to Date</p>
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-apple leading-none">$15K+</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">raised</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xl font-bold font-mono text-chalkboard/30 leading-none">$10,000</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">school year goal</p>
+                  <div className="w-px h-10 bg-chalkboard/10" />
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-chalkboard leading-none">1,000+</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">educators</p>
+                  </div>
+                  <div className="w-px h-10 bg-chalkboard/10" />
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-ruler leading-none">8</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">schools</p>
                   </div>
                 </div>
               </div>
