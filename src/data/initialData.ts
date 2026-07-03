@@ -137,7 +137,7 @@ export const PROJECTS: Project[] = [
     school_name: 'Okemos High School',
     title: 'Greenhouse & Life Science Lab Restock',
     description: "Miss Abbott's greenhouse and life science labs need real equipment: a 600 lb. poly utility dump cart to replace broken seed carts, two 6-tier commercial wire shelving units for greenhouse storage, and three bags of Pro-Mix HP Biofungicide with Mycorrhizae to keep student-grown plants healthy. Every item goes straight into her hands-on, research-driven classroom.",
-    goal: 700,
+    goal: 500,
     raised: 0,
     votes: 0,
   },
@@ -286,7 +286,7 @@ export const SPONSORS: Sponsor[] = [
 
 export const FOOD_PARTNERS: FoodPartner[] = [
   { id: 1, month: 'September', business: 'Chick-Fil-A Okemos', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
-  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos", detail: 'Fresh donuts for the whole staff', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
+  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
   { id: 3, month: 'January', business: 'Nothing Bundt Cakes, Okemos', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
   { id: 4, month: 'March', business: "Hungry Howie's, Okemos", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
   { id: 5, month: 'May', business: 'Chick-Fil-A Okemos (W Grand River)', detail: 'Teacher Appreciation Week — ~$2,000 in free entrée cards for 1,000+ educators across 9 schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },

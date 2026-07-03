@@ -472,7 +472,7 @@ export default function ForSchoolsPage() {
             ))}
           </div>
 
-          {/* 600+ staff impact callout */}
+          {/* District-wide reach callout */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -486,7 +486,7 @@ export default function ForSchoolsPage() {
                 <div className="aspect-square md:aspect-auto md:h-full">
                   <img
                     src="/images/may-chick-fil-a-cards.jpg"
-                    alt="Chick-fil-A 'Be our guest' meal cards distributed to over 600 staff across every Okemos school"
+                    alt="Chick-fil-A 'Be our guest' meal cards distributed to 1,000+ educators across 9 schools"
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -501,24 +501,24 @@ export default function ForSchoolsPage() {
                   And there's more
                 </div>
                 <h3 className="font-serif font-bold text-3xl md:text-4xl text-white leading-[1.05] tracking-[-0.01em] mb-5">
-                  <span className="text-pencil italic font-normal">600+ staff members</span><br/>
-                  across every Okemos school.
+                  <span className="text-pencil italic font-normal">1,000+ educators</span><br/>
+                  across 9 schools.
                 </h3>
                 <p className="text-white/55 text-base md:text-lg font-light leading-relaxed mb-7">
-                  During Teacher Appreciation Week, FMT teamed up with <span className="text-white font-medium">Chick-fil-A Okemos (W Grand River)</span> to distribute "Be our guest" meal cards to every single staff member across all Okemos schools. Not one building. Not one department. The whole district.
+                  During Teacher Appreciation Week, FMT teamed up with <span className="text-white font-medium">Chick-fil-A Okemos</span> and <span className="text-white font-medium">Dunkin' Okemos</span> to distribute meal cards, coffee, and donuts to every staff member — across every Okemos school, plus Haslett High School and East Lansing High School. Not one building. Not one district. The whole region.
                 </p>
                 <div className="grid grid-cols-3 gap-5 pt-6 border-t border-white/10">
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">600+</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Staff reached</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">1,000+</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Educators reached</p>
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">All</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Okemos schools</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">9</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Schools, 3 districts</p>
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">1</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Local partner</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">2</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Local partners</p>
                   </div>
                 </div>
               </div>

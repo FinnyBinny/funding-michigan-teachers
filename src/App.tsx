@@ -205,20 +205,23 @@ export default function App() {
                 501(c)(3) Nonprofit · EIN 93-4485967 · 100% to teachers
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
               </p>
-              <div className="mt-10 flex items-center gap-6">
-                <div className="flex flex-col">
-                  <span className="text-apple font-bold text-2xl leading-none">1,000+</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Educators Reached</span>
+              {/* Grid on mobile (hard 3-column constraint prevents horizontal
+                  overflow from long uppercase labels); flex+dividers once
+                  there's enough room at sm: and up. */}
+              <div className="mt-10 grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
+                <div className="flex flex-col min-w-0">
+                  <span className="text-apple font-bold text-xl sm:text-2xl leading-none">1,000+</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Educators Reached</span>
                 </div>
-                <div className="w-px h-10 bg-chalkboard/10" />
-                <div className="flex flex-col">
-                  <span className="text-ruler font-bold text-2xl leading-none">$15K+</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
+                <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">$15K+</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
                 </div>
-                <div className="w-px h-10 bg-chalkboard/10" />
-                <div className="flex flex-col">
-                  <span className="text-pencil font-bold text-2xl leading-none">9</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Schools Supported</span>
+                <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">9</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Schools Supported</span>
                 </div>
               </div>
             </motion.div>
@@ -546,7 +549,7 @@ export default function App() {
           </div>
 
           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/20 text-xs">
-            <div className="flex items-center gap-8">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
               <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
               <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
             </div>

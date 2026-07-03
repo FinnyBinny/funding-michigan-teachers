@@ -236,7 +236,7 @@ export default function DonatePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.7 }}
-            className="flex items-center justify-center gap-3 mb-12 text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/35"
+            className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 mb-12 text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/35"
           >
             <span className="flex items-center gap-1.5">
               <AppleIcon size={11} strokeWidth={1.5} />
