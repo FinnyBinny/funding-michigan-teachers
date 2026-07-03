@@ -113,7 +113,7 @@ const WHY_STATS = [
   },
   {
     icon: Heart,
-    value: '8',
+    value: '9',
     label: 'Schools Supported',
     color: 'text-pencil-dark',
     bg: 'bg-pencil/20',

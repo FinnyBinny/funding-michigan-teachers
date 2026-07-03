@@ -89,9 +89,13 @@ export default function DonatePage() {
               <h1 className="font-serif font-bold leading-[0.95] tracking-[-0.025em] mb-7 text-[clamp(2.5rem,5vw,4.5rem)]">
                 Make this <span className="text-apple italic font-normal">real</span> for a Michigan teacher.
               </h1>
-              <p className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light">
+              <p className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-5">
                 Drag the slider and watch your gift turn into pencils, staff meals, and classroom grants — then tap once with Apple Pay or Google Pay. 100% goes to teachers.
               </p>
+              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
+                2026–27 School Year Goal: $20,000
+              </div>
             </motion.div>
 
             {/* Trust signals card */}

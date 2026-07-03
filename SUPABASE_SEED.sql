@@ -13,19 +13,21 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- ── In-kind food partners (photos live in /public/images on the site) ──────
+-- Note: Walmart Okemos is the only CASH sponsor (see sponsors insert below).
+-- Every business here gave goods/services, not dollars.
 insert into food_partners (month, business, detail, image, avif, display_order)
 select * from (values
   ('September', 'Chick-Fil-A Okemos', 'Cookies + free meal coupons for every staff member', '/images/IMG_3714(CFA)-opt.jpg', '/images/IMG_3714(CFA).avif', 1),
   ('October', 'Tailgaters / Dunkin'', Okemos', 'Fresh donuts for the whole staff', '/images/IMG_4369(DNK)-opt.jpg', '/images/IMG_4369(DNK).avif', 2),
   ('January', 'Nothing Bundt Cakes, Okemos', 'Mini Bundt Cakes — the perfect January pick-me-up', '/images/IMG_5678(NBC)-opt.jpg', '/images/IMG_5678(NBC).avif', 3),
   ('March', 'Hungry Howie''s, Okemos', 'Pizza for the whole staff, donated by FMT founder Finn Regan', '/images/IMG_6308(FR)-opt.jpg', '/images/IMG_6308(FR).avif', 4),
-  ('May', 'Chick-Fil-A Okemos (W Grand River)', 'Teacher Appreciation Week — "Be our guest" meal cards for 1,000+ educators across 8 schools', '/images/may-chick-fil-a-cards.jpg', null, 5),
+  ('May', 'Chick-Fil-A Okemos (W Grand River)', 'Teacher Appreciation Week — ~$2,000 in free entrée cards for 1,000+ educators across 9 schools', '/images/may-chick-fil-a-cards.jpg', null, 5),
   ('May', 'Dunkin'' Okemos', 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', '/images/may-staff-meeting.jpg', null, 6),
-  ('2026–27', 'Tailgaters Okemos', 'Powering the FMT Coffee Bar — starting at OHS Kickstart', null, null, 7),
-  ('2026–27', 'Playmakers of Okemos', 'In-kind community partner supporting FMT programs', null, null, 8),
-  ('2026–27', 'Cottage Inn Pizza, Okemos (Grand River)', 'In-kind community partner supporting FMT programs', null, null, 9),
-  ('2026–27', 'Biggby Coffee, Okemos (Jolly & Okemos Rd)', 'In-kind community partner supporting FMT programs', null, null, 10),
-  ('2026–27', 'Culver''s of Okemos South', 'In-kind community partner supporting FMT programs', null, null, 11)
+  ('2025–27', 'Biggby Coffee, Okemos (Jolly & Okemos Rd)', 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', null, null, 7),
+  ('2026–27', 'Tailgaters Okemos', 'Powering the FMT Coffee Bar at OHS Kickstart', null, null, 8),
+  ('2025–26', 'Playmakers of Okemos', 'Donated two $25 Playmakers gift cards for staff appreciation', null, null, 9),
+  ('2025–26', 'Cottage Inn Pizza, Okemos (Grand River)', 'Donated five $20 gift cards for staff appreciation', null, null, 10),
+  ('2025–26', 'Culver''s of Okemos South', 'Donated ~77 free two-scoop, one-topping frozen custard coupons for staff', null, null, 11)
 ) as seed(month, business, detail, image, avif, display_order)
 where not exists (
   select 1 from food_partners f

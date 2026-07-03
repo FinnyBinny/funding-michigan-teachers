@@ -63,7 +63,7 @@ const ACCENT_MAP = {
 const IMPACT_NUMBERS = [
   { value: '1,000+', label: 'Educators Reached', color: 'text-apple' },
   { value: '$15K+', label: 'Raised for Teachers', color: 'text-ruler' },
-  { value: '8', label: 'Schools Supported', color: 'text-pencil-dark' },
+  { value: '9', label: 'Schools Supported', color: 'text-pencil-dark' },
   { value: '100%', label: 'Direct to Teachers', color: 'text-apple' },
 ];
 
@@ -173,7 +173,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.9, delay: 0.25, ease: EASE }}
               className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-10"
             >
-              Okemos High School was our proving ground — a full school year of showing up at every staff meeting, and a Teacher Appreciation Week that reached 1,000+ educators across 8 schools, from Okemos to Haslett to East Lansing. Now we're growing. Same programs. Same student-led model. Zero cost to your building.
+              Okemos High School was our proving ground — a full school year of showing up at every staff meeting, and a Teacher Appreciation Week that reached 1,000+ educators across 9 schools, from Okemos to Haslett to East Lansing. Now we're growing. Same programs. Same student-led model. Zero cost to your building.
             </motion.p>
 
             <motion.div

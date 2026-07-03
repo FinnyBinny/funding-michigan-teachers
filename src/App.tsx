@@ -217,7 +217,7 @@ export default function App() {
                 </div>
                 <div className="w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col">
-                  <span className="text-pencil font-bold text-2xl leading-none">8</span>
+                  <span className="text-pencil font-bold text-2xl leading-none">9</span>
                   <span className="text-xs uppercase tracking-widest font-bold text-muted">Schools Supported</span>
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default function App() {
                   </div>
                   <div className="w-px h-10 bg-chalkboard/10" />
                   <div>
-                    <p className="text-2xl font-bold font-mono text-ruler leading-none">8</p>
+                    <p className="text-2xl font-bold font-mono text-ruler leading-none">9</p>
                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">schools</p>
                   </div>
                 </div>
@@ -300,9 +300,13 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Choose Your <span className="text-apple italic font-normal">Impact</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed mb-6">
                 Monthly giving is the most powerful way to support Michigan teachers — it lets us plan ahead, show up consistently, and make every staff meeting feel special.
               </p>
+              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
+                2026–27 School Year Goal: $20,000
+              </div>
             </div>
             <DonationTiers onDonate={handleDonate} />
           </div>
