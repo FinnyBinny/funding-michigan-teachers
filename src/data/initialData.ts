@@ -286,13 +286,13 @@ export const SPONSORS: Sponsor[] = [
 
 export const FOOD_PARTNERS: FoodPartner[] = [
   { id: 1, month: 'September', business: 'Chick-Fil-A Okemos', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
-  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
+  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos (3450 Okemos Rd)", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
   { id: 3, month: 'January', business: 'Nothing Bundt Cakes, Okemos', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
   { id: 4, month: 'March', business: "Hungry Howie's, Okemos", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
   { id: 5, month: 'May', business: 'Chick-Fil-A Okemos (W Grand River)', detail: 'Teacher Appreciation Week — ~$2,000 in free entrée cards for 1,000+ educators across 9 schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
-  { id: 6, month: 'May', business: "Dunkin' Okemos", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
+  { id: 6, month: 'May', business: "Dunkin' Okemos (3450 Okemos Rd)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
   { id: 7, month: '2025–27', business: 'Biggby Coffee, Okemos (Jolly & Okemos Rd)', detail: 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', display_order: 7 },
-  { id: 8, month: '2026–27', business: 'Tailgaters Okemos', detail: 'Powering the FMT Coffee Bar at OHS Kickstart', display_order: 8 },
+  { id: 8, month: '2026–27', business: 'Tailgaters Okemos (3450 Okemos Rd)', detail: 'Powering the FMT Coffee Bar at OHS Kickstart', display_order: 8 },
   { id: 9, month: '2025–26', business: 'Playmakers of Okemos', detail: 'Donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
   { id: 10, month: '2025–26', business: 'Cottage Inn Pizza, Okemos (Grand River)', detail: 'Donated five $20 gift cards for staff appreciation', display_order: 10 },
   { id: 11, month: '2025–26', business: "Culver's of Okemos South", detail: 'Donated ~77 free two-scoop, one-topping frozen custard coupons for staff', display_order: 11 },
