@@ -5,7 +5,6 @@ import {
   Coffee, UtensilsCrossed, Award, Mailbox, GraduationCap,
   Calendar, CheckCircle2, Building2, Send, Loader2,
 } from 'lucide-react';
-import DonationModal from '../components/DonationModal';
 import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
@@ -77,7 +76,6 @@ const ROADMAP = [
 ];
 
 export default function ForSchoolsPage() {
-  const [showDonation, setShowDonation] = useState(false);
   const teachersOfMonth = useTeachersOfMonth();
   const foodPartners = useFoodPartners();
   const heroRef = useRef<HTMLDivElement>(null);
@@ -744,7 +742,7 @@ export default function ForSchoolsPage() {
 
             <div className="mt-8 flex justify-center">
               <button
-                onClick={() => setShowDonation(true)}
+                onClick={() => navigate('/donate')}
                 className="flex items-center gap-3 bg-white/8 ring-1 ring-white/15 hover:bg-white/15 px-7 py-3 rounded-full font-bold text-sm uppercase tracking-[0.18em] transition-all"
               >
                 <Heart size={15} className="text-apple" />
@@ -777,8 +775,6 @@ export default function ForSchoolsPage() {
       </section>
 
       <SiteFooter />
-
-      <DonationModal isOpen={showDonation} onClose={() => setShowDonation(false)} />
 
       <div className="grain-overlay" aria-hidden="true" />
     </div>

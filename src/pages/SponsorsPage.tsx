@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Heart, ArrowLeft, Building2, ExternalLink } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
-import DonationModal from '../components/DonationModal';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 
@@ -12,14 +10,13 @@ function navigate(path: string) {
 }
 
 export default function SponsorsPage() {
-  const [showDonation, setShowDonation] = useState(false);
-  const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
   const foodPartners = useFoodPartners();
   const sponsors = useSponsors().filter(s => s.active !== false);
 
+  // All donations route through /donate, which hosts the embedded Stripe
+  // checkout panel — one consistent, on-page payment flow site-wide.
   const handleDonate = (amount?: number) => {
-    setDonationAmount(amount);
-    setShowDonation(true);
+    navigate(amount && amount > 0 ? `/donate?amount=${amount}` : '/donate');
   };
 
   return (
@@ -240,14 +237,6 @@ export default function SponsorsPage() {
       </main>
 
       <SiteFooter />
-
-      {/* Donation Modal */}
-      <DonationModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        amount={donationAmount}
-        frequency="monthly"
-      />
 
     </div>
   );

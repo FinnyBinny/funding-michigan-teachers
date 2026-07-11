@@ -25,33 +25,26 @@ import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
 import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
-import DonationModal from './components/DonationModal';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import PrivacyPolicy from './components/PrivacyPolicy';
-import { openDonation } from './lib/donate';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showDonation, setShowDonation] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
 
   const handleDonate = (amount?: number) => {
     // 3-click donation flow:
-    //   1. Click "Donate" (or pick a tier) — we open Stripe Checkout in a new tab
-    //   2. On Checkout, tap Apple Pay / Google Pay
-    //   3. Confirm with Face ID / Touch ID — done.
-    // If a specific amount is known we open Stripe directly, skipping the /donate page entirely.
-    // For generic "Donate Now" with no amount yet, route to /donate so the user picks a tile.
-    if (amount && amount > 0) {
-      openDonation({ amount, frequency: 'monthly' });
-    } else {
-      window.history.pushState({}, '', '/donate');
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }
-    setDonationAmount(amount);
+    //   1. Click "Donate" (anywhere on the site) — lands on /donate, which
+    //      hosts the embedded Stripe checkout panel (card form renders
+    //      inline, no redirect)
+    //   2. Tap "Donate $X" — the embedded panel opens right there
+    //   3. Apple Pay / Google Pay / card — Face ID or a few digits. Done.
+    // A known amount is passed through as ?amount=X so /donate preselects it.
+    const path = amount && amount > 0 ? `/donate?amount=${amount}` : '/donate';
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   // Sticky mobile donate bar reveals after the user scrolls past the hero
@@ -566,14 +559,6 @@ export default function App() {
 
       {/* FAQ Assistant */}
       <FAQAssistant />
-
-      {/* Donation Modal */}
-      <DonationModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        amount={donationAmount}
-        frequency="monthly"
-      />
 
       {/* Privacy Policy Modal */}
       <PrivacyPolicy isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />

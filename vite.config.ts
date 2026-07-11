@@ -18,6 +18,7 @@ export default defineConfig({
           'motion': ['motion/react'],
           'supabase': ['@supabase/supabase-js'],
           'lucide': ['lucide-react'],
+          'stripe-client': ['@stripe/stripe-js', '@stripe/react-stripe-js'],
         },
       },
     },
