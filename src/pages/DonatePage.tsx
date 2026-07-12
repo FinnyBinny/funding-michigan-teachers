@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft, ArrowRight, Heart, Shield, Sparkles, Apple as AppleIcon,
-  CreditCard, ChevronRight, AlertCircle,
+  CreditCard, ChevronRight, AlertCircle, CheckCircle2, Loader2,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { getDonationUrl, isAnyStripeConfigured, openDonation, type DonationFrequency } from '../lib/donate';
+import { isAnyStripeConfigured, isEmbeddedStripeConfigured, openDonation, type DonationFrequency } from '../lib/donate';
+import ImpactVisualizer from '../components/ImpactVisualizer';
+import EmbeddedDonateCheckout from '../components/EmbeddedDonateCheckout';
+import SiteFooter from '../components/SiteFooter';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
 const TILES = [
   { amount: 10,  label: 'Bell Ringer',     impact: 'A box of classroom supplies' },
   { amount: 25,  label: 'Coffee Run',      impact: 'A staff-meeting treat for a whole department' },
-  { amount: 50,  label: 'Honor Roll',      impact: 'Feeds the staff of a small Okemos school' },
+  { amount: 50,  label: 'Honor Roll',      impact: 'Feeds the staff of a small school' },
   { amount: 100, label: 'Department Lead', impact: 'Funds one classroom grant every quarter' },
-  { amount: 250, label: 'Hall of Fame',    impact: 'Powers an entire school\'s appreciation program' },
+  { amount: 250, label: 'Hall of Fame',    impact: "Powers an entire school's appreciation program" },
 ];
 
 function navigate(path: string) {
@@ -22,25 +25,115 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
+type SuccessState = 'checking' | 'confirmed' | 'failed' | null;
+
 export default function DonatePage() {
-  const [amount, setAmount] = useState<number | null>(null);
-  const [customInput, setCustomInput] = useState('');
+  // Single source of truth for the gift amount — tiles, slider, and the
+  // custom input all write here so the impact visualizer stays live.
+  const [amount, setAmount] = useState(25);
   const [frequency, setFrequency] = useState<DonationFrequency>('monthly');
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [success, setSuccess] = useState<SuccessState>(null);
+
+  const embeddedReady = isEmbeddedStripeConfigured();
   const stripeReady = isAnyStripeConfigured();
 
-  // Preselect from ?amount= URL param if present (set by callers like the
-  // home-page DonationTiers cards). Lets us deep-link to a chosen amount.
+  // Deep-link support: /donate?amount=50 preselects the amount. Also checks
+  // for a return from embedded Stripe Checkout (?stripe_session_id=...) to
+  // show a confirmed/failed state instead of the picker.
   useEffect(() => {
     window.scrollTo(0, 0);
     const params = new URLSearchParams(window.location.search);
+
+    const sessionId = params.get('stripe_session_id');
+    if (sessionId) {
+      setSuccess('checking');
+      fetch(`/api/checkout-session-status?session_id=${encodeURIComponent(sessionId)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const ok = data.status === 'complete' || data.paymentStatus === 'paid' || data.paymentStatus === 'no_payment_required';
+          setSuccess(ok ? 'confirmed' : 'failed');
+        })
+        .catch(() => setSuccess('failed'));
+      return;
+    }
+
     const a = params.get('amount');
     const n = a ? parseInt(a, 10) : NaN;
     if (!isNaN(n) && n > 0) setAmount(n);
   }, []);
 
-  const effectiveAmount = amount ?? (parseInt(customInput, 10) || 0);
-  const canDonate = effectiveAmount > 0;
-  const checkoutHref = canDonate ? getDonationUrl({ amount: effectiveAmount, frequency }) : '#';
+  const canDonate = amount > 0;
+
+  const handleDonateClick = () => {
+    if (!canDonate) return;
+    if (embeddedReady) {
+      setShowCheckout(true);
+    } else {
+      openDonation({ amount, frequency });
+    }
+  };
+
+  // ── Post-checkout confirmation state ──────────────────────────────────
+  if (success) {
+    return (
+      <div className="min-h-[100dvh] bg-paper flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          className="max-w-md w-full text-center"
+        >
+          {success === 'checking' && (
+            <>
+              <Loader2 className="animate-spin text-apple mx-auto mb-5" size={32} />
+              <p className="text-chalkboard/60">Confirming your donation…</p>
+            </>
+          )}
+          {success === 'confirmed' && (
+            <>
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-apple/10 flex items-center justify-center">
+                <CheckCircle2 size={30} className="text-apple" />
+              </div>
+              <h1 className="font-serif font-bold text-3xl mb-3">Thank you.</h1>
+              <p className="text-chalkboard/60 leading-relaxed mb-8">
+                Your gift is on its way to a Michigan classroom. A receipt is on its way to your inbox — 100% tax-deductible, EIN 93-4485967.
+              </p>
+              <button
+                onClick={() => navigate('/')}
+                className="inline-flex items-center gap-2 bg-chalkboard text-white pl-6 pr-2 py-2 rounded-full font-bold text-sm uppercase tracking-[0.18em]"
+              >
+                Back to Home
+                <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <ArrowRight size={13} />
+                </span>
+              </button>
+            </>
+          )}
+          {success === 'failed' && (
+            <>
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-pencil/15 flex items-center justify-center">
+                <AlertCircle size={30} className="text-pencil-dark" />
+              </div>
+              <h1 className="font-serif font-bold text-3xl mb-3">Couldn't confirm that.</h1>
+              <p className="text-chalkboard/60 leading-relaxed mb-8">
+                We weren't able to verify this donation. If you were charged, it will still show up in your Stripe receipt — otherwise, feel free to try again.
+              </p>
+              <button
+                onClick={() => { setSuccess(null); navigate('/donate'); }}
+                className="inline-flex items-center gap-2 bg-apple text-white pl-6 pr-2 py-2 rounded-full font-bold text-sm uppercase tracking-[0.18em]"
+              >
+                Try Again
+                <span className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
+                  <ArrowRight size={13} />
+                </span>
+              </button>
+            </>
+          )}
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative">
@@ -66,7 +159,7 @@ export default function DonatePage() {
         </div>
       </nav>
 
-      {/* Ambient brand glows — atmospheric depth without distracting particles */}
+      {/* Ambient brand glows */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px]" />
       <div className="pointer-events-none absolute top-1/3 -right-40 w-[500px] h-[500px] bg-pencil/[0.08] rounded-full blur-[160px]" />
 
@@ -74,7 +167,7 @@ export default function DonatePage() {
         <div className="max-w-7xl mx-auto">
 
           {/* HEADER — editorial split */}
-          <div className="grid lg:grid-cols-12 gap-10 mb-14">
+          <div className="grid lg:grid-cols-12 gap-10 mb-12">
             <motion.div
               initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -88,9 +181,13 @@ export default function DonatePage() {
               <h1 className="font-serif font-bold leading-[0.95] tracking-[-0.025em] mb-7 text-[clamp(2.5rem,5vw,4.5rem)]">
                 Make this <span className="text-apple italic font-normal">real</span> for a Michigan teacher.
               </h1>
-              <p className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light">
-                Pick a tile, tap once with Apple Pay or Google Pay. Your gift lands directly in a classroom or on a teacher's table — 100% of it.
+              <p className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-5">
+                Drag the slider and watch your gift turn into pencils, staff meals, and classroom grants — then tap once with Apple Pay or Google Pay. 100% goes to teachers.
               </p>
+              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
+                2026–27 School Year Goal: $20,000
+              </div>
             </motion.div>
 
             {/* Trust signals card */}
@@ -129,7 +226,7 @@ export default function DonatePage() {
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+            transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
             className="flex justify-center mb-10"
           >
             <div className="bg-chalkboard/[0.04] ring-1 ring-chalkboard/10 rounded-full p-1 flex items-center gap-1">
@@ -137,9 +234,7 @@ export default function DonatePage() {
                 <button
                   key={f}
                   onClick={() => setFrequency(f)}
-                  className={cn(
-                    'relative px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.18em]',
-                  )}
+                  className="relative px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.18em]"
                   style={{ transition: 'color 500ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
                   {frequency === f && (
@@ -157,8 +252,13 @@ export default function DonatePage() {
             </div>
           </motion.div>
 
-          {/* AMOUNT TILES — single click opens Stripe Checkout */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-8">
+          {/* THE IMPACT VISUALIZER — the centerpiece */}
+          <div className="mb-12">
+            <ImpactVisualizer amount={amount} onAmountChange={setAmount} frequency={frequency} />
+          </div>
+
+          {/* QUICK TILES — one tap sets the visualizer + amount */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mb-10">
             {TILES.map((tile, i) => {
               const selected = amount === tile.amount;
               return (
@@ -166,8 +266,8 @@ export default function DonatePage() {
                   key={tile.label}
                   initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  transition={{ duration: 0.7, delay: 0.4 + i * 0.05, ease: EASE }}
-                  onClick={() => { setAmount(tile.amount); setCustomInput(''); }}
+                  transition={{ duration: 0.7, delay: 0.35 + i * 0.05, ease: EASE }}
+                  onClick={() => setAmount(tile.amount)}
                   className="group text-left"
                   style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
                 >
@@ -191,49 +291,16 @@ export default function DonatePage() {
             })}
           </div>
 
-          {/* Custom amount — small input, big impact */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.65, ease: EASE }}
-            className="flex flex-col sm:flex-row items-stretch gap-3 mb-10 max-w-xl mx-auto"
-          >
-            <div className="relative flex-1">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-chalkboard/40 font-serif text-lg pointer-events-none">$</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={1}
-                step={1}
-                value={customInput}
-                onChange={(e) => {
-                  setCustomInput(e.target.value);
-                  setAmount(null);
-                }}
-                placeholder="Custom amount"
-                className="w-full bg-white ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/40 rounded-full pl-10 pr-5 py-3.5 text-base font-medium outline-none placeholder:text-chalkboard/30"
-                style={{ transition: 'all 400ms cubic-bezier(0.32,0.72,0,1)' }}
-              />
-            </div>
-          </motion.div>
-
-          {/* PRIMARY CTA — opens Stripe Checkout in a new tab */}
+          {/* PRIMARY CTA — opens embedded Stripe checkout inline (or falls back) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.75, ease: EASE }}
+            transition={{ duration: 0.8, delay: 0.55, ease: EASE }}
             className="flex justify-center mb-6"
           >
-            <a
-              href={canDonate ? checkoutHref : '#'}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => {
-                if (!canDonate) { e.preventDefault(); return; }
-                openDonation({ amount: effectiveAmount, frequency });
-                e.preventDefault();
-              }}
-              aria-disabled={!canDonate}
+            <button
+              onClick={handleDonateClick}
+              disabled={!canDonate}
               className={cn(
                 'group flex items-center gap-3 pl-9 pr-2 py-2.5 rounded-full font-bold text-base shadow-[0_18px_40px_rgba(192,57,43,0.35)] active:scale-[0.98]',
                 canDonate ? 'bg-apple text-white' : 'bg-chalkboard/20 text-chalkboard/40 pointer-events-none',
@@ -242,22 +309,20 @@ export default function DonatePage() {
             >
               <Heart size={18} strokeWidth={1.5} className="fill-current" />
               <span className="uppercase tracking-[0.18em] text-sm">
-                {canDonate
-                  ? `Donate $${effectiveAmount}${frequency === 'monthly' ? '/mo' : ''}`
-                  : 'Pick an amount above'}
+                Donate ${amount}{frequency === 'monthly' ? '/mo' : ''}
               </span>
               <span className="w-11 h-11 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
                 <ArrowRight size={16} strokeWidth={1.5} />
               </span>
-            </a>
+            </button>
           </motion.div>
 
           {/* Payment method indicators */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.95 }}
-            className="flex items-center justify-center gap-3 mb-12 text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/35"
+            transition={{ duration: 0.8, delay: 0.7 }}
+            className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 mb-12 text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/35"
           >
             <span className="flex items-center gap-1.5">
               <AppleIcon size={11} strokeWidth={1.5} />
@@ -271,7 +336,7 @@ export default function DonatePage() {
             <span>Bank</span>
           </motion.div>
 
-          {/* Setup-required notice (only shown if env vars not configured) */}
+          {/* Setup-required notice (admin only, until env vars are configured) */}
           {!stripeReady && (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -283,11 +348,12 @@ export default function DonatePage() {
               <div className="bg-pencil/10 ring-1 ring-pencil/30 rounded-2xl p-5 flex items-start gap-3">
                 <AlertCircle size={18} strokeWidth={1.5} className="text-pencil-dark shrink-0 mt-0.5" />
                 <div className="text-xs text-chalkboard/70 leading-relaxed">
-                  <p className="font-bold text-chalkboard mb-1">Admin: Stripe Payment Link not configured.</p>
+                  <p className="font-bold text-chalkboard mb-1">Admin: Stripe isn't configured yet.</p>
                   <p>
-                    Until you set <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">VITE_STRIPE_LINK_ONCE</code> and{' '}
-                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">VITE_STRIPE_LINK_MONTHLY</code> in Vercel,
-                    donations fall back to Zeffy. See <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">src/lib/donate.ts</code> for setup steps.
+                    For embedded checkout (recommended — no redirect), set{' '}
+                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> and{' '}
+                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">STRIPE_SECRET_KEY</code> in Vercel.
+                    Until then, donations fall back to Zeffy. See <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">src/lib/donate.ts</code> for full setup steps.
                   </p>
                 </div>
               </div>
@@ -329,21 +395,20 @@ export default function DonatePage() {
         </div>
       </main>
 
-      <footer className="bg-chalkboard text-white py-10 px-6 relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-white/30 text-xs">
-          <div className="flex items-center gap-6">
-            <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
-            <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <button onClick={() => navigate('/')} className="hover:text-white">Main Site</button>
-            <button onClick={() => navigate('/for-schools')} className="hover:text-white">For Schools</button>
-            <a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white">hello@fundingmichiganteachers.org</a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <div className="grain-overlay" aria-hidden="true" />
+
+      {/* Embedded checkout panel — the card form lives on this page, no redirect */}
+      <AnimatePresence>
+        {showCheckout && (
+          <EmbeddedDonateCheckout
+            amount={amount}
+            frequency={frequency}
+            onClose={() => setShowCheckout(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

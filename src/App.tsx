@@ -25,33 +25,26 @@ import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
 import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
-import DonationModal from './components/DonationModal';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import PrivacyPolicy from './components/PrivacyPolicy';
-import { openDonation } from './lib/donate';
 
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showDonation, setShowDonation] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
 
   const handleDonate = (amount?: number) => {
     // 3-click donation flow:
-    //   1. Click "Donate" (or pick a tier) — we open Stripe Checkout in a new tab
-    //   2. On Checkout, tap Apple Pay / Google Pay
-    //   3. Confirm with Face ID / Touch ID — done.
-    // If a specific amount is known we open Stripe directly, skipping the /donate page entirely.
-    // For generic "Donate Now" with no amount yet, route to /donate so the user picks a tile.
-    if (amount && amount > 0) {
-      openDonation({ amount, frequency: 'monthly' });
-    } else {
-      window.history.pushState({}, '', '/donate');
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }
-    setDonationAmount(amount);
+    //   1. Click "Donate" (anywhere on the site) — lands on /donate, which
+    //      hosts the embedded Stripe checkout panel (card form renders
+    //      inline, no redirect)
+    //   2. Tap "Donate $X" — the embedded panel opens right there
+    //   3. Apple Pay / Google Pay / card — Face ID or a few digits. Done.
+    // A known amount is passed through as ?amount=X so /donate preselects it.
+    const path = amount && amount > 0 ? `/donate?amount=${amount}` : '/donate';
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   // Sticky mobile donate bar reveals after the user scrolls past the hero
@@ -205,20 +198,23 @@ export default function App() {
                 501(c)(3) Nonprofit · EIN 93-4485967 · 100% to teachers
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
               </p>
-              <div className="mt-10 flex items-center gap-6">
-                <div className="flex flex-col">
-                  <span className="text-apple font-bold text-2xl leading-none">1,200+</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Teachers Impacted</span>
+              {/* Grid on mobile (hard 3-column constraint prevents horizontal
+                  overflow from long uppercase labels); flex+dividers once
+                  there's enough room at sm: and up. */}
+              <div className="mt-10 grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
+                <div className="flex flex-col min-w-0">
+                  <span className="text-apple font-bold text-xl sm:text-2xl leading-none">1,000+</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Educators Reached</span>
                 </div>
-                <div className="w-px h-10 bg-chalkboard/10" />
-                <div className="flex flex-col">
-                  <span className="text-ruler font-bold text-2xl leading-none">$4,000+</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
+                <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">$15K+</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
                 </div>
-                <div className="w-px h-10 bg-chalkboard/10" />
-                <div className="flex flex-col">
-                  <span className="text-pencil font-bold text-2xl leading-none">3</span>
-                  <span className="text-xs uppercase tracking-widest font-bold text-muted">Schools Reached</span>
+                <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">9</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Schools Supported</span>
                 </div>
               </div>
             </motion.div>
@@ -246,28 +242,23 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Real fundraising progress */}
+              {/* All-time impact card */}
               <div className="mt-5 bg-white rounded-[2rem] p-7 shadow-xl border border-chalkboard/5">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted">2025–26 Goal Progress</p>
-                  <span className="text-apple font-mono font-bold">40%</span>
-                </div>
-                <div className="w-full h-3 bg-chalkboard/5 rounded-full overflow-hidden my-3">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: '40%' }}
-                    transition={{ duration: 1.8, delay: 0.8, ease: "easeOut" }}
-                    className="h-full bg-apple rounded-full"
-                  />
-                </div>
-                <div className="flex justify-between items-end min-w-0 gap-2">
-                  <div className="min-w-0">
-                    <p className="text-xl font-bold font-mono text-chalkboard leading-none">$4,000+</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">raised so far</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted mb-4">Impact to Date</p>
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-apple leading-none">$15K+</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">raised</p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-xl font-bold font-mono text-chalkboard/30 leading-none">$10,000</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">school year goal</p>
+                  <div className="w-px h-10 bg-chalkboard/10" />
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-chalkboard leading-none">1,000+</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">educators</p>
+                  </div>
+                  <div className="w-px h-10 bg-chalkboard/10" />
+                  <div>
+                    <p className="text-2xl font-bold font-mono text-ruler leading-none">9</p>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">schools</p>
                   </div>
                 </div>
               </div>
@@ -305,9 +296,13 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Choose Your <span className="text-apple italic font-normal">Impact</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed mb-6">
                 Monthly giving is the most powerful way to support Michigan teachers — it lets us plan ahead, show up consistently, and make every staff meeting feel special.
               </p>
+              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
+                2026–27 School Year Goal: $20,000
+              </div>
             </div>
             <DonationTiers onDonate={handleDonate} />
           </div>
@@ -547,7 +542,7 @@ export default function App() {
           </div>
 
           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/20 text-xs">
-            <div className="flex items-center gap-8">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
               <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
               <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
             </div>
@@ -564,14 +559,6 @@ export default function App() {
 
       {/* FAQ Assistant */}
       <FAQAssistant />
-
-      {/* Donation Modal */}
-      <DonationModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        amount={donationAmount}
-        frequency="monthly"
-      />
 
       {/* Privacy Policy Modal */}
       <PrivacyPolicy isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />

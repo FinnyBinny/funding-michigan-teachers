@@ -102,7 +102,16 @@ export interface TeacherOfTheMonth {
   display_order?: number;
 }
 
-export const EVENTS: Event[] = [];
+export const EVENTS: Event[] = [
+  {
+    id: 3,
+    title: 'FMT Coffee Bar at OHS Kickstart',
+    date: '2026-08-19',
+    description: "We're bringing the FMT Coffee Bar to Okemos High School's Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Tailgaters Okemos and Biggby Coffee. 9am–2pm, or while supplies last.",
+    location: 'Okemos High School',
+    type: 'appreciation',
+  },
+];
 
 export const DONORS: Donor[] = [
   { id: 1, name: 'Finn Regan', amount: 250, tier: 'Hall of Fame', message: 'Because someone has to say thank you first.', pos_x: 0, pos_y: 0 },
@@ -119,6 +128,16 @@ export const PROJECTS: Project[] = [
     title: 'New Dissection Lab Tools',
     description: 'Our dissection tools are over 10 years old — scalpels dull, equipment worn. Help fund a complete set of modern dissection tools so every biology and anatomy student can learn safely and effectively. These students deserve equipment that matches their ambition.',
     goal: 1000,
+    raised: 0,
+    votes: 0,
+  },
+  {
+    id: 3,
+    teacher_name: 'Christina Abbott',
+    school_name: 'Okemos High School',
+    title: 'Greenhouse & Life Science Lab Restock',
+    description: "Miss Abbott's greenhouse and life science labs need real equipment: a 600 lb. poly utility dump cart to replace broken seed carts, two 6-tier commercial wire shelving units for greenhouse storage, and three bags of Pro-Mix HP Biofungicide with Mycorrhizae to keep student-grown plants healthy. Every item goes straight into her hands-on, research-driven classroom.",
+    goal: 500,
     raised: 0,
     votes: 0,
   },
@@ -169,26 +188,114 @@ export const LOCATIONS: Location[] = [
     id: '1',
     name: 'Okemos High School',
     district: 'Okemos Public Schools',
-    impact: 'Monthly staff meeting food from local businesses, classroom supply grants, door decorating competitions with $500+ in prizes, and year-round teacher appreciation events — all student-run, 100% community-funded.',
-    amount: '$4,000+',
+    impact: 'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, and year-round appreciation events — all student-run, 100% community-funded.',
+    amount: '$15K+ org-wide',
     lat: 42.7244,
     lng: -84.4333,
     demographics: { students: '1,800', lowIncome: '18%', diversity: '34%' },
-    projects: ['Monthly Staff Meeting Food', 'Classroom Supply Grants', 'Door Decorating Competition', 'Teacher Appreciation Events'],
+    projects: ['Staff Meeting Food (Every Meeting)', 'Classroom Supply Grants', 'Door Decorating Competition', 'Teacher of the Month', 'Coffee Bar'],
+  },
+  {
+    id: '2',
+    name: 'Kinawa Middle School',
+    district: 'Okemos Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
+    amount: 'Appreciation Week',
+    lat: 42.7180, lng: -84.4180,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '3',
+    name: 'Chippewa Middle School',
+    district: 'Okemos Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
+    amount: 'Appreciation Week',
+    lat: 42.7080, lng: -84.4430,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '4',
+    name: 'Cornell Elementary',
+    district: 'Okemos Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
+    amount: 'Appreciation Week',
+    lat: 42.7320, lng: -84.4260,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '5',
+    name: 'Bennett Woods Elementary',
+    district: 'Okemos Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
+    amount: 'Appreciation Week',
+    lat: 42.6990, lng: -84.4640,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '6',
+    name: 'Hiawatha Elementary',
+    district: 'Okemos Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
+    amount: 'Appreciation Week',
+    lat: 42.7150, lng: -84.4520,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '7',
+    name: 'Central Montessori',
+    district: 'Okemos Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
+    amount: 'Appreciation Week',
+    lat: 42.7230, lng: -84.4450,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '8',
+    name: 'Haslett High School',
+    district: 'Haslett Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~143 staff members.',
+    amount: '143 educators',
+    lat: 42.7530, lng: -84.4010,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
+  },
+  {
+    id: '9',
+    name: 'East Lansing High School',
+    district: 'East Lansing Public Schools',
+    impact: 'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~160 staff members.',
+    amount: '160 educators',
+    lat: 42.7480, lng: -84.4840,
+    demographics: { students: '', lowIncome: '', diversity: '' },
+    projects: ['Teacher Appreciation Week Meal Cards'],
   },
 ];
 
+// Walmart Okemos is the only cash sponsor to date. Every other business
+// below is an in-kind partner (donated goods/services, not a cash gift) —
+// they belong on the In-Kind Partners wall, not here.
 export const SPONSORS: Sponsor[] = [
   { id: 1, name: 'Walmart Okemos', tier: 'Principal\'s Circle', amount: 250, description: 'Proud to support the Okemos community.', active: true },
 ];
 
 export const FOOD_PARTNERS: FoodPartner[] = [
   { id: 1, month: 'September', business: 'Chick-Fil-A Okemos', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
-  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos", detail: 'Fresh donuts for the whole staff', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
+  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos (3450 Okemos Rd)", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
   { id: 3, month: 'January', business: 'Nothing Bundt Cakes, Okemos', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
   { id: 4, month: 'March', business: "Hungry Howie's, Okemos", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
-  { id: 5, month: 'May', business: 'Chick-Fil-A Okemos (W Grand River)', detail: 'Teacher Appreciation Week — "Be our guest" meal cards distributed to every staff member across all Okemos schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
-  { id: 6, month: 'May', business: "Dunkin' Okemos", detail: 'Teacher Appreciation Week — coffee + donuts brought to the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
+  { id: 5, month: 'May', business: 'Chick-Fil-A Okemos (W Grand River)', detail: 'Teacher Appreciation Week — ~$2,000 in free entrée cards for 1,000+ educators across 9 schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
+  { id: 6, month: 'May', business: "Dunkin' Okemos (3450 Okemos Rd)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
+  { id: 7, month: '2025–27', business: 'Biggby Coffee, Okemos (Jolly & Okemos Rd)', detail: 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', display_order: 7 },
+  { id: 8, month: '2026–27', business: 'Tailgaters Okemos (3450 Okemos Rd)', detail: 'Powering the FMT Coffee Bar at OHS Kickstart', display_order: 8 },
+  { id: 9, month: '2025–26', business: 'Playmakers of Okemos', detail: 'Donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
+  { id: 10, month: '2025–26', business: 'Cottage Inn Pizza, Okemos (Grand River)', detail: 'Donated five $20 gift cards for staff appreciation', display_order: 10 },
+  { id: 11, month: '2025–26', business: "Culver's of Okemos South", detail: 'Donated ~77 free two-scoop, one-topping frozen custard coupons for staff', display_order: 11 },
 ];
 
 export const TEACHERS_OF_THE_MONTH: TeacherOfTheMonth[] = [
@@ -270,6 +377,30 @@ export const PAST_EVENTS: PastEvent[] = [
     description: 'Brought in a full pizza spread for the teachers at the staff meeting — because great teachers deserve more than a thank you. Hot slices, real gratitude.',
     type: 'appreciation',
     partner: 'Hungry Howie\'s Okemos',
+  },
+  {
+    id: 7,
+    month: 'April 2026',
+    title: 'FMT Coffee Bar — First Event',
+    description: 'Our first FMT Coffee Bar of the year, staffed by our student team and fueled by Biggby Coffee — coffee, decaf, and hot chocolate to get staff through the final stretch of the school year.',
+    type: 'appreciation',
+    partner: 'Biggby Coffee, Okemos',
+  },
+  {
+    id: 8,
+    month: 'May 2026',
+    title: 'Teacher Appreciation Week — District-Wide',
+    description: 'Our biggest week ever: ~$2,000 in Chick-fil-A "Be our guest" meal cards delivered to 1,000+ educators across 9 schools — every Okemos building plus Haslett and East Lansing High School — and our first Teachers of the Month announced live at the OHS staff meeting.',
+    type: 'appreciation',
+    partner: "Chick-fil-A Okemos & Dunkin'",
+  },
+  {
+    id: 9,
+    month: 'June 2026',
+    title: 'FMT Coffee Bar — End of Year',
+    description: 'Closed out the school year with a second Coffee Bar, sending staff into summer with coffee, decaf, and hot chocolate from Biggby — a small thank-you for a full year of showing up.',
+    type: 'appreciation',
+    partner: 'Biggby Coffee, Okemos',
   },
 ];
 

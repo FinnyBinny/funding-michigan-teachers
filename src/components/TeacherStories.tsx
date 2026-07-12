@@ -48,12 +48,12 @@ export default function TeacherStories() {
                       alt={currentStory.name}
                       loading="lazy"
                       decoding="async"
-                      className="w-12 h-12 rounded-xl object-cover object-top"
+                      className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] rounded-xl object-cover object-top"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-apple/15 to-pencil/15 flex items-center justify-center">
-                      <School size={18} strokeWidth={1.25} className="text-apple/70" />
+                    <div className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] rounded-xl bg-gradient-to-br from-apple/15 to-pencil/15 flex items-center justify-center">
+                      <School size={22} strokeWidth={1.25} className="text-apple/70" />
                     </div>
                   )}
                 </div>
@@ -67,10 +67,10 @@ export default function TeacherStories() {
                 transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
                 className="min-w-0 flex-1"
               >
-                <h3 className="font-serif font-bold text-base text-chalkboard leading-tight tracking-[-0.01em]">
+                <h3 className="font-serif font-bold text-lg md:text-xl text-chalkboard leading-tight tracking-[-0.01em]">
                   {currentStory.name}
                 </h3>
-                <p className="text-[11px] text-chalkboard/50 font-light mt-0.5 truncate">
+                <p className="text-xs text-chalkboard/50 font-light mt-0.5 truncate">
                   {currentStory.school} · {currentStory.location}
                 </p>
               </motion.div>
@@ -98,9 +98,7 @@ export default function TeacherStories() {
                 className="relative z-10"
               >
                 <blockquote className="font-serif text-[clamp(1.0625rem,1.5vw,1.25rem)] leading-[1.5] text-chalkboard/85 mb-4">
-                  <span className="text-apple italic font-normal">"</span>
-                  {currentStory.impact}
-                  <span className="text-apple italic font-normal">"</span>
+                  &ldquo;{currentStory.impact}&rdquo;
                 </blockquote>
                 <p className="text-chalkboard/50 text-xs leading-relaxed font-light">
                   {currentStory.bio}

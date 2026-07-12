@@ -43,6 +43,13 @@ export default function TeacherLeaderboard() {
       }, {} as Record<string, { teacher_name: string; school_name: string; project_count: number; total_votes: number; total_raised: number }>)
   ).sort((a, b) => b.total_votes - a.total_votes), [projects, supaVotes]);
 
+  const rankBadge = (index: number) => cn(
+    'rounded-2xl flex items-center justify-center font-serif font-bold shadow-sm shrink-0',
+    index === 0 ? 'bg-pencil text-chalkboard' :
+    index === 1 ? 'bg-slate-100 text-chalkboard' :
+    index === 2 ? 'bg-orange-50 text-chalkboard' : 'bg-chalkboard/5 text-chalkboard/40'
+  );
+
   return (
     <div className="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-chalkboard/5 overflow-hidden">
       <div className="bg-chalkboard p-8 sm:p-12 text-white relative overflow-hidden">
@@ -58,7 +65,53 @@ export default function TeacherLeaderboard() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile: stacked cards — every column stays visible, nothing scrolls off-screen */}
+      <div className="sm:hidden divide-y divide-chalkboard/5">
+        {leaderboard.map((entry, index) => (
+          <motion.div
+            key={`${entry.teacher_name}-${entry.school_name}`}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: Math.min(index * 0.05, 0.3) }}
+            className="p-5"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className={cn(rankBadge(index), 'w-9 h-9 text-base')}>{index + 1}</div>
+              <div className="min-w-0 flex-1">
+                <p className="font-serif font-bold text-base text-chalkboard truncate">{entry.teacher_name}</p>
+                <p className="text-[11px] text-muted font-bold uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                  <School size={10} className="text-apple shrink-0" />
+                  <span className="truncate">{entry.school_name}</span>
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-paper/60 rounded-xl p-2.5 text-center">
+                <div className="flex items-center justify-center gap-1 text-ruler mb-1">
+                  <Star size={12} />
+                </div>
+                <p className="font-mono font-bold text-sm text-chalkboard">{entry.project_count}</p>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-muted mt-0.5">Initiatives</p>
+              </div>
+              <div className="bg-paper/60 rounded-xl p-2.5 text-center">
+                <div className="flex items-center justify-center gap-1 text-apple mb-1">
+                  <TrendingUp size={12} />
+                </div>
+                <p className="font-mono font-bold text-sm text-chalkboard">{entry.total_votes}</p>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-muted mt-0.5">Votes</p>
+              </div>
+              <div className="bg-paper/60 rounded-xl p-2.5 text-center">
+                <p className="font-serif font-bold text-sm text-apple mt-[3px]">${entry.total_raised.toLocaleString()}</p>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-muted mt-1.5">Raised</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Tablet+: full table, every column has room to breathe */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[500px]">
           <thead>
             <tr className="bg-paper/50 border-b border-chalkboard/5">
@@ -74,17 +127,13 @@ export default function TeacherLeaderboard() {
               <motion.tr
                 key={`${entry.teacher_name}-${entry.school_name}`}
                 initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: Math.min(index * 0.05, 0.3) }}
                 className="hover:bg-paper/30 transition-colors group"
               >
                 <td className="px-6 sm:px-12 py-5 sm:py-8">
-                  <div className={cn(
-                    "w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-serif font-bold text-lg sm:text-xl shadow-sm",
-                    index === 0 ? "bg-pencil text-chalkboard scale-110" :
-                    index === 1 ? "bg-slate-100 text-chalkboard" :
-                    index === 2 ? "bg-orange-50 text-chalkboard" : "bg-chalkboard/5 text-chalkboard/40"
-                  )}>
+                  <div className={cn(rankBadge(index), 'w-10 h-10 sm:w-12 sm:h-12 text-lg sm:text-xl', index === 0 && 'scale-110')}>
                     {index + 1}
                   </div>
                 </td>

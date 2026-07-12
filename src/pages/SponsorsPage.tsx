@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Heart, ArrowLeft, Building2, ExternalLink } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
-import DonationModal from '../components/DonationModal';
+import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 
 function navigate(path: string) {
@@ -11,14 +10,13 @@ function navigate(path: string) {
 }
 
 export default function SponsorsPage() {
-  const [showDonation, setShowDonation] = useState(false);
-  const [donationAmount, setDonationAmount] = useState<number | undefined>(undefined);
   const foodPartners = useFoodPartners();
   const sponsors = useSponsors().filter(s => s.active !== false);
 
+  // All donations route through /donate, which hosts the embedded Stripe
+  // checkout panel — one consistent, on-page payment flow site-wide.
   const handleDonate = (amount?: number) => {
-    setDonationAmount(amount);
-    setShowDonation(true);
+    navigate(amount && amount > 0 ? `/donate?amount=${amount}` : '/donate');
   };
 
   return (
@@ -238,40 +236,7 @@ export default function SponsorsPage() {
 
       </main>
 
-      {/* Minimal Footer */}
-      <footer className="bg-chalkboard text-white py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-white/30 text-xs">
-          <div className="flex items-center gap-6">
-            <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
-            <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => navigate('/')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              Back to Main Site
-            </button>
-            <button
-              onClick={() => navigate('/for-schools')}
-              className="hover:text-white transition-colors cursor-pointer"
-            >
-              For Schools
-            </button>
-            <a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white transition-colors">
-              hello@fundingmichiganteachers.org
-            </a>
-          </div>
-        </div>
-      </footer>
-
-      {/* Donation Modal */}
-      <DonationModal
-        isOpen={showDonation}
-        onClose={() => setShowDonation(false)}
-        amount={donationAmount}
-        frequency="monthly"
-      />
+      <SiteFooter />
 
     </div>
   );

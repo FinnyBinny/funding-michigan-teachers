@@ -3,10 +3,13 @@ import { motion, useScroll, useTransform } from 'motion/react';
 import {
   ArrowLeft, ArrowRight, Heart, Sparkles, Mail,
   Coffee, UtensilsCrossed, Award, Mailbox, GraduationCap,
-  Calendar, CheckCircle2, Building2,
+  Calendar, CheckCircle2, Building2, Send, Loader2,
 } from 'lucide-react';
-import DonationModal from '../components/DonationModal';
+import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
+import { supabase } from '../lib/supabase';
+
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -20,8 +23,8 @@ const PROGRAMS = [
     icon: Award,
     eyebrow: 'Recognition',
     title: 'Teacher of the Month',
-    summary: 'Three educators are spotlighted each month — chosen by students, staff, and FMT leadership. Each honoree gets a feature on our site, a personalized certificate, and a small gift sourced from local Okemos businesses.',
-    bullet: ['Public spotlight on FMT site + social', 'Personalized certificate of appreciation', 'Small gift from a local Okemos partner'],
+    summary: 'Three educators are spotlighted each month — chosen by students, staff, and FMT leadership. Each honoree gets a feature on our site, a personalized certificate, and a small gift sourced from businesses local to your school.',
+    bullet: ['Public spotlight on FMT site + social', 'Personalized certificate of appreciation', 'Small gift from a business in your community'],
     accent: 'apple',
   },
   {
@@ -29,7 +32,7 @@ const PROGRAMS = [
     eyebrow: 'Every Staff Meeting',
     title: 'Food at Staff Meetings',
     summary: 'During every staff meeting of the school year, we bring real food — donated by local businesses — to the teachers\' lounge. No teacher pulls out cash for a vending-machine dinner before parent-teacher conferences.',
-    bullet: ['Catered or donated by local Okemos partners', 'Year-round, every monthly meeting', '100% community-funded — never on the teacher'],
+    bullet: ['Donated by partners near your school', 'Year-round, every monthly meeting', '100% community-funded — never on the teacher'],
     accent: 'ruler',
   },
   {
@@ -57,9 +60,9 @@ const ACCENT_MAP = {
 } as const;
 
 const IMPACT_NUMBERS = [
-  { value: '1,200+', label: 'Teachers Reached', color: 'text-apple' },
-  { value: '$4,000+', label: 'Raised for Classrooms', color: 'text-ruler' },
-  { value: '12+', label: 'Appreciation Events', color: 'text-pencil-dark' },
+  { value: '1,000+', label: 'Educators Reached', color: 'text-apple' },
+  { value: '$15K+', label: 'Raised for Teachers', color: 'text-ruler' },
+  { value: '9', label: 'Schools Supported', color: 'text-pencil-dark' },
   { value: '100%', label: 'Direct to Teachers', color: 'text-apple' },
 ];
 
@@ -73,7 +76,6 @@ const ROADMAP = [
 ];
 
 export default function ForSchoolsPage() {
-  const [showDonation, setShowDonation] = useState(false);
   const teachersOfMonth = useTeachersOfMonth();
   const foodPartners = useFoodPartners();
   const heroRef = useRef<HTMLDivElement>(null);
@@ -169,7 +171,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.9, delay: 0.25, ease: EASE }}
               className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-10"
             >
-              Okemos High School was our trial period — three school years of showing up at every staff meeting, every appreciation event, without fail. Now we're growing. Funding Michigan Teachers is opening pilot spots for new schools across Michigan. Same programs. Same student-led model. Zero cost to your building.
+              Okemos High School was our proving ground — a full school year of showing up at every staff meeting, and a Teacher Appreciation Week that reached 1,000+ educators across 9 schools, from Okemos to Haslett to East Lansing. Now we're growing. Same programs. Same student-led model. Zero cost to your building.
             </motion.p>
 
             <motion.div
@@ -344,7 +346,8 @@ export default function ForSchoolsPage() {
 
       {/* TEACHERS OF THE MONTH */}
       <section id="teachers-of-month" className="relative py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white overflow-hidden">
-        <div className="pointer-events-none absolute -top-40 left-1/3 w-[600px] h-[600px] bg-pencil/10 rounded-full blur-[160px]" />
+        {/* Gold glow tucked behind the "the Month" heading text (top-left), not floating mid-screen */}
+        <div className="pointer-events-none absolute top-16 left-[4%] md:left-[8%] w-[460px] h-[300px] bg-pencil/15 rounded-full blur-[110px]" />
         <div className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[500px] bg-apple/10 rounded-full blur-[140px]" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.025] mix-blend-overlay"
              style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
@@ -467,7 +470,7 @@ export default function ForSchoolsPage() {
             ))}
           </div>
 
-          {/* 600+ staff impact callout */}
+          {/* District-wide reach callout */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -481,7 +484,7 @@ export default function ForSchoolsPage() {
                 <div className="aspect-square md:aspect-auto md:h-full">
                   <img
                     src="/images/may-chick-fil-a-cards.jpg"
-                    alt="Chick-fil-A 'Be our guest' meal cards distributed to over 600 staff across every Okemos school"
+                    alt="Chick-fil-A 'Be our guest' meal cards distributed to 1,000+ educators across 9 schools"
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -496,24 +499,24 @@ export default function ForSchoolsPage() {
                   And there's more
                 </div>
                 <h3 className="font-serif font-bold text-3xl md:text-4xl text-white leading-[1.05] tracking-[-0.01em] mb-5">
-                  <span className="text-pencil italic font-normal">600+ staff members</span><br/>
-                  across every Okemos school.
+                  <span className="text-pencil italic font-normal">1,000+ educators</span><br/>
+                  across 9 schools.
                 </h3>
                 <p className="text-white/55 text-base md:text-lg font-light leading-relaxed mb-7">
-                  During Teacher Appreciation Week, FMT teamed up with <span className="text-white font-medium">Chick-fil-A Okemos (W Grand River)</span> to distribute "Be our guest" meal cards to every single staff member across all Okemos schools. Not one building. Not one department. The whole district.
+                  During Teacher Appreciation Week, FMT teamed up with <span className="text-white font-medium">Chick-fil-A Okemos</span> and <span className="text-white font-medium">Dunkin' Okemos</span> to distribute meal cards, coffee, and donuts to every staff member — across every Okemos school, plus Haslett High School and East Lansing High School. Not one building. Not one district. The whole region.
                 </p>
                 <div className="grid grid-cols-3 gap-5 pt-6 border-t border-white/10">
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">600+</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Staff reached</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">1,000+</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Educators reached</p>
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">All</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Okemos schools</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">9</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Schools, 3 districts</p>
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">1</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Local partner</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">2</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Local partners</p>
                   </div>
                 </div>
               </div>
@@ -594,6 +597,45 @@ export default function ForSchoolsPage() {
                 </div>
               </motion.div>
             ))}
+          </div>
+
+          {/* Polaroid collage — real moments from the field, pinned like a corkboard */}
+          <div className="mt-16">
+            <p className="text-center font-hand text-xl text-chalkboard/45 -rotate-1 mb-8">
+              …and the camera roll to prove it
+            </p>
+            <div className="flex flex-wrap justify-center items-start gap-5 md:gap-2">
+              {[
+                { src: '/images/may-staff-meeting.jpg',      caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
+                { src: '/images/IMG_5568-opt.jpg',           caption: 'Special delivery',                     rotate: 2.5,  y: 18 },
+                { src: '/images/may-chick-fil-a-cards.jpg',  caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
+                { src: '/images/IMG_6113-opt.jpg',           caption: 'Staff meeting smiles',                 rotate: 3,    y: 22 },
+                { src: '/images/IMG_6116-opt.jpg',           caption: 'The spread',                           rotate: -2,   y: 10 },
+              ].map((photo, i) => (
+                <motion.figure
+                  key={photo.src}
+                  initial={{ opacity: 0, y: 40, rotate: 0 }}
+                  whileInView={{ opacity: 1, y: photo.y, rotate: photo.rotate }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.8, delay: i * 0.09, ease: EASE }}
+                  className="polaroid w-[46%] sm:w-44 md:w-48 lg:w-52 shrink-0"
+                  style={{ rotate: `${photo.rotate}deg` }}
+                >
+                  <div className="aspect-square overflow-hidden rounded-[2px] bg-chalkboard/5">
+                    <img
+                      src={photo.src}
+                      alt={photo.caption}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <figcaption className="font-hand text-sm text-chalkboard/60 text-center py-3 px-1 leading-tight">
+                    {photo.caption}
+                  </figcaption>
+                </motion.figure>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -685,30 +727,22 @@ export default function ForSchoolsPage() {
           >
             <div className="inline-flex items-center gap-2 bg-white/8 ring-1 ring-white/15 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em]">
               <span className="w-1.5 h-1.5 rounded-full bg-apple animate-pulse" />
-              Limited to 3 Pilot Schools · 2026–27
+              Limited to 9 Pilot Schools · 2026–27
             </div>
             <h2 className="text-5xl md:text-7xl font-serif font-bold leading-[0.95] tracking-[-0.02em] text-balance mb-8">
               Bring this<br/>
               <span className="text-apple italic font-normal">to your school.</span>
             </h2>
             <p className="text-lg text-white/55 max-w-2xl mx-auto font-light leading-relaxed mb-12">
-              We're opening three pilot spots for the 2026–27 school year. If you're an admin, a department lead, or a teacher who thinks your building deserves this — start the conversation.
+              We're opening nine pilot spots for the 2026–27 school year. If you're an admin, a department lead, or a teacher who thinks your building deserves this — the form below takes two minutes.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a
-                href="mailto:hello@fundingmichiganteachers.org?subject=For%20Schools%20%E2%80%94%20Bring%20FMT%20to%20Our%20District&body=Hi%20FMT%20team%2C%0A%0AOur%20school%20is%20interested%20in%20the%20FMT%20trial%20year.%20Here's%20a%20little%20about%20us%3A%0A%0A-%20School%20Name%3A%0A-%20District%3A%0A-%20Approximate%20Staff%20Size%3A%0A-%20Best%20Contact%20%3A%0A%0AThanks!"
-                className="group flex items-center gap-3 bg-apple text-white pl-7 pr-2 py-2 rounded-full font-bold shadow-[0_15px_40px_rgba(192,57,43,0.4)] active:scale-[0.98] text-sm uppercase tracking-[0.18em]"
-                style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}
-              >
-                <Mail size={15} />
-                <span>Start the Conversation</span>
-                <span className="w-9 h-9 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
-                  <ArrowRight size={14} />
-                </span>
-              </a>
+            {/* Pilot interest form — two minutes, no email client required */}
+            <PilotInterestForm />
+
+            <div className="mt-8 flex justify-center">
               <button
-                onClick={() => setShowDonation(true)}
+                onClick={() => navigate('/donate')}
                 className="flex items-center gap-3 bg-white/8 ring-1 ring-white/15 hover:bg-white/15 px-7 py-3 rounded-full font-bold text-sm uppercase tracking-[0.18em] transition-all"
               >
                 <Heart size={15} className="text-apple" />
@@ -740,24 +774,164 @@ export default function ForSchoolsPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#0a0b0c] text-white py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-white/30 text-xs">
-          <div className="flex items-center gap-6">
-            <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
-            <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <button onClick={() => navigate('/')} className="hover:text-white transition-colors cursor-pointer">Main Site</button>
-            <button onClick={() => navigate('/sponsors')} className="hover:text-white transition-colors cursor-pointer">Sponsors</button>
-            <a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white transition-colors">hello@fundingmichiganteachers.org</a>
-          </div>
-        </div>
-      </footer>
-
-      <DonationModal isOpen={showDonation} onClose={() => setShowDonation(false)} />
+      <SiteFooter />
 
       <div className="grain-overlay" aria-hidden="true" />
     </div>
+  );
+}
+
+/**
+ * Pilot interest form — the "get started" path for new schools.
+ * Submits via Web3Forms (email notification) and Supabase
+ * contact_submissions (type: 'pilot'); falls back to mailto so no
+ * inquiry is ever lost.
+ */
+function PilotInterestForm() {
+  const inp = 'w-full bg-white/[0.06] ring-1 ring-white/15 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/30 transition-all';
+  const lbl = 'block text-left text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 mb-1.5';
+
+  const [form, setForm] = useState({ name: '', role: '', email: '', school: '', district: '', staffSize: '', note: '' });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    let submitted = false;
+
+    if (WEB3FORMS_KEY) {
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: `Pilot School Interest — ${form.school} (${form.district})`,
+            'Contact Name': form.name,
+            Role: form.role,
+            School: form.school,
+            District: form.district,
+            'Staff Size': form.staffSize,
+            Note: form.note,
+            email: form.email,
+            replyto: form.email,
+            from_name: form.name,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) submitted = true;
+      } catch { /* ignore */ }
+    }
+
+    if (supabase) {
+      const { error } = await supabase.from('contact_submissions').insert({
+        name: form.name,
+        email: form.email,
+        message: form.note,
+        type: 'pilot',
+        extra: { school: form.school, district: form.district, role: form.role, staffSize: form.staffSize },
+      });
+      if (!error) submitted = true;
+    }
+
+    if (!submitted) {
+      // Last-resort fallback — open a prefilled email so nothing is lost
+      const subject = encodeURIComponent(`Pilot School Interest — ${form.school}`);
+      const body = encodeURIComponent(`Name: ${form.name} (${form.role})\nSchool: ${form.school}\nDistrict: ${form.district}\nStaff size: ${form.staffSize}\nEmail: ${form.email}\n\n${form.note}`);
+      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
+    }
+
+    setStatus('success');
+  };
+
+  if (status === 'success') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="max-w-xl mx-auto bg-white/[0.04] ring-1 ring-white/10 rounded-[2rem] p-2"
+      >
+        <div className="bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.5rem)] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/15 ring-1 ring-apple/30 flex items-center justify-center">
+            <CheckCircle2 size={24} className="text-apple" />
+          </div>
+          <h3 className="font-serif font-bold text-2xl text-white mb-2">You're on the list.</h3>
+          <p className="text-white/55 text-sm font-light leading-relaxed max-w-sm mx-auto">
+            We'll reach out within a few days to set up your listening tour. Nine spots, first conversations first.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.form
+      onSubmit={handleSubmit}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.8, ease: EASE }}
+      className="max-w-2xl mx-auto bg-white/[0.04] ring-1 ring-white/10 rounded-[2rem] p-2 text-left"
+    >
+      <div className="bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.5rem)] p-7 md:p-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] space-y-4">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>Your Name</label>
+            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Alex Rivera" />
+          </div>
+          <div>
+            <label className={lbl}>Your Role</label>
+            <input required value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={inp} placeholder="Principal / Teacher / Parent" />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>School</label>
+            <input required value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} className={inp} placeholder="Lincoln Elementary" />
+          </div>
+          <div>
+            <label className={lbl}>District</label>
+            <input required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className={inp} placeholder="Lansing Public Schools" />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>Email</label>
+            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="you@school.edu" />
+          </div>
+          <div>
+            <label className={lbl}>Approx. Staff Size</label>
+            <input value={form.staffSize} onChange={(e) => setForm({ ...form, staffSize: e.target.value })} className={inp} placeholder="~85" />
+          </div>
+        </div>
+        <div>
+          <label className={lbl}>Anything we should know? (optional)</label>
+          <textarea rows={3} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className={inp} placeholder="Our staff could really use a morale boost this year…" />
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="group flex items-center gap-3 bg-apple text-white pl-7 pr-2 py-2 rounded-full font-bold shadow-[0_15px_40px_rgba(192,57,43,0.4)] active:scale-[0.98] text-sm uppercase tracking-[0.18em] disabled:opacity-60 w-full sm:w-auto justify-center"
+            style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}
+          >
+            {status === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+            <span>Claim a Pilot Spot</span>
+            <span className="w-9 h-9 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
+              <ArrowRight size={14} />
+            </span>
+          </button>
+          <a
+            href="mailto:hello@fundingmichiganteachers.org?subject=For%20Schools%20%E2%80%94%20Bring%20FMT%20to%20Our%20District"
+            className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] font-bold text-white/40 hover:text-white transition-colors"
+          >
+            <Mail size={12} />
+            Or email us instead
+          </a>
+        </div>
+      </div>
+    </motion.form>
   );
 }
