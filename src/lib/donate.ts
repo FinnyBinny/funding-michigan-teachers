@@ -10,26 +10,36 @@
  *   3. Zeffy — used if neither Stripe path is configured.
  *
  * ── Setting up embedded Stripe (recommended) ────────────────────────────
- *   1. https://dashboard.stripe.com → Developers → API keys
- *   2. Copy the "Publishable key" (starts with pk_) and "Secret key" (sk_)
- *   3. Vercel project → Settings → Environment Variables, add:
- *        VITE_STRIPE_PUBLISHABLE_KEY = pk_live_...   (safe to expose client-side)
- *        STRIPE_SECRET_KEY           = sk_live_...   (server only — NEVER prefix with VITE_)
- *   4. Redeploy. That's it — no Payment Links to create, no dashboard
+ *   1. The publishable key (pk_...) is baked in below — publishable keys
+ *      are public by design, so this needs no configuration at all.
+ *   2. The only required setup: Cloudflare dashboard → Workers & Pages →
+ *      funding-michigan-teachers → Settings → Variables and Secrets → add
+ *      STRIPE_SECRET_KEY as a **Secret** (server only — NEVER prefix it
+ *      with VITE_, that would ship it to every browser).
+ *   3. Redeploy. That's it — no Payment Links to create, no dashboard
  *      product setup. The amount is set dynamically from the page (tiles,
  *      slider, or custom input) and sent to /api/create-checkout-session,
- *      a Vercel serverless function that creates the session server-side.
+ *      handled by the Cloudflare Worker (worker/index.ts) that serves
+ *      this site.
  *
  * ── Setting up Payment Links (fallback path) ────────────────────────────
  *   1. Stripe Dashboard → Payment Links → "Create payment link"
  *   2. Choose "Customers choose what to pay"
  *   3. Create two links: one for "One-time", one for "Subscription / Recurring"
- *   4. Vercel → Environment Variables:
+ *   4. Cloudflare → Settings → Build → Variables and secrets (build-time,
+ *      because Vite inlines VITE_* values during `npm run build`):
  *        VITE_STRIPE_LINK_ONCE     = https://buy.stripe.com/...
  *        VITE_STRIPE_LINK_MONTHLY  = https://buy.stripe.com/...
  */
 
-const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+// Publishable keys only identify the Stripe account — all charging happens
+// server-side with the secret key — so committing this one is safe and
+// means checkout works with zero build-time env configuration. A
+// VITE_STRIPE_PUBLISHABLE_KEY build variable still overrides it if the key
+// ever changes.
+export const STRIPE_PUBLISHABLE_KEY: string =
+  (import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined) ||
+  'pk_live_51SBEMjRmDenxI6morWfSo1qpoDd3NsB1Avw6ZL091BIoEN0u25195bWjT5eSlBWCwPuuNNPSZIikSOQdcYOgXxh300igZ280Pk';
 const STRIPE_ONCE    = import.meta.env.VITE_STRIPE_LINK_ONCE as string | undefined;
 const STRIPE_MONTHLY = import.meta.env.VITE_STRIPE_LINK_MONTHLY as string | undefined;
 
