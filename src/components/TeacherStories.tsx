@@ -142,8 +142,8 @@ export default function TeacherStories() {
                 <ArrowRight size={13} strokeWidth={1.5} />
               </button>
 
-              <a
-                href="mailto:hello@fundingmichiganteachers.org?subject=Share%20My%20Story"
+              <button
+                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
                 className="group flex items-center gap-1.5 bg-chalkboard text-white pl-3.5 pr-1 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] hover:bg-apple active:scale-[0.98] ml-1.5"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
@@ -152,7 +152,7 @@ export default function TeacherStories() {
                 <span className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                   <ArrowRight size={10} strokeWidth={1.5} />
                 </span>
-              </a>
+              </button>
             </div>
           </div>
         </div>

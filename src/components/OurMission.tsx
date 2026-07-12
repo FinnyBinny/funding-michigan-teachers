@@ -46,9 +46,19 @@ export default function OurMission() {
             Empowering Educators to <span className="text-apple italic font-normal">Inspire</span> the Next Generation.
           </h2>
 
-          <blockquote className="border-l-4 border-apple pl-5 mb-8 italic text-chalkboard/80 text-base leading-relaxed font-light">
-            "To empower and uplift Michigan's teachers — easing the financial burden they carry, championing their dedication, and making teaching a profession that radiates with appreciation, recognition, and fulfillment."
-          </blockquote>
+          <div className="mb-7">
+            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-apple mb-2.5">Our Mission</p>
+            <p className="text-lg text-chalkboard/85 leading-relaxed">
+              Funding Michigan Teachers is a student-led 501(c)(3) with one mission: ease the financial burden on Michigan's teachers. We stock classrooms with supplies, feed staff at meetings, and celebrate educators through real recognition — and 100% of every dollar goes directly to teachers.
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-2.5">Our Vision</p>
+            <blockquote className="border-l-4 border-apple pl-5 italic text-chalkboard/80 text-base leading-relaxed font-light">
+              "To empower and uplift Michigan's teachers — easing the financial burden they carry, championing their dedication, and making teaching a profession that radiates with appreciation, recognition, and fulfillment."
+            </blockquote>
+          </div>
 
           <p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
             Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.

@@ -6,28 +6,28 @@ import { useDonors, useSponsors } from '../hooks/useLocalData';
 const FOOD_PARTNERS = [
   {
     month: 'September',
-    business: 'Chick-Fil-A Okemos',
+    business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)',
     detail: 'Cookies + free meal coupons for every single staff member',
     avif: '/images/IMG_3714(CFA).avif',
     image: '/images/IMG_3714(CFA)-opt.jpg',
   },
   {
     month: 'October',
-    business: 'Tailgaters / Dunkin, Okemos',
+    business: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)",
     detail: 'Fresh donuts for the whole staff',
     avif: '/images/IMG_4369(DNK).avif',
     image: '/images/IMG_4369(DNK)-opt.jpg',
   },
   {
     month: 'January',
-    business: 'Nothing Bundt Cakes, Okemos',
+    business: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)',
     detail: 'Mini Bundt Cakes — the perfect January pick-me-up',
     avif: '/images/IMG_5678(NBC).avif',
     image: '/images/IMG_5678(NBC)-opt.jpg',
   },
   {
     month: 'March',
-    business: "Hungry Howie's, Okemos",
+    business: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)",
     detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan',
     avif: '/images/IMG_6308(FR).avif',
     image: '/images/IMG_6308(FR)-opt.jpg',

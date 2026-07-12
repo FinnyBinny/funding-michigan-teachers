@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Heart, ArrowLeft, Building2, ExternalLink } from 'lucide-react';
+import { Heart, ArrowLeft, Building2, ExternalLink, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
+import { supabase } from '../lib/supabase';
+
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -95,7 +99,7 @@ export default function SponsorsPage() {
             <CorporateSponsors
               onDonate={handleDonate}
               onContact={() => {
-                window.location.href = 'mailto:hello@fundingmichiganteachers.org?subject=Corporate%20Sponsorship%20Inquiry';
+                document.getElementById('sponsor-form')?.scrollIntoView({ behavior: 'smooth' });
               }}
             />
           </div>
@@ -234,10 +238,159 @@ export default function SponsorsPage() {
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-apple/5 rounded-full blur-[120px] -z-0 translate-x-1/2 -translate-y-1/2" />
         </section>
 
+        {/* Sponsor interest form — no mail app required */}
+        <section id="sponsor-form" className="py-16 sm:py-24 px-4 sm:px-6 bg-paper scroll-mt-24">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 leading-tight tracking-[-0.01em]">
+                Let's <span className="text-apple italic font-normal">talk</span>.
+              </h2>
+              <p className="text-chalkboard/60 max-w-xl mx-auto font-light leading-relaxed">
+                Tell us a little about your business and we'll reach out within a few days — no commitment, no pressure.
+              </p>
+            </div>
+            <SponsorInterestForm />
+          </div>
+        </section>
+
       </main>
 
       <SiteFooter />
 
     </div>
+  );
+}
+
+/**
+ * Sponsor interest form — submits via Web3Forms (email notification) and
+ * Supabase contact_submissions (type: 'sponsor'); falls back to mailto so
+ * no inquiry is ever lost. Mirrors the pilot-school form on /for-schools.
+ */
+function SponsorInterestForm() {
+  const inp = 'w-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-chalkboard outline-none placeholder:text-chalkboard/30 transition-all';
+  const lbl = 'block text-left text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 mb-1.5';
+
+  const [form, setForm] = useState({ business: '', name: '', email: '', phone: '', message: '' });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    let submitted = false;
+
+    if (WEB3FORMS_KEY) {
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            subject: `Corporate Sponsorship Inquiry — ${form.business}`,
+            Business: form.business,
+            'Contact Name': form.name,
+            Phone: form.phone,
+            Message: form.message,
+            email: form.email,
+            replyto: form.email,
+            from_name: form.name,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) submitted = true;
+      } catch { /* ignore */ }
+    }
+
+    if (supabase) {
+      const { error } = await supabase.from('contact_submissions').insert({
+        name: form.name,
+        email: form.email,
+        message: form.message,
+        type: 'sponsor',
+        extra: { business: form.business, phone: form.phone },
+      });
+      if (!error) submitted = true;
+    }
+
+    if (!submitted) {
+      // Last-resort fallback — open a prefilled email so nothing is lost
+      const subject = encodeURIComponent(`Corporate Sponsorship Inquiry — ${form.business}`);
+      const body = encodeURIComponent(`Business: ${form.business}\nContact: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\n\n${form.message}`);
+      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
+    }
+
+    setStatus('success');
+  };
+
+  if (status === 'success') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-xl mx-auto bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-2"
+      >
+        <div className="bg-white rounded-[calc(2rem-0.5rem)] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+          <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/10 ring-1 ring-apple/20 flex items-center justify-center">
+            <CheckCircle2 size={24} className="text-apple" />
+          </div>
+          <h3 className="font-serif font-bold text-2xl text-chalkboard mb-2">Got it — thank you.</h3>
+          <p className="text-chalkboard/55 text-sm font-light leading-relaxed max-w-sm mx-auto">
+            We'll reach out within a few days to talk through what a partnership could look like for your business.
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.form
+      onSubmit={handleSubmit}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.8 }}
+      className="max-w-2xl mx-auto bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-2 text-left"
+    >
+      <div className="bg-white rounded-[calc(2rem-0.5rem)] p-7 md:p-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] space-y-4">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>Business Name</label>
+            <input required value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} className={inp} placeholder="Acme Coffee Co." />
+          </div>
+          <div>
+            <label className={lbl}>Contact Name</label>
+            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Alex Rivera" />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl}>Email</label>
+            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="you@business.com" />
+          </div>
+          <div>
+            <label className={lbl}>Phone (optional)</label>
+            <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inp} placeholder="(517) 555-0100" />
+          </div>
+        </div>
+        <div>
+          <label className={lbl}>What are you interested in?</label>
+          <textarea rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={inp} placeholder="Sponsoring a school, donating food or gift cards, something else…" />
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={status === 'loading'}
+            className="group flex items-center gap-3 bg-apple text-white pl-7 pr-2 py-2 rounded-full font-bold shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] text-sm uppercase tracking-[0.18em] disabled:opacity-60 w-full sm:w-auto justify-center transition-all"
+          >
+            {status === 'loading' ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+            <span>Start the Conversation</span>
+            <span className="w-9 h-9 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-1 transition-all">
+              <Heart size={14} className="fill-current" />
+            </span>
+          </button>
+        </div>
+      </div>
+    </motion.form>
   );
 }

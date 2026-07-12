@@ -181,7 +181,9 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
     <>
       <div className="grid md:grid-cols-2 gap-10">
         {projects.map((project, index) => {
-          const isSubmitCard = project.id === SUBMIT_PROJECT_ID;
+          // DB rows have identity-assigned ids, so the seed's id 2 can't be
+          // relied on once projects come from Supabase — match by name too.
+          const isSubmitCard = project.id === SUBMIT_PROJECT_ID || project.teacher_name === 'Submit a Project';
           const voteCount = getVoteCount(project);
           const hasVoted = votedProjects.includes(project.id);
 

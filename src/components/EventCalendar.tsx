@@ -27,8 +27,8 @@ export default function EventCalendar() {
             <p className="text-chalkboard/55 text-sm md:text-base font-light leading-relaxed mb-7 max-w-md mx-auto">
               We're working on our next staff appreciation event. Drop us a line and we'll let you know the moment it's on the calendar.
             </p>
-            <a
-              href="mailto:hello@fundingmichiganteachers.org?subject=Notify%20Me%20About%20Upcoming%20Events"
+            <button
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
               className="inline-flex items-center gap-2 bg-chalkboard text-white pl-5 pr-1.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.18em] hover:bg-apple group active:scale-[0.98]"
               style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
             >
@@ -36,7 +36,7 @@ export default function EventCalendar() {
               <span className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                 →
               </span>
-            </a>
+            </button>
           </div>
         </div>
       </motion.div>
@@ -107,12 +107,12 @@ export default function EventCalendar() {
                 {event.ctaLabel ?? 'Learn More'}
               </a>
             ) : (
-              <a
-                href="mailto:hello@fundingmichiganteachers.org?subject=Event%20Inquiry"
+              <button
+                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
                 className="block w-full py-4 rounded-2xl border-2 border-chalkboard/5 font-bold text-sm hover:bg-chalkboard hover:text-white transition-all active:scale-95 shadow-sm text-center"
               >
                 Register Interest
-              </a>
+              </button>
             )}
           </div>
         </motion.div>
