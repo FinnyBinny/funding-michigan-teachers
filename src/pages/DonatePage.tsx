@@ -350,9 +350,9 @@ export default function DonatePage() {
                 <div className="text-xs text-chalkboard/70 leading-relaxed">
                   <p className="font-bold text-chalkboard mb-1">Admin: Stripe isn't configured yet.</p>
                   <p>
-                    For embedded checkout (recommended — no redirect), set{' '}
-                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">VITE_STRIPE_PUBLISHABLE_KEY</code> and{' '}
-                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">STRIPE_SECRET_KEY</code> in Vercel.
+                    For embedded checkout (recommended — no redirect), add{' '}
+                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">STRIPE_SECRET_KEY</code> as a Secret in the Cloudflare
+                    dashboard (Workers &amp; Pages → Settings → Variables and Secrets).
                     Until then, donations fall back to Zeffy. See <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">src/lib/donate.ts</code> for full setup steps.
                   </p>
                 </div>

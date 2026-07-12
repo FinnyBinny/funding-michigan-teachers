@@ -3,10 +3,9 @@ import { motion } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { X, AlertCircle, Shield } from 'lucide-react';
-import type { DonationFrequency } from '../lib/donate';
+import { STRIPE_PUBLISHABLE_KEY, type DonationFrequency } from '../lib/donate';
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
-const stripePromise = PUBLISHABLE_KEY ? loadStripe(PUBLISHABLE_KEY) : null;
+const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 interface EmbeddedDonateCheckoutProps {
   amount: number;
@@ -89,13 +88,13 @@ export default function EmbeddedDonateCheckout({ amount, frequency, onClose }: E
 
         {/* Body */}
         <div className="flex-1 overflow-auto bg-paper/40">
-          {!PUBLISHABLE_KEY ? (
+          {!STRIPE_PUBLISHABLE_KEY ? (
             <div className="p-10 flex flex-col items-center text-center gap-3">
               <AlertCircle size={28} className="text-pencil-dark" />
               <p className="font-bold text-chalkboard">Stripe isn't configured yet.</p>
               <p className="text-sm text-chalkboard/55 max-w-xs">
-                An admin needs to set <code className="bg-chalkboard/5 px-1.5 py-0.5 rounded text-xs">VITE_STRIPE_PUBLISHABLE_KEY</code> and{' '}
-                <code className="bg-chalkboard/5 px-1.5 py-0.5 rounded text-xs">STRIPE_SECRET_KEY</code> in Vercel before embedded checkout will work.
+                An admin needs to add <code className="bg-chalkboard/5 px-1.5 py-0.5 rounded text-xs">STRIPE_SECRET_KEY</code> as a Secret in the
+                Cloudflare dashboard before embedded checkout will work.
               </p>
             </div>
           ) : error ? (
