@@ -72,6 +72,7 @@ const ROADMAP = [
   { phase: 'Month 3', title: 'Launch Teacher of the Month', detail: 'Nominations open. First three honorees are featured site-wide. The program becomes a visible, named thing in your building.' },
   { phase: 'Month 4', title: 'Door Decorating Competition', detail: 'A school-wide event with $500+ in prizes. Students decorate, staff vote. Builds morale and gets the whole building talking.' },
   { phase: 'Month 5', title: 'Post Office of Love', detail: 'Student-written letter campaign rolls out across all grades. Every teacher gets a letter. No teacher gets forgotten.' },
+  { phase: 'May', title: 'Teacher Appreciation Week', detail: 'The biggest week of the year — meal cards, gift cards, and treats from local business partners delivered to every staff member in your building.' },
   { phase: 'End of Year', title: 'Trial Year Review', detail: 'We sit down with admin, share an honest report on every dollar and every event, and decide together what year two looks like.' },
 ];
 
@@ -116,8 +117,8 @@ export default function ForSchoolsPage() {
             <button onClick={() => scrollTo('roadmap')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Trial Year</button>
             <button onClick={() => scrollTo('cta')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Bring to Your School</button>
           </div>
-          <a
-            href="mailto:hello@fundingmichiganteachers.org?subject=For%20Schools%20%E2%80%94%20Bring%20FMT%20to%20Our%20District"
+          <button
+            onClick={() => scrollTo('cta')}
             className="group flex items-center gap-2 bg-chalkboard text-white pl-4 pr-1 py-1 rounded-full hover:bg-apple transition-colors ml-1"
             style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
           >
@@ -125,7 +126,7 @@ export default function ForSchoolsPage() {
             <span className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
               <ArrowRight size={12} />
             </span>
-          </a>
+          </button>
         </div>
       </nav>
 
@@ -171,7 +172,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.9, delay: 0.25, ease: EASE }}
               className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-10"
             >
-              Okemos High School was our proving ground — a full school year of showing up at every staff meeting, and a Teacher Appreciation Week that reached 1,000+ educators across 9 schools, from Okemos to Haslett to East Lansing. Now we're growing. Same programs. Same student-led model. Zero cost to your building.
+              Okemos High School was our proving ground — a full school year of showing up at every staff meeting. Then, during Teacher Appreciation Week, we reached 1,000+ educators across 9 schools in 3 districts — including free-entrée-card deliveries to the full staffs of Haslett High School and East Lansing High School. Now we're growing. Same programs. Same student-led model. Zero cost to your building.
             </motion.p>
 
             <motion.div
@@ -484,7 +485,7 @@ export default function ForSchoolsPage() {
                 <div className="aspect-square md:aspect-auto md:h-full">
                   <img
                     src="/images/may-chick-fil-a-cards.jpg"
-                    alt="Chick-fil-A 'Be our guest' meal cards distributed to 1,000+ educators across 9 schools"
+                    alt="1,000 Chick-fil-A 'Be our guest' meal cards — over $3,000 in value — distributed to educators across 9 schools"
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -503,7 +504,7 @@ export default function ForSchoolsPage() {
                   across 9 schools.
                 </h3>
                 <p className="text-white/55 text-base md:text-lg font-light leading-relaxed mb-7">
-                  During Teacher Appreciation Week, FMT teamed up with <span className="text-white font-medium">Chick-fil-A Okemos</span> and <span className="text-white font-medium">Dunkin' Okemos</span> to distribute meal cards, coffee, and donuts to every staff member — across every Okemos school, plus Haslett High School and East Lansing High School. Not one building. Not one district. The whole region.
+                  During Teacher Appreciation Week, five local businesses showed up for teachers: <span className="text-white font-medium">Chick-fil-A</span> gave 1,000 "Be our guest" meal cards (over $3,000 in value), <span className="text-white font-medium">Dunkin'</span> brought coffee and donuts to the OHS staff meeting where our first Teachers of the Month were announced, <span className="text-white font-medium">Playmakers</span> donated two $25 gift cards, <span className="text-white font-medium">Cottage Inn</span> gave five $20 gift cards, and <span className="text-white font-medium">Culver's</span> donated 75 free scoop tokens — reaching every Okemos school, plus Haslett High School and East Lansing High School.
                 </p>
                 <div className="grid grid-cols-3 gap-5 pt-6 border-t border-white/10">
                   <div>
@@ -515,7 +516,7 @@ export default function ForSchoolsPage() {
                     <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Schools, 3 districts</p>
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">2</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">5</p>
                     <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Local partners</p>
                   </div>
                 </div>
@@ -609,8 +610,8 @@ export default function ForSchoolsPage() {
                 { src: '/images/may-staff-meeting.jpg',      caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
                 { src: '/images/IMG_5568-opt.jpg',           caption: 'Special delivery',                     rotate: 2.5,  y: 18 },
                 { src: '/images/may-chick-fil-a-cards.jpg',  caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
-                { src: '/images/IMG_6113-opt.jpg',           caption: 'Staff meeting smiles',                 rotate: 3,    y: 22 },
-                { src: '/images/IMG_6116-opt.jpg',           caption: 'The spread',                           rotate: -2,   y: 10 },
+                { src: '/images/IMG_6113-opt.jpg',           caption: 'Post Office of Love, ready for delivery', rotate: 3,    y: 22 },
+                { src: '/images/IMG_6116-opt.jpg',           caption: '"Share the Love" writing station',     rotate: -2,   y: 10 },
               ].map((photo, i) => (
                 <motion.figure
                   key={photo.src}
@@ -668,7 +669,7 @@ export default function ForSchoolsPage() {
               className="lg:col-span-5 lg:pt-4"
             >
               <p className="text-lg text-chalkboard/60 leading-relaxed font-light">
-                We are intentional about not over-promising. A trial year is a structured 6-step rollout — small enough that we never miss, big enough that your staff will feel it from week one.
+                We are intentional about not over-promising. A trial year is a structured 7-step rollout — small enough that we never miss, big enough that your staff will feel it from week one.
               </p>
             </motion.div>
           </div>

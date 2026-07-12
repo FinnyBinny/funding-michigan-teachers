@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { motion, AnimatePresence, useSpring, useTransform } from 'motion/react';
+import { motion, AnimatePresence, useSpring, useTransform, useReducedMotion } from 'motion/react';
 import {
   Pencil, NotebookPen, Paintbrush, BookOpen, UtensilsCrossed,
   FlaskConical, GraduationCap, Sparkles,
@@ -41,6 +41,21 @@ function AnimatedNumber({ value, format = (n: number) => Math.round(n).toLocaleS
   return <motion.span>{display}</motion.span>;
 }
 
+/**
+ * One chip lands in the basket per ~$25, capped at 12 so the basket reads
+ * "full" rather than turning into confetti. Cycles through supply types;
+ * rotation is derived from the index so the pile looks organic but renders
+ * identically every time (no Math.random — keeps SSR/re-renders stable).
+ */
+function buildChips(amount: number) {
+  const count = Math.min(12, Math.max(1, Math.ceil(amount / 25)));
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    item: ITEMS[i % ITEMS.length],
+    rotate: ((i * 47) % 15) - 7,
+  }));
+}
+
 /** Pick the 3 most compelling equivalences for a given amount. */
 function pickEquivalences(amount: number) {
   const scored = ITEMS
@@ -67,7 +82,9 @@ interface ImpactVisualizerProps {
 
 export default function ImpactVisualizer({ amount, onAmountChange, frequency = 'monthly' }: ImpactVisualizerProps) {
   const equivalences = useMemo(() => pickEquivalences(amount), [amount]);
+  const chips = useMemo(() => buildChips(amount), [amount]);
   const grantPct = Math.min((amount / GRANT_SIZE) * 100, 100);
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.div
@@ -116,9 +133,51 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                 <span>$300+</span>
               </div>
 
-              {/* Classroom-grant progress */}
+              {/* The supply basket — fills with chips as the slider moves */}
               <div className="mt-8 pt-6 border-t border-chalkboard/8">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/45">
+                    Your supply basket
+                  </span>
+                  <span className="font-hand text-sm text-chalkboard/40 -rotate-1">
+                    {amount >= GRANT_SIZE ? 'overflowing!' : amount >= 100 ? 'filling up fast' : 'slide to fill it…'}
+                  </span>
+                </div>
+                <div
+                  className="relative rounded-t-xl rounded-b-[1.75rem] ring-1 ring-pencil-dark/25 bg-gradient-to-b from-pencil/5 to-pencil/20 px-4 pt-4 pb-3 overflow-hidden"
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(60,40,10,0.03) 0 8px, transparent 8px 16px)' }}
+                  aria-hidden="true"
+                >
+                  <div className="flex flex-wrap-reverse content-end justify-center gap-1.5 min-h-[5.25rem]">
+                    <AnimatePresence mode="popLayout">
+                      {chips.map((chip) => {
+                        const accent = ACCENTS[chip.item.accent];
+                        const ChipIcon = chip.item.icon;
+                        return (
+                          <motion.div
+                            key={chip.id}
+                            layout
+                            initial={reduceMotion ? { opacity: 0 } : { y: -56, opacity: 0, scale: 0.5, rotate: 0 }}
+                            animate={{ y: 0, opacity: 1, scale: 1, rotate: chip.rotate }}
+                            exit={reduceMotion ? { opacity: 0 } : { y: 28, opacity: 0, scale: 0.5 }}
+                            transition={reduceMotion ? { duration: 0.15 } : { type: 'spring', damping: 17, stiffness: 240 }}
+                            className={cn(
+                              'w-9 h-9 rounded-lg ring-1 flex items-center justify-center bg-white shadow-[0_2px_6px_rgba(0,0,0,0.08)]',
+                              accent.text, accent.ring,
+                            )}
+                          >
+                            <ChipIcon size={15} strokeWidth={1.5} />
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                  {/* woven basket lip */}
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-2 bg-pencil-dark/15" />
+                </div>
+
+                {/* Classroom-grant readout */}
+                <div className="mt-4 flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/45">
                     <GraduationCap size={13} strokeWidth={1.5} className="text-apple" />
                     One full classroom grant
@@ -127,14 +186,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                     <AnimatedNumber value={grantPct} format={(n) => `${Math.round(n)}%`} />
                   </span>
                 </div>
-                <div className="h-2.5 bg-chalkboard/5 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-apple to-apple/70 rounded-full"
-                    animate={{ width: `${grantPct}%` }}
-                    transition={{ type: 'spring', damping: 26, stiffness: 140 }}
-                  />
-                </div>
-                <p className="text-[11px] text-chalkboard/45 font-light mt-2">
+                <p className="text-[11px] text-chalkboard/45 font-light mt-1.5">
                   {amount >= GRANT_SIZE
                     ? `That's ${Math.floor(amount / GRANT_SIZE)} full classroom grant${Math.floor(amount / GRANT_SIZE) > 1 ? 's' : ''} — a teacher's entire wishlist, funded.`
                     : `$${GRANT_SIZE} funds a teacher's entire classroom project.`}

@@ -113,9 +113,10 @@ export const EVENTS: Event[] = [
   },
 ];
 
+// Walmart Okemos lives in SPONSORS (Corporate Sponsors), not here — it's a
+// business sponsor, not an individual/community supporter.
 export const DONORS: Donor[] = [
   { id: 1, name: 'Finn Regan', amount: 250, tier: 'Hall of Fame', message: 'Because someone has to say thank you first.', pos_x: 0, pos_y: 0 },
-  { id: 2, name: 'Walmart Okemos', amount: 250, tier: 'Hall of Fame', message: 'Proud to support the Okemos community.', pos_x: 0, pos_y: 0 },
   { id: 3, name: 'Anonymous', amount: 100, tier: 'Honor Roll', message: 'For every teacher who gave more than asked.', pos_x: 0, pos_y: 0 },
   { id: 4, name: 'Anonymous', amount: 50, tier: 'Bell Ringer', message: '', pos_x: 0, pos_y: 0 },
 ];
@@ -259,8 +260,8 @@ export const LOCATIONS: Location[] = [
     id: '8',
     name: 'Haslett High School',
     district: 'Haslett Public Schools',
-    impact: 'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~143 staff members.',
-    amount: '143 educators',
+    impact: 'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~130 staff members.',
+    amount: '~130 educators',
     lat: 42.7530, lng: -84.4010,
     demographics: { students: '', lowIncome: '', diversity: '' },
     projects: ['Teacher Appreciation Week Meal Cards'],
@@ -269,8 +270,8 @@ export const LOCATIONS: Location[] = [
     id: '9',
     name: 'East Lansing High School',
     district: 'East Lansing Public Schools',
-    impact: 'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~160 staff members.',
-    amount: '160 educators',
+    impact: 'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~170 staff members.',
+    amount: '~170 educators',
     lat: 42.7480, lng: -84.4840,
     demographics: { students: '', lowIncome: '', diversity: '' },
     projects: ['Teacher Appreciation Week Meal Cards'],
@@ -281,21 +282,23 @@ export const LOCATIONS: Location[] = [
 // below is an in-kind partner (donated goods/services, not a cash gift) —
 // they belong on the In-Kind Partners wall, not here.
 export const SPONSORS: Sponsor[] = [
-  { id: 1, name: 'Walmart Okemos', tier: 'Principal\'s Circle', amount: 250, description: 'Proud to support the Okemos community.', active: true },
+  { id: 1, name: 'Walmart (5110 Times Square Pl. Okemos, MI)', tier: 'Principal\'s Circle', amount: 250, description: 'Proud to support the Okemos community.', active: true },
 ];
 
+// Every business carries its full street address so the right store/location
+// gets the public thank-you. Format: Name (#### Street. City, MI).
 export const FOOD_PARTNERS: FoodPartner[] = [
-  { id: 1, month: 'September', business: 'Chick-Fil-A Okemos', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
-  { id: 2, month: 'October', business: "Tailgaters / Dunkin', Okemos (3450 Okemos Rd)", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
-  { id: 3, month: 'January', business: 'Nothing Bundt Cakes, Okemos', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
-  { id: 4, month: 'March', business: "Hungry Howie's, Okemos", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
-  { id: 5, month: 'May', business: 'Chick-Fil-A Okemos (W Grand River)', detail: 'Teacher Appreciation Week — ~$2,000 in free entrée cards for 1,000+ educators across 9 schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
-  { id: 6, month: 'May', business: "Dunkin' Okemos (3450 Okemos Rd)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
-  { id: 7, month: '2025–27', business: 'Biggby Coffee, Okemos (Jolly & Okemos Rd)', detail: 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', display_order: 7 },
-  { id: 8, month: '2026–27', business: 'Tailgaters Okemos (3450 Okemos Rd)', detail: 'Powering the FMT Coffee Bar at OHS Kickstart', display_order: 8 },
-  { id: 9, month: '2025–26', business: 'Playmakers of Okemos', detail: 'Donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
-  { id: 10, month: '2025–26', business: 'Cottage Inn Pizza, Okemos (Grand River)', detail: 'Donated five $20 gift cards for staff appreciation', display_order: 10 },
-  { id: 11, month: '2025–26', business: "Culver's of Okemos South", detail: 'Donated ~77 free two-scoop, one-topping frozen custard coupons for staff', display_order: 11 },
+  { id: 1, month: 'September', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
+  { id: 2, month: 'October', business: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
+  { id: 3, month: 'January', business: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
+  { id: 4, month: 'March', business: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
+  { id: 5, month: 'May', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — 1,000 "Be our guest" meal cards ($3,000+ value) for educators across 9 schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
+  { id: 6, month: 'May', business: "Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
+  { id: 7, month: '2025–27', business: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)', detail: 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', display_order: 7 },
+  { id: 8, month: '2026–27', business: 'Tailgaters (3450 Okemos Rd. Okemos, MI)', detail: 'Powering the FMT Coffee Bar at OHS Kickstart', display_order: 8 },
+  { id: 9, month: 'May', business: 'Playmakers (2299 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
+  { id: 10, month: 'May', business: 'Cottage Inn Pizza (1743 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated five $20 gift cards for staff appreciation', display_order: 10 },
+  { id: 11, month: 'May', business: "Culver's (3440 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — donated 75 free scoop tokens for staff', display_order: 11 },
 ];
 
 export const TEACHERS_OF_THE_MONTH: TeacherOfTheMonth[] = [
@@ -338,7 +341,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Back-to-School Appreciation',
     description: 'Kicked off the school year by serving cookies and free meal coupons to every staff member at the first staff meeting of the year — a sweet welcome back from the community.',
     type: 'appreciation',
-    partner: 'Chick-Fil-A Okemos',
+    partner: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)',
   },
   {
     id: 2,
@@ -353,7 +356,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Fresh Donuts for the Whole Staff',
     description: 'Surprised the entire Okemos High School staff with fresh donuts at their staff meeting — because every teacher deserves a great end to their day.',
     type: 'appreciation',
-    partner: 'Tailgaters / Dunkin\' Okemos',
+    partner: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)",
   },
   {
     id: 4,
@@ -361,7 +364,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Sweet Start to the New Year',
     description: 'Brought in mini bundt cakes at the first staff meeting after winter break — a small but meaningful gesture to remind teachers how valued they are heading into semester two.',
     type: 'appreciation',
-    partner: 'Nothing Bundt Cakes',
+    partner: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)',
   },
   {
     id: 5,
@@ -376,7 +379,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Pizza Party for the Staff',
     description: 'Brought in a full pizza spread for the teachers at the staff meeting — because great teachers deserve more than a thank you. Hot slices, real gratitude.',
     type: 'appreciation',
-    partner: 'Hungry Howie\'s Okemos',
+    partner: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)",
   },
   {
     id: 7,
@@ -384,15 +387,15 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'FMT Coffee Bar — First Event',
     description: 'Our first FMT Coffee Bar of the year, staffed by our student team and fueled by Biggby Coffee — coffee, decaf, and hot chocolate to get staff through the final stretch of the school year.',
     type: 'appreciation',
-    partner: 'Biggby Coffee, Okemos',
+    partner: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)',
   },
   {
     id: 8,
     month: 'May 2026',
     title: 'Teacher Appreciation Week — District-Wide',
-    description: 'Our biggest week ever: ~$2,000 in Chick-fil-A "Be our guest" meal cards delivered to 1,000+ educators across 9 schools — every Okemos building plus Haslett and East Lansing High School — and our first Teachers of the Month announced live at the OHS staff meeting.',
+    description: 'Our biggest week ever: 1,000 Chick-fil-A "Be our guest" meal cards ($3,000+ value) delivered to 1,000+ educators across 9 schools — every Okemos building plus Haslett and East Lansing High School — plus gift cards from Playmakers (two $25) and Cottage Inn (five $20), 75 free scoop tokens from Culver\'s, and Dunkin\' coffee and donuts at the OHS staff meeting where our first Teachers of the Month were announced.',
     type: 'appreciation',
-    partner: "Chick-fil-A Okemos & Dunkin'",
+    partner: "Chick-fil-A, Dunkin', Playmakers, Cottage Inn & Culver's",
   },
   {
     id: 9,
@@ -400,7 +403,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'FMT Coffee Bar — End of Year',
     description: 'Closed out the school year with a second Coffee Bar, sending staff into summer with coffee, decaf, and hot chocolate from Biggby — a small thank-you for a full year of showing up.',
     type: 'appreciation',
-    partner: 'Biggby Coffee, Okemos',
+    partner: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)',
   },
 ];
 

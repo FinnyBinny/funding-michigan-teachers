@@ -13,11 +13,11 @@ import SiteFooter from '../components/SiteFooter';
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
 const TILES = [
-  { amount: 10,  label: 'Bell Ringer',     impact: 'A box of classroom supplies' },
-  { amount: 25,  label: 'Coffee Run',      impact: 'A staff-meeting treat for a whole department' },
-  { amount: 50,  label: 'Honor Roll',      impact: 'Feeds the staff of a small school' },
-  { amount: 100, label: 'Department Lead', impact: 'Funds one classroom grant every quarter' },
-  { amount: 250, label: 'Hall of Fame',    impact: "Powers an entire school's appreciation program" },
+  { amount: 25,  label: 'Supply Starter',   impact: 'Helps stock a classroom supply box' },
+  { amount: 50,  label: 'Meeting Booster',  impact: "Adds to a school's staff-meeting food fund" },
+  { amount: 75,  label: 'Recognition Crew', impact: 'Supports Teacher of the Month gifts' },
+  { amount: 100, label: 'Classroom Backer', impact: 'Builds toward a full classroom grant' },
+  { amount: 250, label: 'Grant Maker',      impact: 'Funds one full $250 classroom grant' },
 ];
 
 function navigate(path: string) {
@@ -370,8 +370,8 @@ export default function DonatePage() {
           >
             <p className="text-[10px] uppercase tracking-[0.28em] font-bold text-chalkboard/30 mb-4">Not ready to give today?</p>
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <a
-                href="mailto:hello@fundingmichiganteachers.org?subject=Corporate%20Sponsorship%20Inquiry"
+              <button
+                onClick={() => navigate('/sponsors')}
                 className="group flex items-center gap-2 bg-white ring-1 ring-chalkboard/15 hover:ring-chalkboard/30 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.18em] text-chalkboard/70 hover:text-chalkboard"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
@@ -379,7 +379,7 @@ export default function DonatePage() {
                 <span className="w-7 h-7 rounded-full bg-chalkboard/5 group-hover:bg-chalkboard group-hover:text-white flex items-center justify-center group-hover:translate-x-0.5">
                   <ChevronRight size={11} strokeWidth={1.5} />
                 </span>
-              </a>
+              </button>
               <button
                 onClick={() => navigate('/for-schools')}
                 className="group flex items-center gap-2 bg-white ring-1 ring-chalkboard/15 hover:ring-chalkboard/30 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.18em] text-chalkboard/70 hover:text-chalkboard"
