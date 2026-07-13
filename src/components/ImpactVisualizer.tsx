@@ -1,5 +1,6 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform, useReducedMotion } from 'motion/react';
+import { SUPPLY_DOODLES } from './supplyDoodles';
 import {
   Pencil, NotebookPen, Paintbrush, BookOpen, UtensilsCrossed,
   FlaskConical, GraduationCap, Sparkles,
@@ -42,17 +43,18 @@ function AnimatedNumber({ value, format = (n: number) => Math.round(n).toLocaleS
 }
 
 /**
- * One chip lands in the basket per ~$25, capped at 12 so the basket reads
- * "full" rather than turning into confetti. Cycles through supply types;
- * rotation is derived from the index so the pile looks organic but renders
- * identically every time (no Math.random — keeps SSR/re-renders stable).
+ * One supply drops into the basket per ~$25, capped at 12 so the basket
+ * reads "full" rather than turning into confetti. Cycles through the doodle
+ * set (backpack lands around the 7th item, ~$150); rotation is derived from
+ * the index so the pile looks organic but renders identically every time
+ * (no Math.random — keeps re-renders stable).
  */
 function buildChips(amount: number) {
   const count = Math.min(12, Math.max(1, Math.ceil(amount / 25)));
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    item: ITEMS[i % ITEMS.length],
-    rotate: ((i * 47) % 15) - 7,
+    doodle: SUPPLY_DOODLES[i % SUPPLY_DOODLES.length],
+    rotate: ((i * 47) % 21) - 10,
   }));
 }
 
@@ -85,6 +87,12 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
   const chips = useMemo(() => buildChips(amount), [amount]);
   const grantPct = Math.min((amount / GRANT_SIZE) * 100, 100);
   const reduceMotion = useReducedMotion();
+
+  // Chip count from the previous render, so freshly-added supplies get a
+  // staggered "raining in" delay while existing ones stay put.
+  const prevCountRef = useRef(0);
+  const prevCount = prevCountRef.current;
+  useEffect(() => { prevCountRef.current = chips.length; }, [chips.length]);
 
   return (
     <motion.div
@@ -144,36 +152,43 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                   </span>
                 </div>
                 <div
-                  className="relative rounded-t-xl rounded-b-[1.75rem] ring-1 ring-pencil-dark/25 bg-gradient-to-b from-pencil/5 to-pencil/20 px-4 pt-4 pb-3 overflow-hidden"
+                  className="relative rounded-t-xl rounded-b-[1.75rem] ring-1 ring-pencil-dark/25 bg-gradient-to-b from-pencil/5 to-pencil/20 px-4 pt-4 pb-3"
                   style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(60,40,10,0.03) 0 8px, transparent 8px 16px)' }}
                   aria-hidden="true"
                 >
-                  <div className="flex flex-wrap-reverse content-end justify-center gap-1.5 min-h-[5.25rem]">
+                  <div className="flex flex-wrap-reverse content-end justify-center gap-1 min-h-[6rem]">
                     <AnimatePresence mode="popLayout">
                       {chips.map((chip) => {
-                        const accent = ACCENTS[chip.item.accent];
-                        const ChipIcon = chip.item.icon;
+                        const { Art, size } = chip.doodle;
+                        // Only chips beyond the previous count are "new" —
+                        // they rain in one after another; the rest hold still.
+                        const dropDelay = Math.max(0, chip.id - prevCount) * 0.08;
                         return (
                           <motion.div
                             key={chip.id}
                             layout
-                            initial={reduceMotion ? { opacity: 0 } : { y: -56, opacity: 0, scale: 0.5, rotate: 0 }}
-                            animate={{ y: 0, opacity: 1, scale: 1, rotate: chip.rotate }}
-                            exit={reduceMotion ? { opacity: 0 } : { y: 28, opacity: 0, scale: 0.5 }}
-                            transition={reduceMotion ? { duration: 0.15 } : { type: 'spring', damping: 17, stiffness: 240 }}
-                            className={cn(
-                              'w-9 h-9 rounded-lg ring-1 flex items-center justify-center bg-white shadow-[0_2px_6px_rgba(0,0,0,0.08)]',
-                              accent.text, accent.ring,
-                            )}
+                            initial={reduceMotion ? { opacity: 0 } : { y: -170, opacity: 0, rotate: chip.rotate - 28 }}
+                            animate={{ y: 0, opacity: 1, rotate: chip.rotate }}
+                            // Reducing the amount simply fades supplies away in place
+                            exit={{ opacity: 0, scale: 0.88, transition: { duration: 0.35 } }}
+                            transition={
+                              reduceMotion
+                                ? { duration: 0.2 }
+                                : {
+                                    type: 'spring', stiffness: 160, damping: 13, delay: dropDelay,
+                                    opacity: { duration: 0.15, delay: dropDelay },
+                                  }
+                            }
+                            className={cn(size, 'drop-shadow-[0_3px_4px_rgba(60,40,10,0.18)]')}
                           >
-                            <ChipIcon size={15} strokeWidth={1.5} />
+                            <Art />
                           </motion.div>
                         );
                       })}
                     </AnimatePresence>
                   </div>
                   {/* woven basket lip */}
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-2 bg-pencil-dark/15" />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-2 rounded-t-xl bg-pencil-dark/15" />
                 </div>
 
                 {/* Classroom-grant readout */}
