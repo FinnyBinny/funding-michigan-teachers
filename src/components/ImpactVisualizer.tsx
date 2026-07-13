@@ -124,7 +124,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                     Your supply basket
                   </span>
                   <span className="font-hand text-sm text-chalkboard/40 -rotate-1">
-                    {amount >= GRANT_SIZE ? 'overflowing!' : amount >= 100 ? 'filling up fast' : 'slide to fill it…'}
+                    {amount >= GRANT_SIZE ? 'overflowing!!' : amount >= 100 ? 'filling up fast' : 'slide to fill it…'}
                   </span>
                 </div>
                 <SupplyBasket amount={amount} />
