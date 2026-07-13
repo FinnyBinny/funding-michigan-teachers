@@ -135,20 +135,20 @@ function Scissors() {
 export interface SupplyDoodle {
   key: string;
   Art: () => React.JSX.Element;
-  /** rendered width class — slight size variety keeps the pile organic */
-  size: string;
+  /** rendered square size in px — slight variety keeps the pile organic */
+  px: number;
 }
 
 // Rotation order matters: early chips (small gifts) are the classics; the
 // backpack lands once the gift is big enough to reach the 7th chip (~$150).
 export const SUPPLY_DOODLES: SupplyDoodle[] = [
-  { key: 'pencil',   Art: Pencil,    size: 'w-10 h-10' },
-  { key: 'apple',    Art: Apple,     size: 'w-10 h-10' },
-  { key: 'notebook', Art: Notebook,  size: 'w-10 h-10' },
-  { key: 'book',     Art: OpenBook,  size: 'w-11 h-11' },
-  { key: 'glue',     Art: GlueStick, size: 'w-9 h-9' },
-  { key: 'ruler',    Art: Ruler,     size: 'w-10 h-10' },
-  { key: 'backpack', Art: Backpack,  size: 'w-12 h-12' },
-  { key: 'gradcap',  Art: GradCap,   size: 'w-11 h-11' },
-  { key: 'scissors', Art: Scissors,  size: 'w-10 h-10' },
+  { key: 'pencil',   Art: Pencil,    px: 40 },
+  { key: 'apple',    Art: Apple,     px: 40 },
+  { key: 'notebook', Art: Notebook,  px: 40 },
+  { key: 'book',     Art: OpenBook,  px: 44 },
+  { key: 'glue',     Art: GlueStick, px: 36 },
+  { key: 'ruler',    Art: Ruler,     px: 40 },
+  { key: 'backpack', Art: Backpack,  px: 48 },
+  { key: 'gradcap',  Art: GradCap,   px: 44 },
+  { key: 'scissors', Art: Scissors,  px: 40 },
 ];
