@@ -5,8 +5,7 @@ import CorporateSponsors from '../components/CorporateSponsors';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
-
-const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
+import { submitToFormBold } from '../lib/forms';
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -278,27 +277,15 @@ function SponsorInterestForm() {
     setStatus('loading');
     let submitted = false;
 
-    if (WEB3FORMS_KEY) {
-      try {
-        const res = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: `Corporate Sponsorship Inquiry — ${form.business}`,
-            Business: form.business,
-            'Contact Name': form.name,
-            Phone: form.phone,
-            Message: form.message,
-            email: form.email,
-            replyto: form.email,
-            from_name: form.name,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) submitted = true;
-      } catch { /* ignore */ }
-    }
+    if (await submitToFormBold({
+      Form: 'Corporate sponsorship inquiry',
+      subject: `Corporate Sponsorship Inquiry — ${form.business}`,
+      Business: form.business,
+      'Contact Name': form.name,
+      Phone: form.phone,
+      Message: form.message,
+      email: form.email,
+    })) submitted = true;
 
     if (supabase) {
       const { error } = await supabase.from('contact_submissions').insert({
