@@ -4,6 +4,13 @@
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "main": "worker/index.ts",
+  // Bind the real domain to this Worker on deploy. If a deploy fails with
+  // "hostname already associated" (or similar), the domain is still held by
+  // the old static Pages project — remove it there and redeploy.
+  "routes": [
+    { "pattern": "fundingmichiganteachers.org", "custom_domain": true },
+    { "pattern": "www.fundingmichiganteachers.org", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
