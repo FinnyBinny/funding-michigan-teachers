@@ -121,12 +121,67 @@ function GradCap() {
 function Scissors() {
   return (
     <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-      <g transform="rotate(20 24 24)">
-        <path d="M24 26 14.5 8.5c-1.2-2.2.8-4 2.6-2.6L31 17" fill="#CFD8DC" {...base} />
-        <path d="M24 26 33.5 8.5c1.2-2.2-.8-4-2.6-2.6L17 17" fill="#B0BEC5" {...base} />
-        <circle cx="24" cy="26" r="2.2" fill="#FFD54F" {...base} />
-        <ellipse cx="17" cy="35" rx="5.2" ry="6.4" fill="none" stroke="#E8564A" strokeWidth="3.6" transform="rotate(18 17 35)" />
-        <ellipse cx="31" cy="35" rx="5.2" ry="6.4" fill="none" stroke="#E8564A" strokeWidth="3.6" transform="rotate(-18 31 35)" />
+      <g transform="rotate(14 24 26)">
+        <rect x="21.6" y="5.5" width="4.8" height="21" rx="2.4" fill="#CFD8DC" {...base} transform="rotate(-16 24 26)" />
+        <rect x="21.6" y="5.5" width="4.8" height="21" rx="2.4" fill="#B8C4CB" {...base} transform="rotate(16 24 26)" />
+        <circle cx="24" cy="26" r="2.4" fill="#FFD54F" {...base} />
+        <circle cx="18.2" cy="35.5" r="5" fill="none" stroke="#E8564A" strokeWidth="4.2" />
+        <circle cx="29.8" cy="35.5" r="5" fill="none" stroke="#E8564A" strokeWidth="4.2" />
+        <circle cx="18.2" cy="35.5" r="5" fill="none" stroke={OUTLINE} strokeWidth="1.4" />
+        <circle cx="29.8" cy="35.5" r="5" fill="none" stroke={OUTLINE} strokeWidth="1.4" />
+      </g>
+    </svg>
+  );
+}
+
+function Crayon() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <g transform="rotate(-24 24 24)">
+        <path d="M24 4.5 28.5 13h-9Z" fill="#F4772E" {...base} />
+        <rect x="19.5" y="13" width="9" height="29" rx="2.5" fill="#F4772E" {...base} />
+        <rect x="19.5" y="18.5" width="9" height="12" fill="#3C6E9F" {...base} />
+        <path d="M22 22.5h4M22 26h4" stroke="#FFFDF6" strokeWidth="1.6" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+function Eraser() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <g transform="rotate(-14 24 24)">
+        <rect x="8" y="16" width="32" height="16" rx="4" fill="#F48FB1" {...base} />
+        <path d="M8 25h32v3a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4Z" fill="#5EA9DD" {...base} />
+        <path d="M14 20.5h8" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
+function Calculator() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <rect x="11" y="6" width="26" height="36" rx="4" fill="#5EA9DD" {...base} />
+      <rect x="15.5" y="11" width="17" height="8" rx="1.8" fill="#FFFDF6" {...base} />
+      {[
+        [19, 25], [28, 25],
+        [19, 31.5], [28, 31.5],
+      ].map(([x, y]) => (
+        <rect key={`${x}-${y}`} x={x - 2.6} y={y - 2.2} width="5.2" height="4.4" rx="1.4" fill="#FFFDF6" {...base} />
+      ))}
+      <rect x="16.4" y="35.3" width="14.2" height="4.4" rx="1.4" fill="#FFD54F" {...base} />
+    </svg>
+  );
+}
+
+function PaintBrush() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+      <g transform="rotate(34 24 24)">
+        <rect x="20.8" y="4" width="6.4" height="18" rx="2.6" fill="#D9A05B" {...base} />
+        <rect x="20" y="21.5" width="8" height="6" rx="1.4" fill="#9FB4C7" {...base} />
+        <path d="M20 27.5h8c.4 5.2-1 10.5-4 14.5-3-4-4.4-9.3-4-14.5Z" fill="#E84B3C" {...base} />
       </g>
     </svg>
   );
@@ -140,15 +195,19 @@ export interface SupplyDoodle {
 }
 
 // Rotation order matters: early chips (small gifts) are the classics; the
-// backpack lands once the gift is big enough to reach the 7th chip (~$150).
+// backpack lands once the pile is a handful deep.
 export const SUPPLY_DOODLES: SupplyDoodle[] = [
-  { key: 'pencil',   Art: Pencil,    px: 40 },
-  { key: 'apple',    Art: Apple,     px: 40 },
-  { key: 'notebook', Art: Notebook,  px: 40 },
-  { key: 'book',     Art: OpenBook,  px: 44 },
-  { key: 'glue',     Art: GlueStick, px: 36 },
-  { key: 'ruler',    Art: Ruler,     px: 40 },
-  { key: 'backpack', Art: Backpack,  px: 48 },
-  { key: 'gradcap',  Art: GradCap,   px: 44 },
-  { key: 'scissors', Art: Scissors,  px: 40 },
+  { key: 'pencil',    Art: Pencil,     px: 40 },
+  { key: 'apple',     Art: Apple,      px: 40 },
+  { key: 'notebook',  Art: Notebook,   px: 40 },
+  { key: 'crayon',    Art: Crayon,     px: 38 },
+  { key: 'book',      Art: OpenBook,   px: 44 },
+  { key: 'glue',      Art: GlueStick,  px: 36 },
+  { key: 'backpack',  Art: Backpack,   px: 48 },
+  { key: 'ruler',     Art: Ruler,      px: 40 },
+  { key: 'eraser',    Art: Eraser,     px: 36 },
+  { key: 'calculator', Art: Calculator, px: 42 },
+  { key: 'gradcap',   Art: GradCap,    px: 44 },
+  { key: 'scissors',  Art: Scissors,   px: 40 },
+  { key: 'brush',     Art: PaintBrush, px: 40 },
 ];
