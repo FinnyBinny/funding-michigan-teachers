@@ -197,7 +197,7 @@ export default function SponsorsPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
               {foodPartners.map((partner, index) => (
                 <motion.div
                   key={partner.id ?? partner.business}

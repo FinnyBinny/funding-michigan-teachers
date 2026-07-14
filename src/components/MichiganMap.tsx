@@ -14,94 +14,150 @@ export default function MichiganMap() {
   const locations = useLocations();
 
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || locations.length === 0) return;
 
     const width = 800;
     const height = 600;
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const projection = d3.geoAlbers()
-      .center([0, 44.5])
-      .rotate([85.5, 0])
-      .parallels([42, 46])
-      .scale(6000)
-      .translate([width / 2, height / 2]);
+    // Zoom the view to the schools themselves (all within ~7 miles of
+    // Okemos) instead of the whole state — at state scale the 9 pins
+    // collapse into one unreadable blob.
+    const pointsGeo = {
+      type: 'FeatureCollection',
+      features: locations.map((l) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [l.lng, l.lat] },
+        properties: {},
+      })),
+    } as any;
 
+    const projection = d3.geoMercator().fitExtent(
+      [[90, 80], [width - 90, height - 80]],
+      pointsGeo,
+    );
     const path = d3.geoPath().projection(projection);
 
-    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json")
-      .then((us: any) => {
-        const states = topojson.feature(us, us.objects.states) as any;
-        const michigan = states.features.find((f: any) => f.properties.name === "Michigan");
-        
-        if (!michigan) throw new Error("Michigan not found in map data");
+    const geoGroup = svg.append("g");
 
-        // Map background
-        svg.append("g")
-          .selectAll("path")
-          .data([michigan])
+    // Pins + labels are drawn whether or not the geography loads
+    const drawPins = () => {
+      const pointsGroup = svg.append("g");
+
+      // Labels point AWAY from the cluster's center so the tightly-packed
+      // Okemos schools don't overlap each other's names.
+      const projected = locations
+        .map((loc) => ({ loc, coords: projection([loc.lng, loc.lat]) }))
+        .filter((p): p is { loc: Location; coords: [number, number] } => p.coords !== null);
+      const meanX = projected.reduce((s, p) => s + p.coords[0], 0) / (projected.length || 1);
+
+      projected.forEach(({ loc, coords }) => {
+        const [cx, cy] = coords;
+        const isHome = loc.name === 'Okemos High School';
+        const onLeft = cx < meanX;
+
+        // Pulse ring (purely decorative — no event listeners)
+        const ring = pointsGroup.append("circle")
+          .attr("cx", cx).attr("cy", cy)
+          .attr("r", 8)
+          .attr("fill", "none")
+          .attr("stroke", isHome ? "#e8b84b" : "#c0392b")
+          .attr("stroke-width", 1.5)
+          .attr("opacity", 0.6);
+
+        (function animateRing() {
+          ring.transition().duration(1400)
+            .attr("r", 22).attr("opacity", 0)
+            .transition().duration(0)
+            .attr("r", 8).attr("opacity", 0.6)
+            .on("end", animateRing);
+        })();
+
+        pointsGroup.append("text")
+          .attr("x", cx + (onLeft ? -16 : 16))
+          .attr("y", cy + 4)
+          .attr("text-anchor", onLeft ? "end" : "start")
+          .attr("fill", "rgba(255,255,255,0.85)")
+          .attr("stroke", "#141516")
+          .attr("stroke-width", 4)
+          .attr("paint-order", "stroke")
+          .attr("font-size", 12)
+          .attr("font-weight", 700)
+          .attr("class", "pointer-events-none select-none")
+          .text(loc.name);
+
+        // Main interactive dot (no CSS hover — D3 handles it)
+        pointsGroup.append("circle")
+          .datum(loc)
+          .attr("cx", cx).attr("cy", cy)
+          .attr("r", isHome ? 10 : 8)
+          .attr("fill", "#c0392b")
+          .attr("stroke", isHome ? "#e8b84b" : "rgba(255,255,255,0.9)")
+          .attr("stroke-width", isHome ? 3.5 : 2.5)
+          .attr("class", "cursor-pointer")
+          .on("mouseenter", function (event, d) {
+            d3.select(this).transition().duration(150).attr("r", isHome ? 15 : 13);
+            setHoveredLocation(d);
+          })
+          .on("mouseleave", function () {
+            d3.select(this).transition().duration(150).attr("r", isHome ? 10 : 8);
+            setHoveredLocation(null);
+          })
+          .on("click", (event, d) => setSelectedLocation(d));
+      });
+    };
+
+    // Local geography: Michigan county outlines for context, plus a tiny
+    // state inset so visitors still know where they are in Michigan.
+    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json")
+      .then((us: any) => {
+        const counties = (topojson.feature(us, us.objects.counties) as any).features
+          .filter((f: any) => String(f.id).startsWith("26")); // Michigan FIPS
+        const michigan = (topojson.feature(us, us.objects.states) as any).features
+          .find((f: any) => f.properties.name === "Michigan");
+
+        geoGroup.selectAll("path")
+          .data(counties)
           .enter()
           .append("path")
-          .attr("d", path)
+          .attr("d", path as any)
           .attr("fill", "#1a1c1d")
           .attr("stroke", "rgba(255,255,255,0.1)")
-          .attr("stroke-width", 1.5)
-          .attr("class", "transition-colors duration-500")
-          .on("mouseover", function() {
-            d3.select(this).attr("fill", "#242728");
-          })
-          .on("mouseout", function() {
-            d3.select(this).attr("fill", "#1a1c1d");
-          });
+          .attr("stroke-width", 1.5);
 
-        // Add points — separate pulse ring + interactive dot to avoid D3/CSS conflicts
-        const pointsGroup = svg.append("g");
+        // Mini Michigan inset, top-left, with a gold dot marking this area
+        if (michigan) {
+          const inset = svg.append("g").attr("transform", "translate(28, 24)");
+          const insetProj = d3.geoMercator().fitSize([110, 110], michigan);
+          inset.append("path")
+            .datum(michigan)
+            .attr("d", d3.geoPath().projection(insetProj) as any)
+            .attr("fill", "rgba(255,255,255,0.06)")
+            .attr("stroke", "rgba(255,255,255,0.25)")
+            .attr("stroke-width", 1);
+          const here = insetProj([-84.44, 42.72]);
+          if (here) {
+            inset.append("circle")
+              .attr("cx", here[0]).attr("cy", here[1])
+              .attr("r", 4.5)
+              .attr("fill", "#e8b84b")
+              .attr("stroke", "#141516")
+              .attr("stroke-width", 1.5);
+            inset.append("text")
+              .attr("x", here[0] + 9).attr("y", here[1] + 4)
+              .attr("fill", "rgba(255,255,255,0.6)")
+              .attr("font-size", 10)
+              .attr("font-weight", 700)
+              .text("You are here");
+          }
+        }
 
-        locations.forEach(loc => {
-          const coords = projection([loc.lng, loc.lat]);
-          if (!coords) return;
-          const [cx, cy] = coords;
-
-          // Pulse ring (purely decorative — no event listeners)
-          const ring = pointsGroup.append("circle")
-            .attr("cx", cx).attr("cy", cy)
-            .attr("r", 8)
-            .attr("fill", "none")
-            .attr("stroke", "#c0392b")
-            .attr("stroke-width", 1.5)
-            .attr("opacity", 0.6);
-
-          (function animateRing() {
-            ring.transition().duration(1400)
-              .attr("r", 22).attr("opacity", 0)
-              .transition().duration(0)
-              .attr("r", 8).attr("opacity", 0.6)
-              .on("end", animateRing);
-          })();
-
-          // Main interactive dot (no CSS hover — D3 handles it)
-          pointsGroup.append("circle")
-            .datum(loc)
-            .attr("cx", cx).attr("cy", cy)
-            .attr("r", 8)
-            .attr("fill", "#c0392b")
-            .attr("stroke", "rgba(255,255,255,0.9)")
-            .attr("stroke-width", 2.5)
-            .attr("class", "cursor-pointer")
-            .on("mouseenter", function(event, d) {
-              d3.select(this).transition().duration(150).attr("r", 13).attr("stroke-width", 3);
-              setHoveredLocation(d);
-            })
-            .on("mouseleave", function() {
-              d3.select(this).transition().duration(150).attr("r", 8).attr("stroke-width", 2.5);
-              setHoveredLocation(null);
-            })
-            .on("click", (event, d) => setSelectedLocation(d));
-        });
+        drawPins();
       })
-      .catch(err => {
-        console.error("Error loading map:", err);
+      .catch((err) => {
+        console.error("Error loading map geography:", err);
+        drawPins(); // schools still render on the plain background
       });
 
   }, [locations]);
@@ -144,21 +200,17 @@ export default function MichiganMap() {
           className="w-full h-full"
         />
 
-        {/* Hover Tooltip */}
+        {/* Hover hint — names are on the map now; show the district */}
         <AnimatePresence>
           {hoveredLocation && !selectedLocation && (
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.9 }}
-              className="absolute pointer-events-none bg-white/95 backdrop-blur-xl text-chalkboard p-5 rounded-2xl shadow-2xl border border-white/20 z-20 min-w-[200px]"
-              style={{
-                left: hoveredLocation.lng > -85 ? '65%' : '25%',
-                top: '15%'
-              }}
+              className="absolute pointer-events-none bg-white/95 backdrop-blur-xl text-chalkboard px-4 py-3 rounded-2xl shadow-2xl border border-white/20 z-20 bottom-8 right-8"
             >
-              <div className="font-serif font-bold text-lg leading-tight mb-1">{hoveredLocation.name}</div>
-              <div className="text-[10px] font-bold text-muted uppercase tracking-widest">{hoveredLocation.district}</div>
+              <div className="font-serif font-bold text-base leading-tight">{hoveredLocation.name}</div>
+              <div className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5">{hoveredLocation.district} · click for details</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -240,14 +292,14 @@ export default function MichiganMap() {
         </AnimatePresence>
 
         {/* Legend */}
-        <div className="absolute bottom-8 left-8 bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl text-white/80 text-xs shadow-2xl">
+        <div className="absolute top-6 right-6 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-white/80 text-xs shadow-2xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-4 h-4 bg-apple rounded-full animate-pulse shadow-[0_0_10px_rgba(192,57,43,0.5)]" />
-            <span className="font-bold tracking-widest uppercase text-[10px]">Funded School</span>
+            <span className="font-bold tracking-widest uppercase text-[10px]">Supported School</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-white/20 rounded-full" />
-            <span className="font-bold tracking-widest uppercase text-[10px]">Pending Application</span>
+            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-pencil" />
+            <span className="font-bold tracking-widest uppercase text-[10px]">Home Base — Okemos High</span>
           </div>
         </div>
       </div>

@@ -130,9 +130,15 @@ delete from donors where name ilike 'Walmart%';
 
 insert into events (title, date, description, location, type)
 select 'FMT Coffee Bar at OHS Kickstart', '2026-08-19',
-       'We''re bringing the FMT Coffee Bar to Okemos High School''s Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Tailgaters Okemos and Biggby Coffee. 9am–2pm, or while supplies last.',
+       'We''re bringing the FMT Coffee Bar to Okemos High School''s Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Biggby Coffee. 9am–2pm, or while supplies last.',
        'Okemos High School', 'appreciation'
 where not exists (select 1 from events where title = 'FMT Coffee Bar at OHS Kickstart');
+
+-- Correct the Kickstart description if an older version is in the DB
+-- (Biggby provides the Coffee Bar; Tailgaters is not part of Kickstart)
+update events set
+  description = 'We''re bringing the FMT Coffee Bar to Okemos High School''s Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Biggby Coffee. 9am–2pm, or while supplies last.'
+where title = 'FMT Coffee Bar at OHS Kickstart';
 
 -- ── 4. Classroom projects (adds Miss Abbott + keeps the submit card) ────────
 
@@ -159,10 +165,10 @@ where not exists (select 1 from projects where teacher_name = 'Submit a Project'
 insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
 select * from (values
   ('Okemos High School', 'Okemos Public Schools',
-   'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, and year-round appreciation events — all student-run, 100% community-funded.',
+   'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, 100% community-funded.',
    '$15K+ org-wide', 42.7244, -84.4333,
    '{"students":"1,800","lowIncome":"18%","diversity":"34%"}'::jsonb,
-   '["Staff Meeting Food (Every Meeting)","Classroom Supply Grants","Door Decorating Competition","Teacher of the Month","Coffee Bar"]'::jsonb),
+   '["Staff Meeting Food (Every Meeting)","Classroom Supply Grants","Door Decorating Competition","Teacher of the Month","Post Office of Love","Coffee Bar"]'::jsonb),
   ('Kinawa Middle School', 'Okemos Public Schools',
    'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to every staff member.',
    'Appreciation Week', 42.7180, -84.4180,
@@ -197,6 +203,12 @@ select * from (values
    '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb)
 ) as v(name, district, impact, amount, lat, lng, demographics, projects)
 where not exists (select 1 from locations where locations.name = v.name);
+
+-- Okemos High: make sure Post Office of Love is credited on the map
+update locations set
+  impact = 'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, 100% community-funded.',
+  projects = '["Staff Meeting Food (Every Meeting)","Classroom Supply Grants","Door Decorating Competition","Teacher of the Month","Post Office of Love","Coffee Bar"]'::jsonb
+where name = 'Okemos High School';
 
 -- Correct staff counts if the old numbers are in the DB
 update locations set
@@ -236,8 +248,14 @@ where business like 'Tailgaters / Dunkin%';
 update food_partners set business = 'Dunkin'' (3450 Okemos Rd. Okemos, MI)'
 where business like 'Dunkin''%';
 
-update food_partners set business = 'Tailgaters (3450 Okemos Rd. Okemos, MI)'
-where business like 'Tailgaters Okemos%';
+-- Tailgaters is NOT part of the Kickstart Coffee Bar — remove the bogus
+-- credit if it was seeded (their October donut runs with Dunkin' remain).
+delete from food_partners
+where business like 'Tailgaters%' and detail like '%Kickstart%';
+
+-- Biggby: attach the real Coffee Bar photo
+update food_partners set image = '/images/coffee-bar-biggby-opt.jpg'
+where business like 'Biggby Coffee%' and (image is null or image = '');
 
 update food_partners set business = 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)'
 where business like 'Nothing Bundt Cakes%';
