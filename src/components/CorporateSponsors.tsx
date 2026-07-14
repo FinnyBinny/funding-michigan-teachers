@@ -235,7 +235,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-chalkboard rounded-[2.5rem] p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8"
+        className="bg-chalkboard rounded-[2.5rem] p-7 sm:p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8"
       >
         <div className="text-center md:text-left">
           <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-5 uppercase tracking-widest border border-pencil/20">
@@ -250,17 +250,17 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
             a branded supply drive, or an in-kind food donation. Reach out and let's talk.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-4 shrink-0">
+        <div className="flex flex-col sm:flex-row gap-4 shrink-0 w-full md:w-auto">
           <button
             onClick={onContact}
-            className="flex items-center gap-3 bg-apple text-white px-8 py-4 rounded-2xl font-bold hover:bg-apple/90 transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer whitespace-nowrap"
+            className="flex items-center justify-center gap-3 bg-apple text-white px-8 py-4 rounded-2xl font-bold hover:bg-apple/90 transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer whitespace-nowrap w-full sm:w-auto"
           >
             <Mail size={18} />
             Get in Touch
           </button>
           <button
             onClick={() => onDonate(500)}
-            className="flex items-center gap-3 bg-white/10 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/10 cursor-pointer whitespace-nowrap"
+            className="flex items-center justify-center gap-3 bg-white/10 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/10 cursor-pointer whitespace-nowrap w-full sm:w-auto"
           >
             Donate Directly
           </button>
