@@ -8,8 +8,7 @@ import {
 import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
-
-const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
+import { submitToFormBold } from '../lib/forms';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -800,29 +799,17 @@ function PilotInterestForm() {
     setStatus('loading');
     let submitted = false;
 
-    if (WEB3FORMS_KEY) {
-      try {
-        const res = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: `Pilot School Interest — ${form.school} (${form.district})`,
-            'Contact Name': form.name,
-            Role: form.role,
-            School: form.school,
-            District: form.district,
-            'Staff Size': form.staffSize,
-            Note: form.note,
-            email: form.email,
-            replyto: form.email,
-            from_name: form.name,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) submitted = true;
-      } catch { /* ignore */ }
-    }
+    if (await submitToFormBold({
+      Form: 'Pilot school interest',
+      subject: `Pilot School Interest — ${form.school} (${form.district})`,
+      'Contact Name': form.name,
+      Role: form.role,
+      School: form.school,
+      District: form.district,
+      'Staff Size': form.staffSize,
+      Note: form.note,
+      email: form.email,
+    })) submitted = true;
 
     if (supabase) {
       const { error } = await supabase.from('contact_submissions').insert({

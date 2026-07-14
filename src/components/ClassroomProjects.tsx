@@ -5,9 +5,9 @@ import { cn } from '../lib/utils';
 import { useProjects, readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
 import { PROJECTS } from '../data/initialData';
 import { supabase, getVoterId } from '../lib/supabase';
+import { submitToFormBold } from '../lib/forms';
 
 const SUBMIT_PROJECT_ID = 2;
-const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
 
 const INPUT_CLS = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-apple/20 outline-none transition-all placeholder:text-chalkboard/30';
 const LABEL_CLS = 'block text-[10px] uppercase tracking-[0.15em] font-bold text-chalkboard/40 mb-1.5';
@@ -118,28 +118,16 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
     setFormStatus('loading');
     let submitted = false;
 
-    // Always try Web3Forms for email notifications
-    if (WEB3FORMS_KEY) {
-      try {
-        const res = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: `New Project Submission — ${form.projectTitle} (${form.schoolName})`,
-            'Teacher Name': form.teacherName,
-            'School Name': form.schoolName,
-            'Project Title': form.projectTitle,
-            Description: form.description,
-            email: form.email,
-            replyto: form.email,
-            from_name: form.teacherName,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) submitted = true;
-      } catch { /* ignore */ }
-    }
+    // FormBold delivers the email notification
+    if (await submitToFormBold({
+      Form: 'Classroom project submission',
+      subject: `New Project Submission — ${form.projectTitle} (${form.schoolName})`,
+      'Teacher Name': form.teacherName,
+      'School Name': form.schoolName,
+      'Project Title': form.projectTitle,
+      Description: form.description,
+      email: form.email,
+    })) submitted = true;
 
     // Also save to Supabase for records
     if (supabase) {

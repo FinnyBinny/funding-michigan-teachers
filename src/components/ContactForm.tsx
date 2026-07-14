@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-
-const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
+import { submitToFormBold } from '../lib/forms';
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -14,26 +13,14 @@ export default function ContactForm() {
     setStatus('loading');
     let submitted = false;
 
-    // Always try Web3Forms for email notifications
-    if (WEB3FORMS_KEY) {
-      try {
-        const res = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: `Contact from ${form.name} — Funding Michigan Teachers`,
-            name: form.name,
-            email: form.email,
-            message: form.message,
-            replyto: form.email,
-            from_name: form.name,
-          }),
-        });
-        const data = await res.json();
-        if (data.success) submitted = true;
-      } catch { /* ignore */ }
-    }
+    // FormBold delivers the email notification
+    if (await submitToFormBold({
+      Form: 'Contact',
+      subject: `Contact from ${form.name} — Funding Michigan Teachers`,
+      name: form.name,
+      email: form.email,
+      message: form.message,
+    })) submitted = true;
 
     // Also save to Supabase for records
     if (supabase) {

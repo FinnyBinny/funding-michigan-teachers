@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-
-const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
+import { submitToFormBold } from '../lib/forms';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -14,23 +13,12 @@ export default function Newsletter() {
     setStatus('loading');
     let submitted = false;
 
-    // Always try Web3Forms for email notifications
-    if (WEB3FORMS_KEY) {
-      try {
-        const res = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: 'Newsletter Signup — Funding Michigan Teachers',
-            email,
-            from_name: 'FMT Newsletter Signup',
-          }),
-        });
-        const data = await res.json();
-        if (data.success) submitted = true;
-      } catch { /* ignore */ }
-    }
+    // FormBold delivers the email notification
+    if (await submitToFormBold({
+      Form: 'Newsletter signup',
+      subject: 'Newsletter Signup — Funding Michigan Teachers',
+      email,
+    })) submitted = true;
 
     // Also save to Supabase for records
     if (supabase) {
