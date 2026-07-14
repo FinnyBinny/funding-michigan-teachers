@@ -11,8 +11,8 @@ import { SUPPLY_DOODLES } from './supplyDoodles';
  * pile resettles under gravity.
  */
 
-const MAX_CHIPS = 26;      // $300 → a heaping pile that crests over the rim
-const PER_DOLLARS = 12;    // one supply lands per ~$12
+const MAX_CHIPS = 36;      // $300 → a heaping pile that crests over the rim
+const PER_DOLLARS = 8;     // one supply lands per ~$8
 const BASKET_CLASSES =
   'relative h-[150px] rounded-t-xl rounded-b-[1.75rem] ring-1 ring-pencil-dark/25 bg-gradient-to-b from-pencil/5 to-pencil/20';
 const WEAVE = { backgroundImage: 'repeating-linear-gradient(-45deg, rgba(60,40,10,0.03) 0 8px, transparent 8px 16px)' };
