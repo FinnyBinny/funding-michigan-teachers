@@ -120,14 +120,12 @@ export default function MichiganMap() {
       });
     };
 
-    // Local geography: Michigan county outlines for context, plus a tiny
-    // state inset so visitors still know where they are in Michigan.
+    // Local geography: faint Michigan county outlines behind the pins for
+    // a sense of place (the whole view sits inside the Lansing area).
     d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json")
       .then((us: any) => {
         const counties = (topojson.feature(us, us.objects.counties) as any).features
           .filter((f: any) => String(f.id).startsWith("26")); // Michigan FIPS
-        const michigan = (topojson.feature(us, us.objects.states) as any).features
-          .find((f: any) => f.properties.name === "Michigan");
 
         geoGroup.selectAll("path")
           .data(counties)
@@ -137,33 +135,6 @@ export default function MichiganMap() {
           .attr("fill", "#1a1c1d")
           .attr("stroke", "rgba(255,255,255,0.1)")
           .attr("stroke-width", 1.5);
-
-        // Mini Michigan inset, top-left, with a gold dot marking this area
-        if (michigan) {
-          const inset = svg.append("g").attr("transform", "translate(28, 24)");
-          const insetProj = d3.geoMercator().fitSize([110, 110], michigan);
-          inset.append("path")
-            .datum(michigan)
-            .attr("d", d3.geoPath().projection(insetProj) as any)
-            .attr("fill", "rgba(255,255,255,0.06)")
-            .attr("stroke", "rgba(255,255,255,0.25)")
-            .attr("stroke-width", 1);
-          const here = insetProj([-84.44, 42.72]);
-          if (here) {
-            inset.append("circle")
-              .attr("cx", here[0]).attr("cy", here[1])
-              .attr("r", 4.5)
-              .attr("fill", "#e8b84b")
-              .attr("stroke", "#141516")
-              .attr("stroke-width", 1.5);
-            inset.append("text")
-              .attr("x", here[0] + 9).attr("y", here[1] + 4)
-              .attr("fill", "rgba(255,255,255,0.6)")
-              .attr("font-size", 10)
-              .attr("font-weight", 700)
-              .text("You are here");
-          }
-        }
 
         drawPins();
       })
