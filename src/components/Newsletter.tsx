@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { submitToFormBold } from '../lib/forms';
+import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -14,7 +14,7 @@ export default function Newsletter() {
     let submitted = false;
 
     // FormBold delivers the email notification
-    if (await submitToFormBold({
+    if (await submitToFormBold(FORMBOLD.newsletter, {
       Form: 'Newsletter signup',
       subject: 'Newsletter Signup — Funding Michigan Teachers',
       email,

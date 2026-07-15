@@ -5,7 +5,7 @@ import { cn } from '../lib/utils';
 import { useProjects, readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
 import { PROJECTS } from '../data/initialData';
 import { supabase, getVoterId } from '../lib/supabase';
-import { submitToFormBold } from '../lib/forms';
+import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
 const SUBMIT_PROJECT_ID = 2;
 
@@ -119,7 +119,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
     let submitted = false;
 
     // FormBold delivers the email notification
-    if (await submitToFormBold({
+    if (await submitToFormBold(FORMBOLD.project, {
       Form: 'Classroom project submission',
       subject: `New Project Submission — ${form.projectTitle} (${form.schoolName})`,
       'Teacher Name': form.teacherName,

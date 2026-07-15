@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { submitToFormBold } from '../lib/forms';
+import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -14,7 +14,7 @@ export default function ContactForm() {
     let submitted = false;
 
     // FormBold delivers the email notification
-    if (await submitToFormBold({
+    if (await submitToFormBold(FORMBOLD.contact, {
       Form: 'Contact',
       subject: `Contact from ${form.name} — Funding Michigan Teachers`,
       name: form.name,

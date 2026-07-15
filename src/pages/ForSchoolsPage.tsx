@@ -8,7 +8,7 @@ import {
 import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
-import { submitToFormBold } from '../lib/forms';
+import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -799,7 +799,7 @@ function PilotInterestForm() {
     setStatus('loading');
     let submitted = false;
 
-    if (await submitToFormBold({
+    if (await submitToFormBold(FORMBOLD.pilot, {
       Form: 'Pilot school interest',
       subject: `Pilot School Interest — ${form.school} (${form.district})`,
       'Contact Name': form.name,

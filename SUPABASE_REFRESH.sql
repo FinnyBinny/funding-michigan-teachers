@@ -221,6 +221,18 @@ update locations set
   amount = '~170 educators'
 where name = 'East Lansing High School';
 
+-- Real geographic coordinates so the impact map plots each school where it
+-- actually sits (the earlier values were scattered/approximate).
+update locations set lat = 42.6878, lng = -84.4267 where name = 'Okemos High School';
+update locations set lat = 42.7016, lng = -84.4172 where name = 'Kinawa Middle School';
+update locations set lat = 42.7014, lng = -84.4267 where name = 'Chippewa Middle School';
+update locations set lat = 42.7010, lng = -84.3936 where name = 'Cornell Elementary';
+update locations set lat = 42.6895, lng = -84.4388 where name = 'Bennett Woods Elementary';
+update locations set lat = 42.6861, lng = -84.4099 where name = 'Hiawatha Elementary';
+update locations set lat = 42.7098, lng = -84.4183 where name = 'Central Montessori';
+update locations set lat = 42.7489, lng = -84.4010 where name = 'Haslett High School';
+update locations set lat = 42.7522, lng = -84.4716 where name = 'East Lansing High School';
+
 -- ── 6. Corporate sponsor: Walmart (with store address) ──────────────────────
 
 update sponsors

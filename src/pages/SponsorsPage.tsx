@@ -5,7 +5,7 @@ import CorporateSponsors from '../components/CorporateSponsors';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
-import { submitToFormBold } from '../lib/forms';
+import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -277,7 +277,7 @@ function SponsorInterestForm() {
     setStatus('loading');
     let submitted = false;
 
-    if (await submitToFormBold({
+    if (await submitToFormBold(FORMBOLD.sponsor, {
       Form: 'Corporate sponsorship inquiry',
       subject: `Corporate Sponsorship Inquiry — ${form.business}`,
       Business: form.business,
