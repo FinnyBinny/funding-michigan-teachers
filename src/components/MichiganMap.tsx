@@ -34,7 +34,7 @@ export default function MichiganMap() {
     } as any;
 
     const projection = d3.geoMercator().fitExtent(
-      [[90, 80], [width - 90, height - 80]],
+      [[150, 110], [width - 140, height - 120]],
       pointsGeo,
     );
     const path = d3.geoPath().projection(projection);
@@ -45,17 +45,29 @@ export default function MichiganMap() {
     const drawPins = () => {
       const pointsGroup = svg.append("g");
 
-      // Labels point AWAY from the cluster's center so the tightly-packed
-      // Okemos schools don't overlap each other's names.
+      // The Okemos schools sit within ~1 mile of each other, so generic
+      // left/right label rules make the names collide. Each label side is
+      // hand-tuned by name; unknown schools fall back to right of the dot.
+      const LABEL: Record<string, { dx: number; dy: number; anchor: 'start' | 'middle' | 'end' }> = {
+        'East Lansing High School': { dx: -15, dy: 4, anchor: 'end' },
+        'Haslett High School':      { dx: 15,  dy: 4, anchor: 'start' },
+        'Central Montessori':       { dx: 0,   dy: -15, anchor: 'middle' },
+        'Cornell Elementary':       { dx: 15,  dy: 4, anchor: 'start' },
+        'Kinawa Middle School':     { dx: 0,   dy: 21, anchor: 'middle' },
+        'Chippewa Middle School':   { dx: -15, dy: 4, anchor: 'end' },
+        'Bennett Woods Elementary': { dx: -15, dy: 4, anchor: 'end' },
+        'Okemos High School':       { dx: 0,   dy: 23, anchor: 'middle' },
+        'Hiawatha Elementary':      { dx: 15,  dy: 4, anchor: 'start' },
+      };
+
       const projected = locations
         .map((loc) => ({ loc, coords: projection([loc.lng, loc.lat]) }))
         .filter((p): p is { loc: Location; coords: [number, number] } => p.coords !== null);
-      const meanX = projected.reduce((s, p) => s + p.coords[0], 0) / (projected.length || 1);
 
       projected.forEach(({ loc, coords }) => {
         const [cx, cy] = coords;
         const isHome = loc.name === 'Okemos High School';
-        const onLeft = cx < meanX;
+        const lbl = LABEL[loc.name] ?? { dx: 15, dy: 4, anchor: 'start' as const };
 
         // Pulse ring (purely decorative — no event listeners)
         const ring = pointsGroup.append("circle")
@@ -75,9 +87,9 @@ export default function MichiganMap() {
         })();
 
         pointsGroup.append("text")
-          .attr("x", cx + (onLeft ? -16 : 16))
-          .attr("y", cy + 4)
-          .attr("text-anchor", onLeft ? "end" : "start")
+          .attr("x", cx + lbl.dx)
+          .attr("y", cy + lbl.dy)
+          .attr("text-anchor", lbl.anchor)
           .attr("fill", "rgba(255,255,255,0.85)")
           .attr("stroke", "#141516")
           .attr("stroke-width", 4)
@@ -292,7 +304,7 @@ export default function MichiganMap() {
         </AnimatePresence>
 
         {/* Legend */}
-        <div className="absolute top-6 right-6 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-white/80 text-xs shadow-2xl">
+        <div className="absolute bottom-6 left-6 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-white/80 text-xs shadow-2xl">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-4 h-4 bg-apple rounded-full animate-pulse shadow-[0_0_10px_rgba(192,57,43,0.5)]" />
             <span className="font-bold tracking-widest uppercase text-[10px]">Supported School</span>

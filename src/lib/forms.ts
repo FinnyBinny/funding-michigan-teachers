@@ -1,27 +1,32 @@
 /**
- * FormBold delivery for every site form — contact, newsletter signup,
- * classroom project submission, pilot-school interest, and corporate
- * sponsor inquiry. One FormBold endpoint receives all of them; the `Form`
- * field says which form a submission came from and `subject` keeps the
- * email notifications scannable.
+ * FormBold delivery for every site form. Each form posts to its own
+ * FormBold endpoint so submissions land in cleanly separated inboxes; the
+ * `Form` field still names the source and `subject` keeps notifications
+ * scannable.
  *
- * Setup (once): FormBold dashboard → create a form → copy the endpoint
- * URL (https://formbold.com/s/XXXXX) → paste just the XXXXX part below.
- * Form IDs are public by design — they ship in the page to every visitor,
- * and FormBold does its own spam filtering.
+ * The IDs are the code after https://formbold.com/s/ from the FormBold
+ * dashboard. They're public by design (they ship to every visitor, and
+ * FormBold does its own spam filtering), so hardcoding them is fine.
  *
  * Every form still falls back to Supabase (contact_submissions) and, as a
  * true last resort, a prefilled mailto — so no message is ever lost even
- * if FormBold is down or the ID is missing.
+ * if FormBold is unreachable.
  */
-const FORMBOLD_FORM_ID = ''; // ← paste the ID from https://formbold.com/s/<ID>
+export const FORMBOLD = {
+  contact: '6QXyV',    // "Get in Touch" — homepage contact form
+  newsletter: '3VkQX', // Newsletter signup
+  sponsor: '3AYxr',    // "Let's talk" — corporate sponsor inquiry
+  pilot: '6lBey',      // "Bring FMT to your school" — pilot interest
+  // No dedicated form was created for teacher project submissions yet, so
+  // they route to the general "Get in Touch" inbox (tagged Form: … so
+  // they're easy to spot). Swap in a new ID here to separate them.
+  project: '6QXyV',
+} as const;
 
-const FORM_ID = (import.meta.env.VITE_FORMBOLD_ID as string | undefined) || FORMBOLD_FORM_ID;
-
-export async function submitToFormBold(fields: Record<string, unknown>): Promise<boolean> {
-  if (!FORM_ID) return false;
+export async function submitToFormBold(formId: string, fields: Record<string, unknown>): Promise<boolean> {
+  if (!formId) return false;
   try {
-    const res = await fetch(`https://formbold.com/s/${FORM_ID}`, {
+    const res = await fetch(`https://formbold.com/s/${formId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(fields),
