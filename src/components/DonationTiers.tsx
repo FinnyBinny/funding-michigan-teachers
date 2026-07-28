@@ -1,59 +1,58 @@
 import { motion } from 'motion/react';
-import {
-  Pencil,
-  Ruler,
-  BookOpen,
-  CheckCircle2
-} from 'lucide-react';
+import { Pencil, UtensilsCrossed, BookOpen, Check } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+/**
+ * Monthly giving tiers on the homepage. Names, amounts, and claims are kept
+ * in lockstep with the tiles on /donate (src/pages/DonatePage.tsx) — one
+ * language for giving across the whole site. Perks list only what FMT
+ * actually delivers today (supporter wall, newsletter); nothing is promised
+ * that hasn't been earned.
+ */
 const TIERS = [
   {
-    name: 'Bell Ringer',
-    amount: '$10',
-    value: 10,
+    name: 'Supply Starter',
+    amount: '$25',
+    value: 25,
     icon: Pencil,
     color: 'bg-pencil',
     textColor: 'text-pencil-dark',
+    description: 'Helps stock a classroom supply box for a teacher who would otherwise buy it herself.',
     rewards: [
-      'Supports monthly teacher appreciation efforts',
-      'Contributes to classroom supply grants',
-      'Name on our digital supporter wall',
-      'Monthly impact newsletter'
+      'Supports classroom supply grants',
+      'Your name on our supporter wall',
+      'Monthly impact newsletter',
     ],
-    description: 'Every dollar goes directly toward the events, supplies, and gestures that remind Michigan teachers they are seen and valued.'
   },
   {
-    name: 'Honor Roll',
+    name: 'Meeting Booster',
     amount: '$50',
     value: 50,
-    icon: Ruler,
+    icon: UtensilsCrossed,
     color: 'bg-ruler',
     textColor: 'text-white',
     popular: true,
+    description: "Adds to a school's staff-meeting food fund, so teachers are fed at every meeting of the year.",
     rewards: [
-      'Amplifies our impact at appreciation events',
-      'Helps fund food & treats at monthly staff meetings',
-      'Personal shout-out on our Instagram',
-      'Exclusive FMT supporter badge'
+      'Backs food at monthly staff meetings',
+      'Supports Teacher of the Month gifts',
+      'Everything in Supply Starter',
     ],
-    description: 'Your monthly gift helps us show up for teachers — from staff meeting treats to recognition events — again and again throughout the school year.'
   },
   {
-    name: 'Hall of Fame',
-    amount: '$250',
-    value: 250,
+    name: 'Classroom Backer',
+    amount: '$100',
+    value: 100,
     icon: BookOpen,
     color: 'bg-apple',
     textColor: 'text-white',
+    description: 'Builds toward a full $250 classroom grant — the lab tools and materials school budgets never cover.',
     rewards: [
-      'Powers our largest classroom grant initiatives',
-      'Enables funding for specific teacher projects',
-      'Video message from a funded teacher',
-      'VIP invite to our annual appreciation event'
+      'Builds toward full classroom grants',
+      'Supports whole-staff appreciation weeks',
+      'Everything in Meeting Booster',
     ],
-    description: 'At this level, your support powers the big-ticket items — the lab tools, equipment, and materials that school budgets simply can\'t cover.'
-  }
+  },
 ];
 
 interface DonationTiersProps {
@@ -62,50 +61,55 @@ interface DonationTiersProps {
 
 export default function DonationTiers({ onDonate }: DonationTiersProps) {
   return (
-    <div className="grid md:grid-cols-3 gap-6 md:gap-10">
+    <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-start max-w-5xl mx-auto">
       {TIERS.map((tier, index) => (
         <motion.div
           key={tier.name}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: index * 0.1 }}
+          transition={{ delay: index * 0.08 }}
           className={cn(
-            "relative group bg-white p-7 sm:p-10 rounded-[2rem] sm:rounded-[3rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 flex flex-col transition-all duration-500 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] hover:-translate-y-3",
-            tier.popular && "ring-4 md:ring-8 ring-ruler/5 md:scale-105 z-10"
+            'relative group bg-white p-6 sm:p-7 rounded-[1.75rem] shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-chalkboard/5 flex flex-col transition-all duration-500 hover:shadow-[0_20px_45px_rgba(0,0,0,0.09)] hover:-translate-y-1.5',
+            tier.popular && 'ring-2 ring-ruler/25 md:pt-9',
           )}
         >
           {tier.popular && (
-            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-ruler text-white px-6 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-ruler text-white px-4 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.18em] shadow-lg whitespace-nowrap">
               Most Impactful
             </div>
           )}
 
-          <div className={cn(
-            "w-20 h-20 rounded-3xl flex items-center justify-center mb-10 transform group-hover:rotate-12 transition-transform duration-500 shadow-lg",
-            tier.color,
-            tier.textColor
-          )}>
-            <tier.icon size={40} />
+          <div className="flex items-center gap-3 mb-5">
+            <div
+              className={cn(
+                'w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-500 group-hover:rotate-6',
+                tier.color,
+                tier.textColor,
+              )}
+            >
+              <tier.icon size={20} strokeWidth={1.5} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-serif font-bold leading-tight">{tier.name}</h3>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-serif font-bold tracking-[-0.01em]">{tier.amount}</span>
+                <span className="text-muted font-bold text-[9px] uppercase tracking-[0.18em]">/ month</span>
+              </div>
+            </div>
           </div>
 
-          <h3 className="text-4xl font-serif font-bold mb-3">{tier.name}</h3>
-          <div className="flex items-baseline gap-2 mb-8">
-            <span className="text-5xl font-serif font-bold">{tier.amount}</span>
-            <span className="text-muted font-bold text-[10px] uppercase tracking-widest">/ month</span>
-          </div>
-
-          <p className="text-chalkboard/60 text-lg mb-10 leading-relaxed font-light">
+          <p className="text-chalkboard/60 text-sm mb-5 leading-relaxed font-light">
             {tier.description}
           </p>
 
-          <div className="flex-1 space-y-5 mb-12">
-            {tier.rewards.map(reward => (
-              <div key={reward} className="flex items-start gap-4 text-sm font-medium group/item">
-                <div className="w-6 h-6 rounded-full bg-apple/10 flex items-center justify-center shrink-0 group-hover/item:bg-apple group-hover/item:text-white transition-colors">
-                  <CheckCircle2 size={14} />
+          <div className="flex-1 space-y-2.5 mb-6">
+            {tier.rewards.map((reward) => (
+              <div key={reward} className="flex items-start gap-2.5 text-[13px]">
+                <div className="w-4 h-4 mt-0.5 rounded-full bg-apple/10 text-apple flex items-center justify-center shrink-0">
+                  <Check size={10} strokeWidth={3} />
                 </div>
-                <span className="text-chalkboard/80 group-hover/item:text-chalkboard transition-colors">{reward}</span>
+                <span className="text-chalkboard/75 leading-snug">{reward}</span>
               </div>
             ))}
           </div>
@@ -113,13 +117,13 @@ export default function DonationTiers({ onDonate }: DonationTiersProps) {
           <button
             onClick={() => onDonate(tier.value)}
             className={cn(
-              "w-full py-5 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl hover:scale-[1.02] cursor-pointer",
+              'w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.98] shadow-lg hover:scale-[1.01] cursor-pointer',
               tier.popular
-                ? "bg-ruler text-white hover:bg-ruler/90"
-                : "bg-chalkboard text-white hover:bg-apple"
+                ? 'bg-ruler text-white hover:bg-ruler/90'
+                : 'bg-chalkboard text-white hover:bg-apple',
             )}
           >
-            Support for {tier.amount}
+            Give {tier.amount}/mo
           </button>
         </motion.div>
       ))}
