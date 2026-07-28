@@ -16,7 +16,7 @@ export default function EventCalendar() {
         className="max-w-2xl mx-auto"
       >
         <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-1.5">
-          <div className="bg-white rounded-[calc(2rem-0.375rem)] p-10 md:p-12 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+          <div className="bg-white rounded-[calc(2rem-0.375rem)] p-8 md:p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
             <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-ruler/10 text-ruler flex items-center justify-center">
               <CalendarIcon size={22} strokeWidth={1.5} />
             </div>
@@ -52,13 +52,13 @@ export default function EventCalendar() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: index * 0.1 }}
-          className="bg-white p-10 rounded-[3rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group relative overflow-hidden"
+          className="bg-white p-7 rounded-[2rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-ruler/5 rounded-full blur-3xl -z-10 group-hover:scale-150 transition-transform duration-700" />
 
           <div className="flex justify-between items-start mb-8">
-            <div className="w-16 h-16 bg-ruler/10 text-ruler rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform duration-500 shadow-sm">
-              <CalendarIcon size={32} />
+            <div className="w-14 h-14 bg-ruler/10 text-ruler rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform duration-500 shadow-sm">
+              <CalendarIcon size={26} />
             </div>
             <span className={cn(
               "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] border shadow-sm",
@@ -71,11 +71,11 @@ export default function EventCalendar() {
           </div>
 
           <h3 className="text-2xl font-serif font-bold mb-4 leading-tight group-hover:text-ruler transition-colors">{event.title}</h3>
-          <p className="text-chalkboard/60 text-lg mb-10 leading-relaxed font-light line-clamp-3">
+          <p className="text-chalkboard/60 text-base mb-6 leading-relaxed font-light line-clamp-3">
             {event.description}
           </p>
 
-          <div className="space-y-4 pt-8 border-t border-chalkboard/5">
+          <div className="space-y-3 pt-6 border-t border-chalkboard/5">
             <div className="flex items-center gap-3 text-sm font-bold text-muted uppercase tracking-widest">
               <Clock size={16} className="text-ruler" />
               <span>{new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
@@ -98,7 +98,7 @@ export default function EventCalendar() {
             )}
           </div>
 
-          <div className="mt-10">
+          <div className="mt-7">
             {event.ctaUrl ? (
               <a
                 href={event.ctaUrl}

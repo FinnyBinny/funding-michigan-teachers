@@ -70,7 +70,7 @@ export default function App() {
         "fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4",
         scrolled ? "bg-white/95 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.05)] py-3" : "bg-transparent"
       )}>
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3 group cursor-pointer min-w-0">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-lg transform -rotate-3 transition-transform group-hover:rotate-0 shrink-0">
               <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" />
@@ -145,12 +145,12 @@ export default function App() {
 
       <main>
         {/* Hero Section */}
-        <section className="viewport-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
+        <section className="viewport-section hero-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
           {/* Ambient brand glows — atmospheric depth without the moving particles */}
           <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/[0.04] rounded-full blur-[140px]" />
           <div className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] bg-pencil/[0.06] rounded-full blur-[120px]" />
 
-          <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-[2]">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-[2]">
             <motion.div
               initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -272,7 +272,7 @@ export default function App() {
         {/* Our Mission Section */}
         <section
           id="mission"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-white relative overflow-hidden"
         >
           <OurMission />
         </section>
@@ -280,9 +280,9 @@ export default function App() {
         {/* Donation Tiers Section — placed early so warm visitors can convert immediately */}
         <section
           id="tiers"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 relative overflow-hidden bg-paper"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 relative overflow-hidden bg-paper"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -311,9 +311,9 @@ export default function App() {
         {/* Impact Map Section */}
         <section
           id="impact"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -342,9 +342,9 @@ export default function App() {
         {/* Classroom Projects Section */}
         <section
           id="projects"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -369,9 +369,9 @@ export default function App() {
         {/* Teacher Leaderboard Section */}
         <section
           id="leaderboard"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -396,9 +396,9 @@ export default function App() {
         {/* Event Calendar Section */}
         <section
           id="events"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-ruler/5 relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -424,9 +424,9 @@ export default function App() {
         {/* Donor Wall Section */}
         <section
           id="donors"
-          className="viewport-section py-20 sm:py-24 md:py-32 px-4 sm:px-6 bg-chalkboard text-white relative overflow-hidden"
+          className="viewport-section py-14 sm:py-16 md:py-20 px-4 sm:px-6 bg-chalkboard text-white relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -454,9 +454,9 @@ export default function App() {
         {/* Teacher Stories Section */}
         <section
           id="stories"
-          className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-paper relative overflow-hidden"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
-          <div className="max-w-7xl mx-auto w-full">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -482,8 +482,8 @@ export default function App() {
         <Newsletter />
 
         {/* Contact Section */}
-        <section id="contact" className="viewport-section py-20 sm:py-24 px-4 sm:px-6 bg-paper">
-          <div className="max-w-7xl mx-auto w-full">
+        <section id="contact" className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <ContactForm />
           </div>
         </section>
@@ -491,7 +491,7 @@ export default function App() {
 
       {/* Footer */}
       <footer id="footer" className="bg-chalkboard text-white py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto relative z-10">
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-10">
             <div className="sm:col-span-2">
               <div className="flex items-center gap-3 mb-6 sm:mb-8">

@@ -47,7 +47,7 @@ export default function Newsletter() {
 
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 bg-chalkboard relative overflow-hidden">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}

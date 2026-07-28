@@ -164,7 +164,7 @@ export default function DonatePage() {
       <div className="pointer-events-none absolute top-1/3 -right-40 w-[500px] h-[500px] bg-pencil/[0.08] rounded-full blur-[160px]" />
 
       <main className="relative z-10 pt-32 pb-24 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
 
           {/* HEADER — editorial split */}
           <div className="grid lg:grid-cols-12 gap-10 mb-12">

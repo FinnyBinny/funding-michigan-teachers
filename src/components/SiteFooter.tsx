@@ -18,7 +18,7 @@ const NAV = [
 export default function SiteFooter() {
   return (
     <footer className="bg-chalkboard text-white px-6 py-12 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto relative z-10">
+      <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto relative z-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-white/8">
           {/* Brand */}
           <button onClick={() => navigate('/')} className="flex items-center gap-3 group text-left">
