@@ -167,7 +167,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
 
   return (
     <>
-      <div className="grid md:grid-cols-2 gap-10">
+      <div className="grid md:grid-cols-2 gap-6">
         {projects.map((project, index) => {
           // DB rows have identity-assigned ids, so the seed's id 2 can't be
           // relied on once projects come from Supabase — match by name too.
@@ -182,10 +182,10 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-[40px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 overflow-hidden flex flex-col hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group"
+              className="bg-white rounded-[1.75rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 overflow-hidden flex flex-col hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 group"
             >
-              <div className="p-10">
-                <div className="flex justify-between items-start mb-8">
+              <div className="p-7">
+                <div className="flex justify-between items-start mb-6">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-apple/10 text-apple rounded-2xl flex items-center justify-center shadow-sm group-hover:rotate-6 transition-transform">
                       <School size={28} />
@@ -205,13 +205,13 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                   </div>
                 </div>
 
-                <h3 className="text-3xl font-serif font-bold mb-5 leading-tight group-hover:text-apple transition-colors">{project.title}</h3>
-                <p className="text-chalkboard/60 text-lg mb-10 leading-relaxed font-light">
+                <h3 className="text-xl font-serif font-bold mb-3 leading-tight group-hover:text-apple transition-colors">{project.title}</h3>
+                <p className="text-chalkboard/60 text-sm mb-6 leading-relaxed font-light">
                   {project.description}
                 </p>
 
                 {!isSubmitCard && (
-                  <div className="space-y-5">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-end text-sm font-bold">
                       <div className="text-muted uppercase tracking-widest text-[10px]">Funding Progress</div>
                       <div className="text-apple font-mono text-lg">${project.raised.toLocaleString()} <span className="text-muted font-light text-sm">/ ${project.goal.toLocaleString()}</span></div>
@@ -236,7 +236,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                 {isSubmitCard ? (
                   <button
                     onClick={() => setShowForm(true)}
-                    className="w-full bg-ruler text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-ruler/90 transition-all active:scale-95 shadow-xl hover:scale-[1.02]"
+                    className="w-full bg-ruler text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-ruler/90 transition-all active:scale-95 shadow-xl hover:scale-[1.02]"
                   >
                     <Send size={20} />
                     <span>Submit Your Project</span>
@@ -249,7 +249,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="absolute inset-0 bg-apple text-white flex items-center justify-center gap-3 z-10 font-bold text-lg"
+                          className="absolute inset-0 bg-apple text-white flex items-center justify-center gap-3 z-10 font-bold text-sm"
                         >
                           <CheckCircle2 size={24} />
                           <span>Vote Counted! Thank you!</span>
@@ -261,18 +261,18 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                       onClick={() => handleVote(project.id)}
                       disabled={loading === project.id || hasVoted || !supabaseReady}
                       className={cn(
-                        "flex-1 border-2 py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-50 shadow-sm",
+                        "flex-1 border-2 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 shadow-sm",
                         hasVoted
                           ? "bg-apple/10 border-apple text-apple cursor-default"
                           : "bg-white border-chalkboard/10 text-chalkboard hover:bg-chalkboard hover:text-white hover:border-chalkboard"
                       )}
                     >
-                      {loading === project.id ? <Loader2 className="animate-spin" size={20} /> : <ThumbsUp size={20} />}
+                      {loading === project.id ? <Loader2 className="animate-spin" size={16} /> : <ThumbsUp size={16} />}
                       <span>{hasVoted ? 'Voted' : `Vote (${voteCount})`}</span>
                     </button>
                     <button
                       onClick={() => onDonate?.()}
-                      className="flex-1 bg-apple text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-3 hover:bg-apple/90 transition-all active:scale-95 shadow-xl hover:scale-[1.02] cursor-pointer"
+                      className="flex-1 bg-apple text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-apple/90 transition-all active:scale-95 shadow-xl hover:scale-[1.02] cursor-pointer"
                     >
                       <Heart size={20} />
                       <span>Donate</span>

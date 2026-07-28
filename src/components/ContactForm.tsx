@@ -49,7 +49,7 @@ export default function ContactForm() {
   };
 
   return (
-    <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-start">
+    <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
       <motion.div
         initial={{ opacity: 0, x: -30 }}
         whileInView={{ opacity: 1, x: 0 }}
@@ -60,25 +60,25 @@ export default function ContactForm() {
           <MessageSquare size={14} />
           <span>Get in Touch</span>
         </div>
-        <h2 className="text-4xl sm:text-5xl lg:text-7xl font-serif font-bold mb-6 sm:mb-8 leading-[0.9] tracking-tight text-chalkboard">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-5 leading-[0.9] tracking-tight text-chalkboard">
           Let's <span className="text-apple italic font-normal">Connect</span>.
         </h2>
-        <p className="text-lg sm:text-xl text-chalkboard/60 mb-8 sm:mb-12 font-light leading-relaxed max-w-md">
+        <p className="text-base text-chalkboard/60 mb-8 font-light leading-relaxed max-w-md">
           Have questions about our mission or want to get involved? We're here to help you make an impact.
         </p>
 
-        <div className="grid gap-8">
+        <div className="grid gap-5">
           {[
             { icon: Mail, label: 'Email Us', value: 'hello@fundingmichiganteachers.org' },
             { icon: MapPin, label: 'Our Location', value: 'Okemos, Michigan' }
           ].map(item => (
-            <div key={item.label} className="flex items-start gap-6 group">
-              <div className="w-16 h-16 bg-white border border-chalkboard/5 text-apple rounded-2xl flex items-center justify-center group-hover:bg-apple group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-xl group-hover:-translate-y-1">
-                <item.icon size={28} />
+            <div key={item.label} className="flex items-start gap-4 group">
+              <div className="w-12 h-12 bg-white border border-chalkboard/5 text-apple rounded-xl flex items-center justify-center group-hover:bg-apple group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-xl group-hover:-translate-y-1">
+                <item.icon size={20} />
               </div>
               <div className="pt-1 min-w-0">
                 <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted mb-1">{item.label}</div>
-                <div className="text-base sm:text-xl font-bold text-chalkboard break-all">{item.value}</div>
+                <div className="text-sm sm:text-base font-bold text-chalkboard break-all">{item.value}</div>
               </div>
             </div>
           ))}
@@ -90,47 +90,47 @@ export default function ContactForm() {
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
-        className="bg-white p-6 sm:p-10 lg:p-12 rounded-[2rem] sm:rounded-[4rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] border border-chalkboard/5 relative"
+        className="bg-white p-6 sm:p-8 rounded-[1.75rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] border border-chalkboard/5 relative"
       >
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 ml-2">Your Name</label>
               <input 
                 required
                 value={form.name}
                 onChange={e => setForm({...form, name: e.target.value})}
-                className="w-full bg-paper border border-chalkboard/5 rounded-2xl px-6 py-5 text-lg focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
+                className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
                 placeholder="Sarah Jenkins"
               />
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 ml-2">Email Address</label>
               <input 
                 required
                 type="email"
                 value={form.email}
                 onChange={e => setForm({...form, email: e.target.value})}
-                className="w-full bg-paper border border-chalkboard/5 rounded-2xl px-6 py-5 text-lg focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
+                className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
                 placeholder="sarah@example.com"
               />
             </div>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 ml-2">Message</label>
             <textarea 
               required
               value={form.message}
               onChange={e => setForm({...form, message: e.target.value})}
               rows={5}
-              className="w-full bg-paper border border-chalkboard/5 rounded-2xl px-6 py-5 text-lg focus:ring-4 focus:ring-apple/10 outline-none transition-all resize-none placeholder:text-chalkboard/20" 
+              className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all resize-none placeholder:text-chalkboard/20" 
               placeholder="How can we help you?"
             />
           </div>
           <button 
             type="submit"
             disabled={status === 'loading'}
-            className="w-full bg-chalkboard text-white py-6 rounded-2xl font-bold text-xl hover:bg-apple transition-all shadow-2xl hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-4 disabled:opacity-50 group"
+            className="w-full bg-chalkboard text-white py-3.5 rounded-xl font-bold text-base hover:bg-apple transition-all shadow-2xl hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50 group"
           >
             {status === 'loading' ? (
               <Loader2 className="animate-spin" size={24} />
