@@ -51,16 +51,16 @@ export default function TeacherLeaderboard() {
   );
 
   return (
-    <div className="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-chalkboard/5 overflow-hidden">
-      <div className="bg-chalkboard p-8 sm:p-12 text-white relative overflow-hidden">
+    <div className="bg-white rounded-[1.75rem] shadow-[0_20px_60px_rgba(0,0,0,0.05)] border border-chalkboard/5 overflow-hidden">
+      <div className="bg-chalkboard p-6 sm:p-8 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-apple/10 rounded-full blur-3xl -z-0 translate-x-1/2 -translate-y-1/2" />
         <div className="relative z-10 flex items-center gap-4 sm:gap-6">
-          <div className="w-14 h-14 sm:w-20 sm:h-20 bg-apple/20 text-apple rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center shadow-inner shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-apple/20 text-apple rounded-xl flex items-center justify-center shadow-inner shrink-0">
             <Trophy size={32} className="text-pencil" />
           </div>
           <div>
-            <h3 className="text-2xl sm:text-4xl font-serif font-bold mb-1 sm:mb-2 text-white">Teacher Leaderboard</h3>
-            <p className="text-white/50 text-sm sm:text-lg font-light">Celebrating our most active and engaged educators across Michigan.</p>
+            <h3 className="text-xl sm:text-2xl font-serif font-bold mb-1 sm:mb-2 text-white">Teacher Leaderboard</h3>
+            <p className="text-white/50 text-sm font-light">Celebrating our most active and engaged educators across Michigan.</p>
           </div>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function TeacherLeaderboard() {
                   </div>
                 </td>
                 <td className="px-6 sm:px-12 py-5 sm:py-8">
-                  <div className="font-serif font-bold text-lg sm:text-2xl text-apple">
+                  <div className="font-serif font-bold text-base sm:text-lg text-apple">
                     ${entry.total_raised.toLocaleString()}
                   </div>
                 </td>
@@ -180,7 +180,7 @@ export default function TeacherLeaderboard() {
 
       {leaderboard.length === 0 && (
         <div className="p-16 sm:p-24 text-center">
-          <div className="w-20 h-20 bg-chalkboard/5 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-14 h-14 bg-chalkboard/5 rounded-full flex items-center justify-center mx-auto mb-6">
             <Trophy size={40} className="text-chalkboard/20" />
           </div>
           <p className="text-muted font-serif italic text-xl">No data yet. Start a project to join the leaderboard!</p>

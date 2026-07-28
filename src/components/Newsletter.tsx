@@ -48,7 +48,7 @@ export default function Newsletter() {
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 bg-chalkboard relative overflow-hidden">
       <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -74,7 +74,7 @@ export default function Newsletter() {
             transition={{ duration: 0.8 }}
             className="relative"
           >
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-10 lg:p-12 rounded-[2rem] sm:rounded-[3rem] shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-[1.75rem] shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 ml-2">Email Address</label>

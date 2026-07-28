@@ -82,7 +82,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
           <div className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
 
             {/* LEFT — the dial */}
-            <div className="p-8 md:p-10 lg:p-12 flex flex-col justify-center bg-paper/40 border-b lg:border-b-0 lg:border-r border-chalkboard/5">
+            <div className="p-7 md:p-8 flex flex-col justify-center bg-paper/40 border-b lg:border-b-0 lg:border-r border-chalkboard/5">
               <div className="inline-flex items-center gap-2 w-fit bg-apple/10 text-apple ring-1 ring-apple/20 px-3 py-1 rounded-full text-[10px] font-bold mb-7 uppercase tracking-[0.24em]">
                 <Sparkles size={11} strokeWidth={1.5} />
                 See your impact
@@ -148,7 +148,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
             </div>
 
             {/* RIGHT — the equivalence cards */}
-            <div className="p-8 md:p-10 lg:p-12 flex flex-col justify-center">
+            <div className="p-7 md:p-8 flex flex-col justify-center">
               <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-6">
                 Your {frequency === 'monthly' ? 'monthly ' : ''}gift is…
               </p>

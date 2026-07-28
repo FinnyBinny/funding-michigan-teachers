@@ -130,7 +130,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
     <div>
 
       {/* Impact Stats */}
-      <div className="grid md:grid-cols-3 gap-6 mb-16 md:mb-24">
+      <div className="grid md:grid-cols-3 gap-5 mb-10 md:mb-14">
         {WHY_STATS.map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -138,13 +138,13 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-3xl p-8 border border-chalkboard/5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex items-center gap-6"
+            className="bg-white rounded-[1.5rem] p-6 border border-chalkboard/5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex items-center gap-4"
           >
-            <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center shrink-0', stat.bg)}>
-              <stat.icon size={26} className={stat.color} />
+            <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0', stat.bg)}>
+              <stat.icon size={22} className={stat.color} />
             </div>
             <div>
-              <p className={cn('text-3xl font-serif font-bold leading-none', stat.color)}>{stat.value}</p>
+              <p className={cn('text-2xl font-serif font-bold leading-none', stat.color)}>{stat.value}</p>
               <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-muted mt-1">{stat.label}</p>
             </div>
           </motion.div>
@@ -152,7 +152,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
       </div>
 
       {/* Sponsor Tier Cards */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8 mb-16 md:mb-24">
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-10 md:mb-14">
         {SPONSOR_TIERS.map((tier, index) => (
           <motion.div
             key={tier.name}
@@ -180,30 +180,30 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
 
             {/* Icon */}
             <div className={cn(
-              'w-14 h-14 rounded-2xl flex items-center justify-center mb-7 transform group-hover:rotate-6 transition-transform duration-500 shadow-md shrink-0',
+              'w-11 h-11 rounded-xl flex items-center justify-center mb-5 transform group-hover:rotate-6 transition-transform duration-500 shadow-md shrink-0',
               tier.accent,
               tier.accentText
             )}>
-              <tier.icon size={26} />
+              <tier.icon size={20} />
             </div>
 
             {/* Name & Price */}
-            <h3 className="text-2xl font-serif font-bold mb-1 leading-tight">{tier.name}</h3>
-            <div className="flex items-baseline gap-1.5 mb-6">
-              <span className="text-4xl font-serif font-bold">{tier.price}</span>
+            <h3 className="text-lg font-serif font-bold mb-1 leading-tight">{tier.name}</h3>
+            <div className="flex items-baseline gap-1.5 mb-4">
+              <span className="text-3xl font-serif font-bold">{tier.price}</span>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{tier.period}</span>
             </div>
 
-            <p className="text-chalkboard/55 text-sm mb-8 leading-relaxed font-light flex-none">
+            <p className="text-chalkboard/55 text-sm mb-5 leading-relaxed font-light flex-none">
               {tier.description}
             </p>
 
             {/* Perks */}
-            <div className="flex-1 space-y-3.5 mb-8">
+            <div className="flex-1 space-y-2.5 mb-6">
               {tier.perks.map((perk) => (
-                <div key={perk} className="flex items-start gap-3 text-sm group/item">
-                  <div className="w-5 h-5 rounded-full bg-apple/10 flex items-center justify-center shrink-0 mt-px group-hover/item:bg-apple group-hover/item:text-white transition-colors">
-                    <CheckCircle2 size={12} />
+                <div key={perk} className="flex items-start gap-2.5 text-[13px] group/item">
+                  <div className="w-4 h-4 rounded-full bg-apple/10 flex items-center justify-center shrink-0 mt-px group-hover/item:bg-apple group-hover/item:text-white transition-colors">
+                    <CheckCircle2 size={10} />
                   </div>
                   <span className="text-chalkboard/75 group-hover/item:text-chalkboard transition-colors leading-snug">
                     {perk}
@@ -216,7 +216,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
             <button
               onClick={() => onDonate(tier.value)}
               className={cn(
-                'w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-95 shadow-lg hover:scale-[1.02] cursor-pointer uppercase tracking-widest',
+                'w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg hover:scale-[1.02] cursor-pointer uppercase tracking-widest',
                 tier.popular
                   ? 'bg-ruler text-white hover:bg-ruler/90'
                   : tier.premium
@@ -235,14 +235,14 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="bg-chalkboard rounded-[2.5rem] p-7 sm:p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8"
+        className="bg-chalkboard rounded-[2.5rem] p-7 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8"
       >
         <div className="text-center md:text-left">
           <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-5 uppercase tracking-widest border border-pencil/20">
             <Handshake size={13} />
             <span>Custom Packages Available</span>
           </div>
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3 leading-tight">
+          <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3 leading-tight">
             Need something <span className="text-pencil italic font-normal">tailored</span>?
           </h3>
           <p className="text-white/55 max-w-lg leading-relaxed font-light">

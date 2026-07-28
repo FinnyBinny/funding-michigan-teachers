@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import * as topojson from 'topojson-client';
 import { motion, AnimatePresence } from 'motion/react';
 import { School, MapPin, Info, X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -37,9 +36,7 @@ export default function MichiganMap() {
       [[150, 110], [width - 140, height - 120]],
       pointsGeo,
     );
-    const path = d3.geoPath().projection(projection);
 
-    const geoGroup = svg.append("g");
 
     // Pins + labels are drawn whether or not the geography loads
     const drawPins = () => {
@@ -120,28 +117,11 @@ export default function MichiganMap() {
       });
     };
 
-    // Local geography: faint Michigan county outlines behind the pins for
-    // a sense of place (the whole view sits inside the Lansing area).
-    d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json")
-      .then((us: any) => {
-        const counties = (topojson.feature(us, us.objects.counties) as any).features
-          .filter((f: any) => String(f.id).startsWith("26")); // Michigan FIPS
-
-        geoGroup.selectAll("path")
-          .data(counties)
-          .enter()
-          .append("path")
-          .attr("d", path as any)
-          .attr("fill", "#1a1c1d")
-          .attr("stroke", "rgba(255,255,255,0.1)")
-          .attr("stroke-width", 1.5);
-
-        drawPins();
-      })
-      .catch((err) => {
-        console.error("Error loading map geography:", err);
-        drawPins(); // schools still render on the plain background
-      });
+    // No county/state geography layer: every school sits within ~7 miles of
+    // Okemos, so at this zoom a county polygon is far larger than the frame
+    // and only one or two of its edges cross the view — which rendered as a
+    // stray box/line over the map rather than as useful context.
+    drawPins();
 
   }, [locations]);
 
@@ -176,7 +156,7 @@ export default function MichiganMap() {
       </div>
 
       {/* Desktop: interactive D3 map */}
-      <div className="hidden sm:block relative w-full max-w-5xl mx-auto aspect-video bg-chalkboard rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl">
+      <div className="hidden sm:block relative w-full max-w-5xl mx-auto aspect-video bg-chalkboard rounded-[1.75rem] border border-white/10 overflow-hidden shadow-2xl">
         <svg
           ref={svgRef}
           viewBox="0 0 800 600"
