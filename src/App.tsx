@@ -500,8 +500,11 @@ export default function App() {
                 </div>
                 <span className="font-serif text-xl sm:text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>
               </div>
+              <p className="font-hand text-2xl text-pencil mb-4 -rotate-1">
+                Teachers deserve better; let's make it happen.
+              </p>
               <p className="text-white/50 max-w-md mb-10 text-lg font-light leading-relaxed">
-                A student-led 501(c)(3) nonprofit organization dedicated to empowering Michigan's educators and transforming classrooms through community support.
+                A student-led 501(c)(3) funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
               </p>
               <div className="flex gap-6">
                 <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>

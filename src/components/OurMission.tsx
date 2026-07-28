@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Coffee, BookOpen, Star, GraduationCap, Apple, ChevronDown } from 'lucide-react';
+import { Coffee, BookOpen, Star, GraduationCap, Apple, ChevronDown, Check } from 'lucide-react';
+
+/** FMT's 2026–27 values, as adopted by the org. */
+const VALUES = [
+  'Teachers are valued.',
+  'No teacher pays out of pocket.',
+  'Students lead.',
+  'Every dollar stays in Michigan.',
+];
 
 const MISSION_POINTS = [
   {
@@ -46,18 +54,30 @@ export default function OurMission() {
             Empowering Educators to <span className="text-apple italic font-normal">Inspire</span> the Next Generation.
           </h2>
 
-          <div className="mb-7">
+          <div className="mb-6">
             <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-apple mb-2.5">Our Mission</p>
             <p className="text-lg text-chalkboard/85 leading-relaxed">
-              Funding Michigan Teachers is a student-led 501(c)(3) with one mission: ease the financial burden on Michigan's teachers. We stock classrooms with supplies, feed staff at meetings, and celebrate educators through real recognition — and 100% of every dollar goes directly to teachers.
+              Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
             </p>
           </div>
 
+          <p className="font-hand text-2xl text-apple/80 -rotate-1 mb-7">
+            Teachers deserve better; let's make it happen.
+          </p>
+
           <div className="mb-8">
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-2.5">Our Vision</p>
-            <blockquote className="border-l-4 border-apple pl-5 italic text-chalkboard/80 text-base leading-relaxed font-light">
-              "To empower and uplift Michigan's teachers — easing the financial burden they carry, championing their dedication, and making teaching a profession that radiates with appreciation, recognition, and fulfillment."
-            </blockquote>
+            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-3">Our Values</p>
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {VALUES.map((value) => (
+                <div
+                  key={value}
+                  className="flex items-start gap-2.5 bg-white ring-1 ring-chalkboard/8 rounded-xl px-3.5 py-2.5"
+                >
+                  <Check size={13} strokeWidth={3} className="text-apple shrink-0 mt-[3px]" />
+                  <span className="text-sm text-chalkboard/80 font-medium leading-snug">{value}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
