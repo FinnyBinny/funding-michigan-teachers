@@ -225,41 +225,23 @@ export default function App() {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="relative hidden lg:block lg:col-span-5"
             >
-              {/* Real photo — Finn with Mrs. Freeman */}
+              {/* Real photo — Finn with Mrs. Freeman. The impact stats that
+                  used to sit under this photo were the same three numbers
+                  already shown in the left column, so the photo takes that
+                  space instead. */}
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
                 <img
                   src="/images/finn-and-mrs-freeman-opt.jpg"
                   alt="Finn Regan with Mrs. Freeman at Okemos High School"
-                  className="w-full h-[400px] object-cover object-top"
+                  className="w-full h-[540px] xl:h-[600px] object-cover object-top"
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/75 via-chalkboard/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
-                  <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Finn & Mrs. Freeman · Okemos High School</p>
-                  <p className="text-white font-serif text-xl font-bold leading-tight">One of FMT's first and loudest supporters at OHS.</p>
-                </div>
-              </div>
-
-              {/* All-time impact card */}
-              <div className="mt-5 bg-white rounded-[2rem] p-7 shadow-xl border border-chalkboard/5">
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted mb-4">Impact to Date</p>
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-2xl font-bold font-mono text-apple leading-none">$15K+</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">raised</p>
-                  </div>
-                  <div className="w-px h-10 bg-chalkboard/10" />
-                  <div>
-                    <p className="text-2xl font-bold font-mono text-chalkboard leading-none">1,000+</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">educators</p>
-                  </div>
-                  <div className="w-px h-10 bg-chalkboard/10" />
-                  <div>
-                    <p className="text-2xl font-bold font-mono text-ruler leading-none">9</p>
-                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1.5">schools</p>
-                  </div>
+                  <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Finn &amp; Mrs. Freeman · Okemos High School</p>
+                  <p className="text-white font-serif text-2xl font-bold leading-tight">One of FMT's first and loudest supporters at OHS.</p>
                 </div>
               </div>
 
