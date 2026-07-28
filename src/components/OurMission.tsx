@@ -30,7 +30,7 @@ export default function OurMission() {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
       <div className="grid lg:grid-cols-2 gap-12 items-start">
         <motion.div
           initial={{ opacity: 0, x: -30 }}

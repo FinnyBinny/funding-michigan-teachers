@@ -78,9 +78,12 @@
        • Short-but-wide (landscape phones, half-screen laptops): cap to 100svh
          so we don't force scrolling within a section that doesn't need it.
      All variants use dynamic-viewport units (svh/dvh) for iOS reliability. */
+  /* Sections size to their content. They used to be forced to a full
+     screen each (min-height: 100dvh) and vertically centered, which
+     stretched short sections into huge dead zones on large monitors —
+     the layout read as "tiny content floating in space". Only the hero
+     gets a viewport floor now (see .hero-section). */
   .viewport-section {
-    min-height: 100vh;             /* legacy fallback */
-    min-height: 100dvh;            /* preferred — accounts for browser chrome */
     width: 100%;
     display: flex;
     align-items: center;
@@ -90,20 +93,25 @@
     padding-right: env(safe-area-inset-right);
   }
 
+  /* Hero only — fills most of the first screen, but deliberately under
+     100dvh so the next section peeks and invites scrolling. */
+  .hero-section {
+    min-height: 86vh;
+    min-height: 86dvh;
+  }
+
   @media (max-width: 767px) {
     .viewport-section {
-      min-height: 100svh;
-      padding-top: 4.5rem;
-      padding-bottom: 4.5rem;
       align-items: flex-start;
+    }
+    .hero-section {
+      min-height: 88svh;
     }
   }
 
   @media (max-height: 700px) and (min-width: 768px) {
-    .viewport-section {
+    .hero-section {
       min-height: 100svh;
-      padding-top: 6rem;
-      padding-bottom: 4rem;
     }
   }
 

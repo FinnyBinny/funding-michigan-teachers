@@ -132,13 +132,13 @@ export default function ForSchoolsPage() {
       {/* HERO — Editorial Split layout */}
       <section
         ref={heroRef}
-        className="viewport-section px-4 sm:px-6 lg:px-10 pt-32 pb-16 overflow-hidden"
+        className="viewport-section hero-section px-4 sm:px-6 lg:px-10 pt-32 pb-16 overflow-hidden"
       >
         {/* Ambient orbs */}
         <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/8 rounded-full blur-[140px]" />
         <div className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[500px] bg-ruler/8 rounded-full blur-[120px]" />
 
-        <div className="max-w-7xl mx-auto w-full grid lg:grid-cols-12 gap-10 items-center relative z-10">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full grid lg:grid-cols-12 gap-10 items-center relative z-10">
           {/* Left — Editorial copy */}
           <motion.div
             style={{ y: heroTitleY, opacity: heroOpacity }}
@@ -256,8 +256,8 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* PROGRAMS — Asymmetrical Bento */}
-      <section id="programs" className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto w-full">
+      <section id="programs" className="viewport-section py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-16">
             <motion.div
               initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
@@ -345,14 +345,14 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* TEACHERS OF THE MONTH */}
-      <section id="teachers-of-month" className="relative py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white overflow-hidden">
+      <section id="teachers-of-month" className="relative py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white overflow-hidden">
         {/* Gold glow tucked behind the "the Month" heading text (top-left), not floating mid-screen */}
         <div className="pointer-events-none absolute top-16 left-[4%] md:left-[8%] w-[460px] h-[300px] bg-pencil/15 rounded-full blur-[110px]" />
         <div className="pointer-events-none absolute bottom-0 right-0 w-[500px] h-[500px] bg-apple/10 rounded-full blur-[140px]" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.025] mix-blend-overlay"
              style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
-        <div className="max-w-7xl mx-auto w-full relative z-10">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full relative z-10">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
               initial={{ opacity: 0, y: 24 }}
@@ -526,8 +526,8 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* FOOD PARTNERS — proof of monthly cadence */}
-      <section className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto w-full">
+      <section className="viewport-section py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
               initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
@@ -641,8 +641,8 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* TRIAL YEAR ROADMAP */}
-      <section id="roadmap" className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-paper">
-        <div className="max-w-7xl mx-auto w-full">
+      <section id="roadmap" className="viewport-section py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-10 bg-paper">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
               initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
@@ -713,7 +713,7 @@ export default function ForSchoolsPage() {
       </section>
 
       {/* CTA */}
-      <section id="cta" className="viewport-section py-24 sm:py-32 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white overflow-hidden">
+      <section id="cta" className="viewport-section py-16 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-10 bg-chalkboard text-white overflow-hidden">
         <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/12 rounded-full blur-[160px]" />
         <div className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] bg-ruler/12 rounded-full blur-[140px]" />
 

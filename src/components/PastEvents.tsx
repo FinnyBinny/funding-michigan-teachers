@@ -43,7 +43,7 @@ function EventCard({ event, index }: { event: PastEvent; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ delay: index * 0.06, duration: 0.5, ease: EASE }}
-      className="bg-white rounded-3xl border border-chalkboard/5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-8 flex flex-col gap-5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300"
+      className="bg-white rounded-3xl border border-chalkboard/5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-7 flex flex-col gap-4 hover:shadow-[0_12px_40px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300"
     >
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 bg-chalkboard/5 text-chalkboard/70 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full">
@@ -144,7 +144,7 @@ export default function PastEvents() {
       </motion.div>
 
       <AnimatePresence mode="popLayout">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {events.map((event, i) => (
             <EventCard key={event.id} event={event} index={i} />
           ))}

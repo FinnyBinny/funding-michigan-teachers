@@ -27,7 +27,7 @@ export default function SponsorsPage() {
 
       {/* Minimal Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-chalkboard/5 shadow-[0_2px_20px_rgba(0,0,0,0.04)]">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-6 py-4 flex items-center justify-between">
 
           {/* Logo + back */}
           <div className="flex items-center gap-5">
@@ -65,8 +65,8 @@ export default function SponsorsPage() {
       <main>
 
         {/* Page Hero */}
-        <section className="py-16 sm:py-24 px-6 classroom-grid relative overflow-hidden">
-          <div className="max-w-7xl mx-auto text-center">
+        <section className="py-12 sm:py-16 md:py-20 px-6 classroom-grid relative overflow-hidden">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -94,7 +94,7 @@ export default function SponsorsPage() {
 
         {/* Sponsor Tiers */}
         <section className="py-12 sm:py-16 px-6">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
             <CorporateSponsors
               onDonate={handleDonate}
               onContact={() => {
@@ -106,8 +106,8 @@ export default function SponsorsPage() {
 
         {/* Current Sponsors Wall — driven by admin */}
         {sponsors.length > 0 && (
-          <section className="py-16 sm:py-24 px-4 sm:px-6 bg-paper relative">
-            <div className="max-w-7xl mx-auto">
+          <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-paper relative">
+            <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
               <div className="text-center mb-12">
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
@@ -176,8 +176,8 @@ export default function SponsorsPage() {
         )}
 
         {/* Current In-Kind Partners */}
-        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-chalkboard relative overflow-hidden">
-          <div className="max-w-7xl mx-auto">
+        <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-chalkboard relative overflow-hidden">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
             <div className="text-center mb-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -238,8 +238,8 @@ export default function SponsorsPage() {
         </section>
 
         {/* Sponsor interest form — no mail app required */}
-        <section id="sponsor-form" className="py-16 sm:py-24 px-4 sm:px-6 bg-paper scroll-mt-24">
-          <div className="max-w-7xl mx-auto">
+        <section id="sponsor-form" className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-paper scroll-mt-24">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
             <div className="text-center mb-10">
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 leading-tight tracking-[-0.01em]">
                 Let's <span className="text-apple italic font-normal">talk</span>.
