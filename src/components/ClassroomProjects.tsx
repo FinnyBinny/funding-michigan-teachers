@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ThumbsUp, Heart, School, Loader2, CheckCircle2, Send, X } from 'lucide-react';
+import { ThumbsUp, Heart, School, Loader2, CheckCircle2, Send, X, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useProjects, readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
 import { PROJECTS } from '../data/initialData';
 import { supabase, getVoterId } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
-const SUBMIT_PROJECT_ID = 2;
 
 const INPUT_CLS = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-apple/20 outline-none transition-all placeholder:text-chalkboard/30';
 const LABEL_CLS = 'block text-[10px] uppercase tracking-[0.15em] font-bold text-chalkboard/40 mb-1.5';
 
+import type { Project } from '../data/initialData';
+
 interface ClassroomProjectsProps {
-  onDonate?: (amount?: number) => void;
+  /** amount, plus the project when giving to one teacher's fund */
+  onDonate?: (amount?: number, project?: Project) => void;
 }
 
 export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) {
@@ -22,6 +24,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
   // ── Vote state ────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState<number | null>(null);
   const [success, setSuccess] = useState<number | null>(null);
+  const [voteError, setVoteError] = useState<string | null>(null);
 
   // votedProjects: list of project IDs the current visitor has already voted for
   const [votedProjects, setVotedProjects] = useState<number[]>([]);
@@ -84,6 +87,18 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
         setVoteCounts(prev => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }));
         setVotedProjects(prev => [...prev, id]);
         voted = true;
+      } else {
+        // Never swallow this. A missing project_votes table or an RLS
+        // rejection used to fail completely silently — the button just
+        // stopped spinning and the vote vanished, which read as "votes
+        // aren't linked to the database".
+        console.error('Vote failed:', error);
+        setVoteError(
+          error.message?.includes('does not exist')
+            ? "Voting isn't set up yet — the project_votes table is missing. Run SUPABASE_REFRESH.sql."
+            : `Couldn't save your vote: ${error.message}`,
+        );
+        setTimeout(() => setVoteError(null), 6000);
       }
       setLoading(null);
     } else {
@@ -167,11 +182,15 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
 
   return (
     <>
+      {voteError && (
+        <div className="mb-5 flex items-start gap-3 bg-apple/8 ring-1 ring-apple/25 rounded-2xl px-5 py-3.5">
+          <AlertCircle size={16} className="text-apple shrink-0 mt-0.5" strokeWidth={1.5} />
+          <p className="text-sm text-chalkboard/80 leading-snug">{voteError}</p>
+        </div>
+      )}
       <div className="grid md:grid-cols-2 gap-6">
         {projects.map((project, index) => {
-          // DB rows have identity-assigned ids, so the seed's id 2 can't be
-          // relied on once projects come from Supabase — match by name too.
-          const isSubmitCard = project.id === SUBMIT_PROJECT_ID || project.teacher_name === 'Submit a Project';
+          const isSubmitCard = project.teacher_name === 'Submit a Project';
           const voteCount = getVoteCount(project);
           const hasVoted = votedProjects.includes(project.id);
 
@@ -271,7 +290,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                       <span>{hasVoted ? 'Voted' : `Vote (${voteCount})`}</span>
                     </button>
                     <button
-                      onClick={() => onDonate?.()}
+                      onClick={() => onDonate?.(undefined, project)}
                       className="flex-1 bg-apple text-white py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-apple/90 transition-all active:scale-95 shadow-xl hover:scale-[1.02] cursor-pointer"
                     >
                       <Heart size={20} />
