@@ -3,6 +3,12 @@
 -- Run this ENTIRE file once in the Supabase SQL Editor:
 --   supabase.com → your project → SQL Editor → New query → paste → Run
 --
+-- THIS IS THE ONLY FILE YOU NEED TO RUN. It creates every table the site
+-- uses (including project_votes for classroom-project voting and
+-- contact_submissions for form backups), then fixes the content. The older
+-- SUPABASE_SETUP.sql / SUPABASE_SEED.sql / FORMS_SETUP.sql files are kept
+-- for reference but are no longer required.
+--
 -- Why this exists: the site trusts the database over the code's built-in
 -- content whenever a table exists. Several tables were created through the
 -- /access admin panel before recent content updates, so the live site was
@@ -132,6 +138,92 @@ create policy "stories_read"   on stories for select using (true);
 create policy "stories_insert" on stories for insert with check (true);
 create policy "stories_update" on stories for update using (true) with check (true);
 create policy "stories_delete" on stories for delete using (true);
+
+-- Sponsors, food partners, and Teacher of the Month. Sections below UPDATE
+-- sponsors and food_partners, which errors out mid-script if the tables were
+-- never created — so they are created here to keep this file self-sufficient.
+create table if not exists sponsors (
+  id          bigint generated always as identity primary key,
+  created_at  timestamptz default now(),
+  name        text not null,
+  tier        text not null,
+  website     text,
+  logo        text,
+  description text,
+  amount      integer default 0,
+  active      boolean default true
+);
+alter table sponsors enable row level security;
+drop policy if exists "sponsors_read"   on sponsors;
+drop policy if exists "sponsors_insert" on sponsors;
+drop policy if exists "sponsors_update" on sponsors;
+drop policy if exists "sponsors_delete" on sponsors;
+create policy "sponsors_read"   on sponsors for select using (true);
+create policy "sponsors_insert" on sponsors for insert with check (true);
+create policy "sponsors_update" on sponsors for update using (true) with check (true);
+create policy "sponsors_delete" on sponsors for delete using (true);
+
+create table if not exists food_partners (
+  id            bigint generated always as identity primary key,
+  created_at    timestamptz default now(),
+  month         text not null,
+  business      text not null,
+  detail        text,
+  image         text,
+  avif          text,
+  display_order integer default 0
+);
+alter table food_partners enable row level security;
+drop policy if exists "food_partners_read"   on food_partners;
+drop policy if exists "food_partners_insert" on food_partners;
+drop policy if exists "food_partners_update" on food_partners;
+drop policy if exists "food_partners_delete" on food_partners;
+create policy "food_partners_read"   on food_partners for select using (true);
+create policy "food_partners_insert" on food_partners for insert with check (true);
+create policy "food_partners_update" on food_partners for update using (true) with check (true);
+create policy "food_partners_delete" on food_partners for delete using (true);
+
+create table if not exists teachers_of_month (
+  id            bigint generated always as identity primary key,
+  created_at    timestamptz default now(),
+  month         text not null,
+  teacher_name  text not null,
+  school        text,
+  subject       text,
+  why           text,
+  image         text,
+  display_order integer default 0
+);
+alter table teachers_of_month enable row level security;
+drop policy if exists "tom_read"   on teachers_of_month;
+drop policy if exists "tom_insert" on teachers_of_month;
+drop policy if exists "tom_update" on teachers_of_month;
+drop policy if exists "tom_delete" on teachers_of_month;
+create policy "tom_read"   on teachers_of_month for select using (true);
+create policy "tom_insert" on teachers_of_month for insert with check (true);
+create policy "tom_update" on teachers_of_month for update using (true) with check (true);
+create policy "tom_delete" on teachers_of_month for delete using (true);
+
+-- Backup copy of form submissions. Deliberately NOT publicly readable:
+-- anyone can submit a form, but only a signed-in Supabase user can read
+-- them, because these rows hold people's names, emails, and messages.
+-- (FormBold is the day-to-day inbox; this is the archive.)
+create table if not exists public.contact_submissions (
+  id         bigint generated always as identity primary key,
+  created_at timestamptz default now(),
+  name       text,
+  email      text not null,
+  message    text,
+  type       text not null default 'contact',
+  extra      jsonb
+);
+alter table public.contact_submissions enable row level security;
+drop policy if exists "Allow anonymous inserts"  on public.contact_submissions;
+drop policy if exists "Allow authenticated reads" on public.contact_submissions;
+create policy "Allow anonymous inserts"
+  on public.contact_submissions for insert to anon with check (true);
+create policy "Allow authenticated reads"
+  on public.contact_submissions for select to authenticated using (true);
 
 -- ── 2. Remove stale content ─────────────────────────────────────────────────
 
