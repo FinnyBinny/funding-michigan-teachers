@@ -30,7 +30,11 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
     return json({ error: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).' }, 500);
   }
 
-  let body: { amount?: number; frequency?: 'once' | 'monthly' };
+  let body: {
+    amount?: number;
+    frequency?: 'once' | 'monthly';
+    fund?: { title?: string; teacher?: string } | null;
+  };
   try {
     body = await request.json();
   } catch {
@@ -43,6 +47,13 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
   if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
     return json({ error: 'Invalid donation amount' }, 400);
   }
+
+  // Designated gift to one teacher's classroom fund. Trimmed and length-capped
+  // because it comes from a query string and is shown on the Stripe receipt.
+  const clean = (s: unknown, max: number) =>
+    typeof s === 'string' ? s.trim().slice(0, max) : '';
+  const fundTitle = clean(body.fund?.title, 120);
+  const fundTeacher = clean(body.fund?.teacher, 80);
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
@@ -60,11 +71,14 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
           price_data: {
             currency: 'usd',
             product_data: {
-              name:
-                frequency === 'monthly'
+              name: fundTitle
+                ? `${frequency === 'monthly' ? 'Monthly gift' : 'Gift'} to ${fundTitle}`
+                : frequency === 'monthly'
                   ? 'Monthly donation to Funding Michigan Teachers'
                   : 'Donation to Funding Michigan Teachers',
-              description: '501(c)(3) nonprofit · EIN 93-4485967 · 100% goes to teachers',
+              description: fundTeacher
+                ? `${fundTeacher}'s classroom fund · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967 · 100% goes to teachers`
+                : '501(c)(3) nonprofit · EIN 93-4485967 · 100% goes to teachers',
             },
             unit_amount: unitAmount,
             ...(frequency === 'monthly' ? { recurring: { interval: 'month' as const } } : {}),
@@ -74,8 +88,17 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
       ],
       return_url: `${origin}/donate?stripe_session_id={CHECKOUT_SESSION_ID}`,
       ...(frequency === 'once' ? { submit_type: 'donate' as const } : {}),
+      // Recorded on the Stripe payment so designated gifts can be reported on
+      // and routed to the right classroom.
+      ...(fundTitle
+        ? { metadata: { designated_fund: fundTitle, teacher: fundTeacher } }
+        : {}),
       custom_text: {
-        submit: { message: '100% of your gift goes directly to Michigan teachers.' },
+        submit: {
+          message: fundTeacher
+            ? `100% of your gift goes to ${fundTeacher}'s classroom.`
+            : '100% of your gift goes directly to Michigan teachers.',
+        },
       },
     });
 

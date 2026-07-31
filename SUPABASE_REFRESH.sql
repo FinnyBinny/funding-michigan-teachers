@@ -12,6 +12,21 @@
 
 -- ── 1. Make sure every content table exists (no-ops if already created) ─────
 
+-- Project votes. This lives in SUPABASE_SETUP.sql too, but it is repeated
+-- here because votes silently fail to save when the table is missing — if
+-- only this refresh file was ever run, voting looked broken with no error.
+create table if not exists project_votes (
+  project_id  integer  not null,
+  voter_id    text     not null,
+  created_at  timestamptz default now(),
+  primary key (project_id, voter_id)
+);
+alter table project_votes enable row level security;
+drop policy if exists "allow_read"   on project_votes;
+drop policy if exists "allow_insert" on project_votes;
+create policy "allow_read"   on project_votes for select using (true);
+create policy "allow_insert" on project_votes for insert with check (true);
+
 create table if not exists events (
   id          bigint generated always as identity primary key,
   created_at  timestamptz default now(),

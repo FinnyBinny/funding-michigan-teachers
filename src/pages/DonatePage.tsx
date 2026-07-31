@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
+  School,
   ArrowLeft, ArrowRight, Heart, Shield, Sparkles, Apple as AppleIcon,
   CreditCard, ChevronRight, AlertCircle, CheckCircle2, Loader2,
 } from 'lucide-react';
@@ -33,6 +34,9 @@ export default function DonatePage() {
   const [amount, setAmount] = useState(25);
   const [frequency, setFrequency] = useState<DonationFrequency>('monthly');
   const [showCheckout, setShowCheckout] = useState(false);
+  // Set when arriving from a specific classroom project, so the gift is
+  // designated to that teacher's fund and named on the Stripe receipt.
+  const [fund, setFund] = useState<{ title: string; teacher: string } | null>(null);
   const [success, setSuccess] = useState<SuccessState>(null);
 
   const embeddedReady = isEmbeddedStripeConfigured();
@@ -57,6 +61,9 @@ export default function DonatePage() {
         .catch(() => setSuccess('failed'));
       return;
     }
+
+    const fundTitle = params.get('fund');
+    if (fundTitle) setFund({ title: fundTitle, teacher: params.get('teacher') ?? '' });
 
     const a = params.get('amount');
     const n = a ? parseInt(a, 10) : NaN;
@@ -221,6 +228,38 @@ export default function DonatePage() {
               </div>
             </motion.div>
           </div>
+
+          {/* Designated-fund banner — shown when arriving from a project card */}
+          {fund && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: EASE }}
+              className="max-w-2xl mx-auto mb-8 bg-apple/[0.06] ring-1 ring-apple/25 rounded-2xl px-5 py-4 flex items-start gap-3.5"
+            >
+              <div className="w-9 h-9 rounded-xl bg-apple/12 text-apple flex items-center justify-center shrink-0">
+                <School size={17} strokeWidth={1.5} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-0.5">
+                  Giving to a teacher's fund
+                </p>
+                <p className="text-sm font-bold text-chalkboard leading-snug">{fund.title}</p>
+                {fund.teacher && (
+                  <p className="text-xs text-chalkboard/55 font-light mt-0.5">{fund.teacher}</p>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  setFund(null);
+                  window.history.replaceState({}, '', '/donate');
+                }}
+                className="text-[10px] uppercase tracking-[0.16em] font-bold text-chalkboard/40 hover:text-chalkboard shrink-0 mt-1"
+              >
+                Give to all
+              </button>
+            </motion.div>
+          )}
 
           {/* Frequency toggle */}
           <motion.div
@@ -405,6 +444,7 @@ export default function DonatePage() {
           <EmbeddedDonateCheckout
             amount={amount}
             frequency={frequency}
+            fund={fund}
             onClose={() => setShowCheckout(false)}
           />
         )}

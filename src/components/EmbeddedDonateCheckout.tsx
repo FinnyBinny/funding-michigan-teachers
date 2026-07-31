@@ -10,6 +10,8 @@ const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY
 interface EmbeddedDonateCheckoutProps {
   amount: number;
   frequency: DonationFrequency;
+  /** set when the gift is designated to one teacher's classroom fund */
+  fund?: { title: string; teacher: string } | null;
   onClose: () => void;
 }
 
@@ -19,7 +21,7 @@ interface EmbeddedDonateCheckoutProps {
  * inside this panel. Handles both one-time and subscription (monthly)
  * donations via the same component.
  */
-export default function EmbeddedDonateCheckout({ amount, frequency, onClose }: EmbeddedDonateCheckoutProps) {
+export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClose }: EmbeddedDonateCheckoutProps) {
   const [error, setError] = useState<string | null>(null);
 
   // loadStripe() can reject if js.stripe.com is unreachable (network blip,
@@ -37,7 +39,7 @@ export default function EmbeddedDonateCheckout({ amount, frequency, onClose }: E
     const res = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, frequency }),
+      body: JSON.stringify({ amount, frequency, fund }),
     });
     const data = await res.json();
     if (!res.ok || !data.clientSecret) {
@@ -45,7 +47,7 @@ export default function EmbeddedDonateCheckout({ amount, frequency, onClose }: E
       throw new Error(data.error || 'checkout session creation failed');
     }
     return data.clientSecret as string;
-  }, [amount, frequency]);
+  }, [amount, frequency, fund]);
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 
