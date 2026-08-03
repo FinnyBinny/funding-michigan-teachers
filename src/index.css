@@ -16,6 +16,12 @@
   --color-ink: #141414;
   --color-muted: #8e9299;
 
+  /* Campaign accent — matches the teal marker on the printed "Your Cans.
+     Their Classrooms." door hanger. Scoped to /returnables so the page a
+     resident lands on looks like the piece in their hand; not a sitewide
+     brand color. */
+  --color-campaign-teal: #4bbfb3;
+
   /* Premium motion easings */
   --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-bezel: cubic-bezier(0.22, 1, 0.36, 1);

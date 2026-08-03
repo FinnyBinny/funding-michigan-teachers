@@ -21,6 +21,10 @@ export const FORMBOLD = {
   // they route to the general "Get in Touch" inbox (tagged Form: … so
   // they're easy to spot). Swap in a new ID here to separate them.
   project: '6QXyV',
+  // Returnables pickup requests ("Your Cans. Their Classrooms.") also land in
+  // the contact inbox for now, tagged Form: 'Returnables pickup request'.
+  // Create a dedicated FormBold form and paste its ID here to split them out.
+  returnables: '6QXyV',
 } as const;
 
 export async function submitToFormBold(formId: string, fields: Record<string, unknown>): Promise<boolean> {
