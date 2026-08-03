@@ -511,7 +511,8 @@ export default function App() {
                 <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>
                 <li><a href="#leaderboard" className="hover:text-white transition-colors">Leaderboard</a></li>
                 <li><a href="/sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
-                <li><a href="/for-schools" className="hover:text-white transition-colors inline-flex items-center gap-2">For Schools <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-1.5 py-0.5 rounded-full">New</span></a></li>
+                <li><a href="/for-schools" className="hover:text-white transition-colors">For Schools</a></li>
+                <li><a href="/returnables" className="hover:text-white transition-colors inline-flex items-center gap-2">Donate Returnables <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-1.5 py-0.5 rounded-full">New</span></a></li>
                 <li><a href="#donors" className="hover:text-white transition-colors">Supporter Wall</a></li>
               </ul>
             </div>

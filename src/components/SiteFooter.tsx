@@ -13,6 +13,7 @@ const NAV = [
   { label: 'Donate', path: '/donate' },
   { label: 'For Schools', path: '/for-schools' },
   { label: 'Corporate Sponsors', path: '/sponsors' },
+  { label: 'Returnables', path: '/returnables' },
 ];
 
 export default function SiteFooter() {
