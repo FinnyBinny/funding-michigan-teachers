@@ -6,6 +6,9 @@ import ForSchoolsPage from './pages/ForSchoolsPage.tsx';
 import AccessPage from './pages/AccessPage.tsx';
 import DonatePage from './pages/DonatePage.tsx';
 import ReturnablesPage from './pages/ReturnablesPage.tsx';
+import NotFoundPage from './pages/NotFoundPage.tsx';
+import RestrictedPage from './pages/RestrictedPage.tsx';
+import { isKnownRoute } from '../shared/routes';
 import './index.css';
 
 function Router() {
@@ -25,6 +28,10 @@ function Router() {
   // scanners/clients append one. A silent fall-through to the homepage would
   // look like a dead door hanger.
   if (path === '/returnables' || path === '/returnables/') return <ReturnablesPage />;
+  if (path === '/restricted') return <RestrictedPage />;
+  // Anything else is genuinely missing. The Worker pairs this with a real 404
+  // status; previously every typo silently rendered the homepage at 200.
+  if (!isKnownRoute(path)) return <NotFoundPage />;
   return <App />;
 }
 
