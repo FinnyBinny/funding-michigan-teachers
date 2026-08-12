@@ -12,10 +12,60 @@
  * to this repo.
  */
 import Stripe from 'stripe';
+import { isKnownRoute } from '../shared/routes';
 
 export interface Env {
   ASSETS: Fetcher;
   STRIPE_SECRET_KEY?: string;
+  /**
+   * Comma-separated IPs to deny, set in the Cloudflare dashboard (Settings →
+   * Variables and Secrets). Preferred over the in-code list below: it takes
+   * effect without a deploy and doesn't publish the addresses to GitHub.
+   */
+  BLOCKED_IPS?: string;
+}
+
+/**
+ * Baseline blocklist committed to the repo.
+ *
+ * Intentionally empty. Anything added here is public on GitHub — including to
+ * the person being blocked — and changing it needs a commit and a deploy. Use
+ * the BLOCKED_IPS environment variable instead unless a block genuinely
+ * belongs in version control.
+ *
+ * Entries may be an exact IPv4/IPv6 address, or end in `*` to match a prefix
+ * (e.g. '203.0.113.*' for a noisy /24).
+ */
+const BLOCKED_IPS_BASELINE: string[] = [];
+
+function isBlocked(ip: string | null, env: Env): boolean {
+  if (!ip) return false;
+  const rules = [
+    ...BLOCKED_IPS_BASELINE,
+    ...(env.BLOCKED_IPS ?? '').split(','),
+  ]
+    .map((r) => r.trim())
+    .filter(Boolean);
+
+  return rules.some((rule) =>
+    rule.endsWith('*') ? ip.startsWith(rule.slice(0, -1)) : ip === rule,
+  );
+}
+
+/** Static files (hashed bundles, images, favicon) rather than app routes. */
+function isAssetPath(pathname: string): boolean {
+  return pathname.startsWith('/assets/') || /\.[a-z0-9]+$/i.test(pathname);
+}
+
+/**
+ * Serves the SPA shell under a status other than 200 — the app renders the
+ * matching page client-side while the response still carries an honest code
+ * (404 for a path that doesn't exist, 403 for a blocked visitor).
+ */
+async function shellWithStatus(request: Request, env: Env, status: number): Promise<Response> {
+  const shellUrl = new URL('/index.html', request.url);
+  const res = await env.ASSETS.fetch(new Request(shellUrl.toString(), { method: 'GET' }));
+  return new Response(res.body, { status, headers: res.headers });
 }
 
 function json(data: unknown, status = 200): Response {
@@ -142,19 +192,40 @@ async function checkoutSessionStatus(request: Request, env: Env): Promise<Respon
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const path = url.pathname;
 
-    if (url.pathname === '/api/create-checkout-session' && request.method === 'POST') {
+    // CF-Connecting-IP is set by Cloudflare itself and can't be forged by the
+    // client, unlike X-Forwarded-For.
+    if (isBlocked(request.headers.get('CF-Connecting-IP'), env)) {
+      if (path.startsWith('/api/')) {
+        return json({ error: 'Access restricted' }, 403);
+      }
+      // Assets stay reachable on purpose: without them the restricted page
+      // would render as unstyled HTML with no JavaScript.
+      if (isAssetPath(path)) {
+        return env.ASSETS.fetch(request);
+      }
+      if (path === '/restricted') {
+        return shellWithStatus(request, env, 403);
+      }
+      return Response.redirect(new URL('/restricted', url).toString(), 302);
+    }
+
+    if (path === '/api/create-checkout-session' && request.method === 'POST') {
       return createCheckoutSession(request, env);
     }
-    if (url.pathname === '/api/checkout-session-status' && request.method === 'GET') {
+    if (path === '/api/checkout-session-status' && request.method === 'GET') {
       return checkoutSessionStatus(request, env);
     }
-    if (url.pathname.startsWith('/api/')) {
+    if (path.startsWith('/api/')) {
       return json({ error: 'Not found' }, 404);
     }
 
-    // Everything else falls through to the built Vite SPA (dist/), with
-    // client-side routing handled by not_found_handling in wrangler.jsonc.
-    return env.ASSETS.fetch(request);
+    // Real pages and static files are served as-is; anything else gets the SPA
+    // shell under a genuine 404 so typos and dead links stop reporting success.
+    if (isAssetPath(path) || isKnownRoute(path)) {
+      return env.ASSETS.fetch(request);
+    }
+    return shellWithStatus(request, env, 404);
   },
 };

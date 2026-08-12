@@ -28,3 +28,10 @@ npm-debug.log*
 # Vite
 .vite/
 .vercel
+
+# Cloudflare Worker local secrets (never commit — may contain blocked IPs)
+.dev.vars
+.dev.vars.*
+
+# Wrangler local state
+.wrangler/
