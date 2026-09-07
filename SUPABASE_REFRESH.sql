@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Funding Michigan Teachers — Content Refresh (July 2026)
+-- Funding Michigan Teachers — Content Refresh (September 2026)
 -- Run this ENTIRE file once in the Supabase SQL Editor:
 --   supabase.com → your project → SQL Editor → New query → paste → Run
 --
@@ -9,11 +9,18 @@
 -- SUPABASE_SETUP.sql / SUPABASE_SEED.sql / FORMS_SETUP.sql files are kept
 -- for reference but are no longer required.
 --
--- Why this exists: the site trusts the database over the code's built-in
--- content whenever a table exists. Several tables were created through the
--- /access admin panel before recent content updates, so the live site was
--- showing STALE data (old events, missing Miss Abbott project, old school
--- list). This file is idempotent — safe to run more than once.
+-- SECURITY (September 2026): all content writes now require a signed-in
+-- Supabase user. The site's anon key is public inside the JS bundle by
+-- design, and the old policies let ANYONE with it insert/update/delete
+-- events, projects, stories, and the rest. Now: everyone can read, only an
+-- authenticated admin can write. Votes and form submissions stay open for
+-- inserting (that's their job). After running this, create the admin login:
+--   Supabase → Authentication → Users → Add user → your email + a strong
+--   password → then sign in at fundingmichiganteachers.org/access.
+--
+-- Why this file exists: the site trusts the database over the code's built-in
+-- content whenever a table exists, so stale rows beat fresh code. This file
+-- is idempotent — safe to run more than once.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- ── 1. Make sure every content table exists (no-ops if already created) ─────
@@ -52,9 +59,9 @@ drop policy if exists "events_insert" on events;
 drop policy if exists "events_update" on events;
 drop policy if exists "events_delete" on events;
 create policy "events_read"   on events for select using (true);
-create policy "events_insert" on events for insert with check (true);
-create policy "events_update" on events for update using (true) with check (true);
-create policy "events_delete" on events for delete using (true);
+create policy "events_insert" on events for insert to authenticated with check (true);
+create policy "events_update" on events for update to authenticated using (true) with check (true);
+create policy "events_delete" on events for delete to authenticated using (true);
 
 create table if not exists projects (
   id          bigint generated always as identity primary key,
@@ -73,9 +80,9 @@ drop policy if exists "projects_insert" on projects;
 drop policy if exists "projects_update" on projects;
 drop policy if exists "projects_delete" on projects;
 create policy "projects_read"   on projects for select using (true);
-create policy "projects_insert" on projects for insert with check (true);
-create policy "projects_update" on projects for update using (true) with check (true);
-create policy "projects_delete" on projects for delete using (true);
+create policy "projects_insert" on projects for insert to authenticated with check (true);
+create policy "projects_update" on projects for update to authenticated using (true) with check (true);
+create policy "projects_delete" on projects for delete to authenticated using (true);
 
 create table if not exists donors (
   id          bigint generated always as identity primary key,
@@ -93,9 +100,9 @@ drop policy if exists "donors_insert" on donors;
 drop policy if exists "donors_update" on donors;
 drop policy if exists "donors_delete" on donors;
 create policy "donors_read"   on donors for select using (true);
-create policy "donors_insert" on donors for insert with check (true);
-create policy "donors_update" on donors for update using (true) with check (true);
-create policy "donors_delete" on donors for delete using (true);
+create policy "donors_insert" on donors for insert to authenticated with check (true);
+create policy "donors_update" on donors for update to authenticated using (true) with check (true);
+create policy "donors_delete" on donors for delete to authenticated using (true);
 
 create table if not exists locations (
   id           bigint generated always as identity primary key,
@@ -115,9 +122,9 @@ drop policy if exists "locations_insert" on locations;
 drop policy if exists "locations_update" on locations;
 drop policy if exists "locations_delete" on locations;
 create policy "locations_read"   on locations for select using (true);
-create policy "locations_insert" on locations for insert with check (true);
-create policy "locations_update" on locations for update using (true) with check (true);
-create policy "locations_delete" on locations for delete using (true);
+create policy "locations_insert" on locations for insert to authenticated with check (true);
+create policy "locations_update" on locations for update to authenticated using (true) with check (true);
+create policy "locations_delete" on locations for delete to authenticated using (true);
 
 create table if not exists stories (
   id          bigint generated always as identity primary key,
@@ -135,9 +142,9 @@ drop policy if exists "stories_insert" on stories;
 drop policy if exists "stories_update" on stories;
 drop policy if exists "stories_delete" on stories;
 create policy "stories_read"   on stories for select using (true);
-create policy "stories_insert" on stories for insert with check (true);
-create policy "stories_update" on stories for update using (true) with check (true);
-create policy "stories_delete" on stories for delete using (true);
+create policy "stories_insert" on stories for insert to authenticated with check (true);
+create policy "stories_update" on stories for update to authenticated using (true) with check (true);
+create policy "stories_delete" on stories for delete to authenticated using (true);
 
 -- Sponsors, food partners, and Teacher of the Month. Sections below UPDATE
 -- sponsors and food_partners, which errors out mid-script if the tables were
@@ -159,9 +166,9 @@ drop policy if exists "sponsors_insert" on sponsors;
 drop policy if exists "sponsors_update" on sponsors;
 drop policy if exists "sponsors_delete" on sponsors;
 create policy "sponsors_read"   on sponsors for select using (true);
-create policy "sponsors_insert" on sponsors for insert with check (true);
-create policy "sponsors_update" on sponsors for update using (true) with check (true);
-create policy "sponsors_delete" on sponsors for delete using (true);
+create policy "sponsors_insert" on sponsors for insert to authenticated with check (true);
+create policy "sponsors_update" on sponsors for update to authenticated using (true) with check (true);
+create policy "sponsors_delete" on sponsors for delete to authenticated using (true);
 
 create table if not exists food_partners (
   id            bigint generated always as identity primary key,
@@ -179,9 +186,9 @@ drop policy if exists "food_partners_insert" on food_partners;
 drop policy if exists "food_partners_update" on food_partners;
 drop policy if exists "food_partners_delete" on food_partners;
 create policy "food_partners_read"   on food_partners for select using (true);
-create policy "food_partners_insert" on food_partners for insert with check (true);
-create policy "food_partners_update" on food_partners for update using (true) with check (true);
-create policy "food_partners_delete" on food_partners for delete using (true);
+create policy "food_partners_insert" on food_partners for insert to authenticated with check (true);
+create policy "food_partners_update" on food_partners for update to authenticated using (true) with check (true);
+create policy "food_partners_delete" on food_partners for delete to authenticated using (true);
 
 create table if not exists teachers_of_month (
   id            bigint generated always as identity primary key,
@@ -200,9 +207,9 @@ drop policy if exists "tom_insert" on teachers_of_month;
 drop policy if exists "tom_update" on teachers_of_month;
 drop policy if exists "tom_delete" on teachers_of_month;
 create policy "tom_read"   on teachers_of_month for select using (true);
-create policy "tom_insert" on teachers_of_month for insert with check (true);
-create policy "tom_update" on teachers_of_month for update using (true) with check (true);
-create policy "tom_delete" on teachers_of_month for delete using (true);
+create policy "tom_insert" on teachers_of_month for insert to authenticated with check (true);
+create policy "tom_update" on teachers_of_month for update to authenticated using (true) with check (true);
+create policy "tom_delete" on teachers_of_month for delete to authenticated using (true);
 
 -- Backup copy of form submissions. Deliberately NOT publicly readable:
 -- anyone can submit a form, but only a signed-in Supabase user can read
@@ -233,19 +240,46 @@ delete from events where title ilike 'Teacher Appreciation Event%';
 -- Walmart is a corporate sponsor, not an individual/community supporter.
 delete from donors where name ilike 'Walmart%';
 
--- ── 3. Current upcoming event ────────────────────────────────────────────────
+-- ── 3. Events: the 2026–27 season ───────────────────────────────────────────
+-- The site now hides events whose date has passed, so old rows can stay in
+-- the table harmlessly (the Aug 19 Coffee Bar simply stops showing as
+-- upcoming). Month-long programs are dated at the END of their window so
+-- they stay visible throughout it; their descriptions carry the real timing.
 
 insert into events (title, date, description, location, type)
-select 'FMT Coffee Bar at OHS Kickstart', '2026-08-19',
-       'We''re bringing the FMT Coffee Bar to Okemos High School''s Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Biggby Coffee. 9am–2pm, or while supplies last.',
-       'Okemos High School', 'appreciation'
-where not exists (select 1 from events where title = 'FMT Coffee Bar at OHS Kickstart');
-
--- Correct the Kickstart description if an older version is in the DB
--- (Biggby provides the Coffee Bar; Tailgaters is not part of Kickstart)
-update events set
-  description = 'We''re bringing the FMT Coffee Bar to Okemos High School''s Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Biggby Coffee. 9am–2pm, or while supplies last.'
-where title = 'FMT Coffee Bar at OHS Kickstart';
+select * from (values
+  ('First Staff Meeting Smoothies — East Lansing', '2026-09-08',
+   '80 Jamba Juice smoothies (16 oz) and coupons for East Lansing High School''s first staff meeting of the year.',
+   'East Lansing High School', 'appreciation'),
+  ('Staff Meeting Catering — Haslett', '2026-09-15',
+   'Catering Haslett High School''s September staff meeting.',
+   'Haslett High School', 'appreciation'),
+  ('Staff Meeting Catering — Okemos', '2026-09-16',
+   'Catering the September staff meeting at Okemos High School.',
+   'Okemos High School', 'appreciation'),
+  ('Boo Baskets — October Teacher of the Month', '2026-10-30',
+   'Halloween edition of Teacher of the Month: custom-themed boo baskets delivered to two or three Okemos teachers every week, all October long.',
+   'Okemos High School', 'appreciation'),
+  ('FMT Turns Three', '2026-11-20',
+   'Our founding anniversary — three years since Funding Michigan Teachers started in November 2023.',
+   'Okemos, MI', 'milestone'),
+  ('Door Decorating Competition', '2026-12-18',
+   'The door decorating competition returns — classrooms go all out and winners take home prizes.',
+   'Okemos High School', 'competition'),
+  ('December School Supply Drive', '2026-12-31',
+   'Collecting classroom supplies all through December, delivered to teachers when school resumes in January.',
+   'Greater Lansing area', 'fundraiser'),
+  ('Post Office of Love', '2027-02-12',
+   'Students write letters to the staff members who matter to them, and we deliver every one at the end of the day. Runs for about a week in February.',
+   'Okemos High School', 'appreciation'),
+  ('Teacher Appreciation Week', '2027-05-07',
+   'Our biggest week of the year — meals, meal cards, and appreciation events for educators across our partner schools.',
+   'All partner schools', 'appreciation'),
+  ('End-of-Year Staff Appreciation Breakfast', '2027-06-04',
+   'Closing out the school year the right way: breakfast for the staff who made it happen.',
+   'Okemos High School', 'appreciation')
+) as v(title, date, description, location, type)
+where not exists (select 1 from events where events.title = v.title);
 
 -- ── 4. Classroom projects (adds Miss Abbott + keeps the submit card) ────────
 

@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
+// Only these three d3 modules are used; importing the full `d3` meta-package
+// put ~90KB (gzipped) of unused library in the homepage bundle.
+import { select } from 'd3-selection';
+import { geoMercator } from 'd3-geo';
+import 'd3-transition'; // side-effect: adds .transition() to selections
 import { motion, AnimatePresence } from 'motion/react';
 import { School, MapPin, Info, X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -17,7 +21,7 @@ export default function MichiganMap() {
 
     const width = 800;
     const height = 600;
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
     // Zoom the view to the schools themselves (all within ~7 miles of
@@ -32,7 +36,7 @@ export default function MichiganMap() {
       })),
     } as any;
 
-    const projection = d3.geoMercator().fitExtent(
+    const projection = geoMercator().fitExtent(
       [[150, 110], [width - 140, height - 120]],
       pointsGeo,
     );
@@ -106,11 +110,11 @@ export default function MichiganMap() {
           .attr("stroke-width", isHome ? 3.5 : 2.5)
           .attr("class", "cursor-pointer")
           .on("mouseenter", function (event, d) {
-            d3.select(this).transition().duration(150).attr("r", isHome ? 15 : 13);
+            select(this).transition().duration(150).attr("r", isHome ? 15 : 13);
             setHoveredLocation(d);
           })
           .on("mouseleave", function () {
-            d3.select(this).transition().duration(150).attr("r", isHome ? 10 : 8);
+            select(this).transition().duration(150).attr("r", isHome ? 10 : 8);
             setHoveredLocation(null);
           })
           .on("click", (event, d) => setSelectedLocation(d));

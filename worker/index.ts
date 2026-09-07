@@ -127,8 +127,8 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
                   ? 'Monthly donation to Funding Michigan Teachers'
                   : 'Donation to Funding Michigan Teachers',
               description: fundTeacher
-                ? `${fundTeacher}'s classroom fund · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967 · 100% goes to teachers`
-                : '501(c)(3) nonprofit · EIN 93-4485967 · 100% goes to teachers',
+                ? `${fundTeacher}'s classroom fund · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967 · at least 80¢ of every dollar goes to teachers`
+                : '501(c)(3) nonprofit · EIN 93-4485967 · at least 80¢ of every dollar goes to teachers',
             },
             unit_amount: unitAmount,
             ...(frequency === 'monthly' ? { recurring: { interval: 'month' as const } } : {}),
@@ -146,8 +146,8 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
       custom_text: {
         submit: {
           message: fundTeacher
-            ? `100% of your gift goes to ${fundTeacher}'s classroom.`
-            : '100% of your gift goes directly to Michigan teachers.',
+            ? `Your gift goes to ${fundTeacher}'s classroom.`
+            : 'At least 80¢ of every dollar goes directly to Michigan teachers.',
         },
       },
     });
@@ -193,6 +193,25 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+
+    // Canonical host: both the apex and www are bound to this Worker and used
+    // to serve identical content on two hostnames (duplicate content in
+    // Google's eyes). The canonical tag says www, so the apex 301s there.
+    if (url.hostname === 'fundingmichiganteachers.org') {
+      url.hostname = 'www.fundingmichiganteachers.org';
+      return Response.redirect(url.toString(), 301);
+    }
+
+    // Canonical paths: /donate/ used to render the HOMEPAGE at 200 (the
+    // client router matched exactly, then fell through). Redirect trailing
+    // slashes on real pages so ads/links with a stray slash land correctly.
+    if (path.length > 1 && /\/+$/.test(path) && !path.startsWith('/api/')) {
+      const stripped = path.replace(/\/+$/, '') || '/';
+      if (isKnownRoute(stripped)) {
+        url.pathname = stripped;
+        return Response.redirect(url.toString(), 301);
+      }
+    }
 
     // CF-Connecting-IP is set by Cloudflare itself and can't be forged by the
     // client, unlike X-Forwarded-For.

@@ -11,10 +11,12 @@
  */
 export const KNOWN_ROUTES = [
   '/',
+  '/about',
   '/donate',
   '/for-schools',
   '/sponsors',
   '/returnables',
+  '/privacy',
   '/access',
   '/restricted',
 ] as const;

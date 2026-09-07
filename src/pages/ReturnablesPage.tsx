@@ -9,6 +9,8 @@ import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { track, captureSource } from '../lib/analytics';
 import { PopCan, Bottle, Dime, SchoolHouse } from '../components/campaignDoodles';
+import SiteHeader from '../components/SiteHeader';
+import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -69,7 +71,7 @@ const CAMPAIGN = {
   photos: [
     { src: '/images/IMG_5568-opt.jpg', caption: 'Special delivery', rotate: -3, y: 0 },
     { src: '/images/coffee-bar-biggby-opt.jpg', caption: 'Coffee bar, staffed by students', rotate: 2.5, y: 16 },
-    { src: '/images/may-staff-meeting.jpg', caption: 'Teacher of the Month, announced live', rotate: -1.5, y: 6 },
+    { src: '/images/may-staff-meeting-opt.jpg', caption: 'Teacher of the Month, announced live', rotate: -1.5, y: 6 },
   ],
 } as const;
 
@@ -120,6 +122,12 @@ export default function ReturnablesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    setPageMeta({
+      title: 'Donate Your Returnables | Funding Michigan Teachers',
+      description:
+        "Your cans, their classrooms. We pick up your Michigan bottle and can returnables for free in the Greater Lansing area and turn the deposits into classroom support for local teachers.",
+      path: '/returnables',
+    });
     setSource(captureSource());
     track('returnables_page_view', { source: captureSource() });
   }, []);
@@ -137,27 +145,7 @@ export default function ReturnablesPage() {
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative">
       {/* Floating glass nav island — same as every other sub-page */}
-      <nav className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto bg-white/85 backdrop-blur-2xl ring-1 ring-chalkboard/10 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex items-center gap-1 pl-2 pr-2 py-2">
-          <button
-            onClick={() => navigate('/')}
-            className="group flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full hover:bg-chalkboard/5"
-            style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
-          >
-            <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10">
-              <ArrowLeft size={13} strokeWidth={1.5} />
-            </span>
-            <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hidden sm:inline">Home</span>
-          </button>
-          <div className="w-px h-6 bg-chalkboard/10 mx-1" />
-          <button
-            onClick={() => goDonate('nav')}
-            className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5"
-          >
-            Donate
-          </button>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* Ambient glows */}
       <div className="pointer-events-none absolute top-0 left-0 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />

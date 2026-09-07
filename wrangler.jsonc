@@ -15,11 +15,13 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    // Every request runs the Worker first. With the previous ["/api/*"] value
-    // only API calls reached worker/index.ts — page views were answered
-    // straight from static assets, so the Worker could neither block an IP nor
-    // return a real 404 (unknown paths got index.html at status 200). The
-    // Worker now serves assets itself via env.ASSETS.fetch().
-    "run_worker_first": true
+    // Pages and API calls run the Worker first (IP blocking, real 404s,
+    // canonical redirects). Hashed bundles and photos skip it — negative rules
+    // route them straight to Cloudflare's asset service and edge cache, which
+    // is faster and also preserves the deliberate behavior that blocked
+    // visitors can still fetch the CSS/JS the /restricted page needs.
+    // (With the old ["/api/*"] value page views never reached the Worker at
+    // all, which is why IP blocking and 404s didn't work before.)
+    "run_worker_first": ["/*", "!/assets/*", "!/images/*"]
   }
 }

@@ -6,7 +6,7 @@ import { submitToFormBold, FORMBOLD } from '../lib/forms';
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'mailto' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,13 +38,14 @@ export default function ContactForm() {
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 5000);
     } else {
-      // Final fallback: open mailto so no message is ever lost
+      // Final fallback: hand the message to their email app. This is NOT a
+      // send — saying "Message sent!" here would be a lie if their mail
+      // client never opens, so the UI says what actually happened.
       const subject = encodeURIComponent(`Contact from ${form.name} — Funding Michigan Teachers`);
       const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\nMessage:\n${form.message}`);
-      window.open(`mailto:fundingmiteachers.forms@gmail.com?subject=${subject}&body=${body}`);
-      setStatus('success');
-      setForm({ name: '', email: '', message: '' });
-      setTimeout(() => setStatus('idle'), 5000);
+      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
+      setStatus('mailto');
+      setTimeout(() => setStatus('idle'), 9000);
     }
   };
 
@@ -95,9 +96,12 @@ export default function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 ml-2">Your Name</label>
+              <label htmlFor="contact-name" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Your Name</label>
               <input 
                 required
+                id="contact-name"
+                name="name"
+                autoComplete="name"
                 value={form.name}
                 onChange={e => setForm({...form, name: e.target.value})}
                 className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
@@ -105,10 +109,13 @@ export default function ContactForm() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 ml-2">Email Address</label>
+              <label htmlFor="contact-email" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Email Address</label>
               <input 
                 required
                 type="email"
+                id="contact-email"
+                name="email"
+                autoComplete="email"
                 value={form.email}
                 onChange={e => setForm({...form, email: e.target.value})}
                 className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
@@ -117,9 +124,11 @@ export default function ContactForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 ml-2">Message</label>
+            <label htmlFor="contact-message" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Message</label>
             <textarea 
               required
+              id="contact-message"
+              name="message"
               value={form.message}
               onChange={e => setForm({...form, message: e.target.value})}
               rows={5}
@@ -146,14 +155,16 @@ export default function ContactForm() {
         </form>
         
         <AnimatePresence>
-          {status === 'success' && (
+          {(status === 'success' || status === 'mailto') && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className="mt-8 p-5 bg-apple/10 border border-apple/20 rounded-2xl text-apple text-center font-bold"
             >
-              Message sent! We'll get back to you within 24 hours.
+              {status === 'mailto'
+                ? "We opened your email app with the message ready — press send there and it'll reach us."
+                : "Message sent! We'll get back to you within a day or two."}
             </motion.div>
           )}
         </AnimatePresence>

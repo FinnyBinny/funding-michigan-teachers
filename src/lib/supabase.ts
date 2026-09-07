@@ -1,9 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+/**
+ * Supabase connection.
+ *
+ * These two values are baked in the same way the Stripe publishable key is in
+ * donate.ts: the anon key is public by design (it ships in every browser
+ * request and is safe as long as Row Level Security is configured — see
+ * SUPABASE_REFRESH.sql, which locks all content writes behind an
+ * authenticated admin login). A VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY
+ * build variable still overrides them if the project ever changes.
+ *
+ * Why baked in: Vite inlines import.meta.env.VITE_* at build time. The
+ * production build on Cloudflare has no build-time env vars, so with only the
+ * env read the client constant-folded to null and EVERY database feature
+ * (votes, live content, the admin panel) silently vanished from the deployed
+ * bundle. Never again.
+ *
+ * FILL THESE IN: Supabase dashboard → your project → Settings → API →
+ * "Project URL" and the "anon public" key.
+ */
+const FALLBACK_URL = '';
+const FALLBACK_ANON_KEY = '';
 
-// supabase will be null if env vars are not configured — vote logic falls back to localStorage
+const supabaseUrl =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) || FALLBACK_URL;
+const supabaseAnonKey =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || FALLBACK_ANON_KEY;
+
+// null only when genuinely unconfigured — callers fall back to local seeds.
 export const supabase =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey)

@@ -166,7 +166,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
       // Final fallback: open mailto so submission is never lost
       const subject = encodeURIComponent(`Project Submission — ${form.projectTitle} (${form.schoolName})`);
       const body = encodeURIComponent(`Teacher Name: ${form.teacherName}\nSchool: ${form.schoolName}\nProject: ${form.projectTitle}\n\nDescription:\n${form.description}\n\nReply to: ${form.email}`);
-      window.open(`mailto:fundingmiteachers.forms@gmail.com?subject=${subject}&body=${body}`);
+      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
       setFormStatus('success');
       setTimeout(() => {
         setShowForm(false);
@@ -378,7 +378,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                 {formStatus === 'error' && (
                   <p className="text-center text-red-500 font-bold text-sm">
                     Something went wrong. Please email us at{' '}
-                    <a href="mailto:edu@fundingmichiganteachers.org" className="underline">edu@fundingmichiganteachers.org</a>
+                    <a href="mailto:hello@fundingmichiganteachers.org" className="underline">hello@fundingmichiganteachers.org</a>
                   </p>
                 )}
               </form>

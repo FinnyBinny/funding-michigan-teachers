@@ -15,7 +15,7 @@ function findAnswer(query: string): string {
     f.question.toLowerCase().split(' ').some(word => word.length > 3 && q.includes(word))
   );
   if (match) return match.answer;
-  return "Great question! For more details, please reach out to us at hello@fundingmichiganteachers.org — we typically respond within 24 hours.";
+  return "Great question! For more details, please reach out to us at hello@fundingmichiganteachers.org — we usually reply within a day or two.";
 }
 
 export default function FAQAssistant() {
@@ -82,7 +82,7 @@ export default function FAQAssistant() {
                   </div>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <button onClick={() => setIsOpen(false)} aria-label="Close help" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -137,6 +137,7 @@ export default function FAQAssistant() {
                 />
                 <button
                   onClick={() => handleSend()}
+                  aria-label="Send question"
                   disabled={!input.trim()}
                   className="w-10 h-10 bg-apple text-white rounded-xl flex items-center justify-center hover:bg-apple/90 transition-all disabled:opacity-40 shrink-0"
                 >

@@ -9,6 +9,8 @@ import { cn } from '../lib/utils';
 import { isAnyStripeConfigured, isEmbeddedStripeConfigured, openDonation, type DonationFrequency } from '../lib/donate';
 import ImpactVisualizer from '../components/ImpactVisualizer';
 import EmbeddedDonateCheckout from '../components/EmbeddedDonateCheckout';
+import SiteHeader from '../components/SiteHeader';
+import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -47,6 +49,12 @@ export default function DonatePage() {
   // show a confirmed/failed state instead of the picker.
   useEffect(() => {
     window.scrollTo(0, 0);
+    setPageMeta({
+      title: 'Donate to Michigan Teachers | Funding Michigan Teachers',
+      description:
+        "Give once or monthly to fund Michigan classrooms. A student-led 501(c)(3) (EIN 93-4485967) — at least 80¢ of every dollar goes directly to teachers. Secure checkout, tax-deductible receipt.",
+      path: '/donate',
+    });
     const params = new URLSearchParams(window.location.search);
 
     const sessionId = params.get('stripe_session_id');
@@ -145,26 +153,7 @@ export default function DonatePage() {
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative">
 
-      {/* Floating glass nav island */}
-      <nav className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto bg-white/85 backdrop-blur-2xl ring-1 ring-chalkboard/10 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex items-center gap-1 pl-2 pr-2 py-2">
-          <button
-            onClick={() => navigate('/')}
-            className="group flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full hover:bg-chalkboard/5"
-            style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
-          >
-            <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10">
-              <ArrowLeft size={13} strokeWidth={1.5} />
-            </span>
-            <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hidden sm:inline">Home</span>
-          </button>
-          <div className="w-px h-6 bg-chalkboard/10 mx-1" />
-          <div className="hidden md:flex items-center gap-0.5">
-            <button onClick={() => navigate('/sponsors')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5">Sponsor</button>
-            <button onClick={() => navigate('/for-schools')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5">For Schools</button>
-          </div>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* Ambient brand glows */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px]" />
@@ -189,7 +178,7 @@ export default function DonatePage() {
                 Make this <span className="text-apple italic font-normal">real</span> for a Michigan teacher.
               </h1>
               <p className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-5">
-                Drag the slider and watch your gift turn into pencils, staff meals, and classroom grants — then tap once with Apple Pay or Google Pay. 100% goes to teachers.
+                Drag the slider and watch your gift turn into pencils, staff meals, and classroom grants — then tap once with Apple Pay or Google Pay. At least 80¢ of every dollar goes to teachers.
               </p>
               <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
                 <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
@@ -375,7 +364,9 @@ export default function DonatePage() {
             <span>Bank</span>
           </motion.div>
 
-          {/* Setup-required notice (admin only, until env vars are configured) */}
+          {/* If checkout is ever unconfigured, visitors get a human path —
+              never internal setup instructions, which this box used to print
+              on a public page. */}
           {!stripeReady && (
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -387,12 +378,13 @@ export default function DonatePage() {
               <div className="bg-pencil/10 ring-1 ring-pencil/30 rounded-2xl p-5 flex items-start gap-3">
                 <AlertCircle size={18} strokeWidth={1.5} className="text-pencil-dark shrink-0 mt-0.5" />
                 <div className="text-xs text-chalkboard/70 leading-relaxed">
-                  <p className="font-bold text-chalkboard mb-1">Admin: Stripe isn't configured yet.</p>
+                  <p className="font-bold text-chalkboard mb-1">Online giving is temporarily unavailable.</p>
                   <p>
-                    For embedded checkout (recommended — no redirect), add{' '}
-                    <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">STRIPE_SECRET_KEY</code> as a Secret in the Cloudflare
-                    dashboard (Workers &amp; Pages → Settings → Variables and Secrets).
-                    Until then, donations fall back to Zeffy. See <code className="bg-white/60 px-1.5 py-0.5 rounded text-[11px] font-mono">src/lib/donate.ts</code> for full setup steps.
+                    We're sorry — card donations aren't going through right now. Email{' '}
+                    <a href="mailto:hello@fundingmichiganteachers.org" className="text-apple underline font-bold">
+                      hello@fundingmichiganteachers.org
+                    </a>{' '}
+                    and we'll make sure your gift reaches a Michigan classroom.
                   </p>
                 </div>
               </div>

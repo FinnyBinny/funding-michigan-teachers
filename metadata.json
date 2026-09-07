@@ -1,7 +1,4 @@
 {
   "name": "Funding Michigan Teachers",
-  "description": "In the trenches of education, we witness the unwavering dedication of teachers. Our mission is to ignite a wave of motivation and support for our educators, bridging the gap between their needs and the resources they deserve.",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
+  "description": "Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. A student-led 501(c)(3) nonprofit based in Okemos, Michigan."
 }
