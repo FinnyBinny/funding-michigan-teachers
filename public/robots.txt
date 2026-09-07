@@ -2,6 +2,9 @@
 
 User-agent: *
 Allow: /
+# Internal pages — nothing useful to index here
+Disallow: /access
+Disallow: /restricted
 
 # ——— AI Search & Citation Bots (explicitly allowed) ———
 

@@ -7,7 +7,6 @@
  *      one-time AND monthly subscriptions through the same component.
  *   2. Stripe Payment Links — opens buy.stripe.com in a new tab. Used only
  *      if embedded isn't configured.
- *   3. Zeffy — used if neither Stripe path is configured.
  *
  * ── Setting up embedded Stripe (recommended) ────────────────────────────
  *   1. The publishable key (pk_...) is baked in below — publishable keys
@@ -42,8 +41,6 @@ export const STRIPE_PUBLISHABLE_KEY: string =
   'pk_live_51SBEMjRmDenxI6morWfSo1qpoDd3NsB1Avw6ZL091BIoEN0u25195bWjT5eSlBWCwPuuNNPSZIikSOQdcYOgXxh300igZ280Pk';
 const STRIPE_ONCE    = import.meta.env.VITE_STRIPE_LINK_ONCE as string | undefined;
 const STRIPE_MONTHLY = import.meta.env.VITE_STRIPE_LINK_MONTHLY as string | undefined;
-
-const ZEFFY_FALLBACK = 'https://www.zeffy.com/en-US/donation-form/supporting-the-teachers-who-support-us';
 
 export type DonationFrequency = 'monthly' | 'once';
 
@@ -87,19 +84,18 @@ export function getDonationUrl({ amount, frequency = 'once' }: DonationParams = 
     }
     return stripeLink;
   }
-  // Fallback to Zeffy until Stripe is configured.
-  if (amount && amount > 0) {
-    return `${ZEFFY_FALLBACK}?amount=${amount}&frequency=${frequency}`;
-  }
-  return ZEFFY_FALLBACK;
+  // No Stripe link configured. Nothing to open — callers check
+  // isAnyStripeConfigured() first, and /donate shows a contact-us message.
+  return '';
 }
 
 /**
- * Opens tier-2/3 checkout (Payment Link or Zeffy) in a new tab. Only used
- * as a fallback when embedded Stripe isn't configured — see
- * <EmbeddedDonateCheckout> for the primary, on-page flow.
+ * Opens the Payment Link checkout in a new tab. Only used as a fallback when
+ * embedded Stripe isn't configured — see <EmbeddedDonateCheckout> for the
+ * primary, on-page flow.
  */
 export function openDonation(params: DonationParams = {}): void {
   const url = getDonationUrl(params);
+  if (!url) return;
   window.open(url, '_blank', 'noopener,noreferrer');
 }

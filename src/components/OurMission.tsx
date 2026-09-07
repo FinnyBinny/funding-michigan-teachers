@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Coffee, BookOpen, Star, GraduationCap, Apple, ChevronDown, Check } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Coffee, BookOpen, Star, GraduationCap, Apple, ArrowRight, Check } from 'lucide-react';
 
 /** FMT's 2026–27 values, as adopted by the org. */
 const VALUES = [
@@ -21,7 +20,7 @@ const MISSION_POINTS = [
   {
     icon: BookOpen,
     title: "Classroom Grants That Actually Land",
-    description: "Teachers tell us what their classrooms need — lab tools, books, supplies — and we fund it directly. No grant committee. No 6-month wait. 100% of every dollar goes to the classroom.",
+    description: "Teachers tell us what their classrooms need — lab tools, books, supplies — and we fund it directly. No grant committee. No 6-month wait. The money goes straight to the classroom.",
     color: "text-ruler",
     bgColor: "bg-ruler/10"
   },
@@ -35,7 +34,6 @@ const MISSION_POINTS = [
 ];
 
 export default function OurMission() {
-  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
@@ -84,47 +82,27 @@ export default function OurMission() {
             Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
           </p>
           <p className="text-base text-chalkboard/70 leading-relaxed font-light">
-            Since founding, FMT has raised over $15,000, served Okemos High School staff at every monthly meeting during the 2025–2026 school year, reached 1,000+ educators across 9 schools during Teacher Appreciation Week, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with 100% of donations going directly to teachers.
+            Since founding, FMT has raised over $15,000, served Okemos High School staff at every monthly meeting during the 2025–2026 school year, reached 1,000+ educators across 9 schools during Teacher Appreciation Week, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with at least 80¢ of every dollar going directly to teachers.
           </p>
 
-          <AnimatePresence>
-            {expanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.4, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                <div className="mt-5 space-y-4 border-l-2 border-apple/20 pl-5">
-                  <p className="text-base text-chalkboard/60 leading-relaxed font-light">
-                    Finn grew up watching his mother work as a teacher — seeing firsthand how much time, effort, and personal money educators invest in their classrooms without recognition. Beginning in elementary school, he and his friends would deliver coffee and donuts to school staff as a simple gesture of thanks.
-                  </p>
-                  <p className="text-base text-chalkboard/60 leading-relaxed font-light">
-                    That tradition continued through middle school and into high school. In November 2023, during his freshman year, Finn decided to make it permanent. He founded Funding Michigan Teachers as a student-led nonprofit, bringing in community partners and donors to sustain and scale the appreciation effort year-round.
-                  </p>
-                  <p className="text-base text-chalkboard/60 leading-relaxed font-light">
-                    FMT has hosted two door decorating competitions awarding $500–$700 in prizes, delivered surprise staff meals from Chick-Fil-A, Dunkin', Nothing Bundt Cakes, and Hungry Howie's at staff meetings, and organized a student-written Valentine's Day letter campaign. Every initiative is entirely student-run — because Finn believes young people can make a real difference in their communities.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
+          {/* The full founding story lives on /about — hiding it behind an
+              accordion kept the "who we are" content off the page for anyone
+              who didn't click, and out of search results entirely. */}
           <button
-            onClick={() => setExpanded(e => !e)}
+            onClick={() => {
+              window.history.pushState({}, '', '/about');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }}
             className="mt-5 mb-8 flex items-center gap-2 text-apple font-bold text-sm hover:text-apple/80 transition-colors"
           >
-            <span>{expanded ? 'Show less' : 'Read the full story'}</span>
-            <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
-              <ChevronDown size={16} />
-            </motion.div>
+            <span>Read our full story</span>
+            <ArrowRight size={16} />
           </button>
 
           
           <div className="grid sm:grid-cols-2 gap-8">
             <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-apple/20 transition-colors">
-              <div className="text-3xl font-serif font-bold text-apple mb-1 group-hover:scale-110 transition-transform origin-left">100%</div>
+              <div className="text-3xl font-serif font-bold text-apple mb-1 group-hover:scale-110 transition-transform origin-left">80¢+</div>
               <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Direct to Classrooms</div>
             </div>
             <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-ruler/20 transition-colors">

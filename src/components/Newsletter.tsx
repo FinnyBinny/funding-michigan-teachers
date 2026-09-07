@@ -38,7 +38,7 @@ export default function Newsletter() {
       // Final fallback: open mailto so no signup is ever lost
       const subject = encodeURIComponent('Newsletter Signup — Funding Michigan Teachers');
       const body = encodeURIComponent(`Please add me to the FMT newsletter.\n\nEmail: ${email}`);
-      window.open(`mailto:fundingmiteachers.forms@gmail.com?subject=${subject}&body=${body}`);
+      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
       setStatus('success');
       setEmail('');
       setTimeout(() => setStatus('idle'), 5000);
@@ -77,11 +77,14 @@ export default function Newsletter() {
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-[1.75rem] shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 ml-2">Email Address</label>
+                  <label htmlFor="newsletter-email" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-white/70 ml-2">Email Address</label>
                   <div className="relative">
                     <input 
                       required
                       type="email"
+                      id="newsletter-email"
+                      name="email"
+                      autoComplete="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="Enter your email"

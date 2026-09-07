@@ -66,6 +66,26 @@ export function rowToLocation(row: any): Location {
   };
 }
 
+// Several components on one page can ask for the same table (e.g. projects is
+// used by both the leaderboard and the project cards). Share one request per
+// table per page-load instead of issuing duplicates; invalidated whenever
+// fmt-data-changed fires.
+const tableFetches = new Map<string, Promise<any[] | null>>();
+
+function fetchTableOnce(table: string): Promise<any[] | null> {
+  let p = tableFetches.get(table);
+  if (!p) {
+    p = (async () => {
+      if (!supabase) return null;
+      const { data: rows, error } = await supabase.from(table).select('*').order('id');
+      // Reachable DB → trust it, even when empty. Only fallback on hard error.
+      return !error && rows ? rows : null;
+    })();
+    tableFetches.set(table, p);
+  }
+  return p;
+}
+
 function useSupabaseArray<T>(
   table: string,
   fallback: T[],
@@ -74,17 +94,23 @@ function useSupabaseArray<T>(
   const [data, setData] = useState<T[]>(fallback);
 
   useEffect(() => {
+    let alive = true;
     const fetchData = async () => {
-      if (!supabase) return;
-      const { data: rows, error } = await supabase.from(table).select('*').order('id');
-      // Reachable DB → trust it, even when empty. Only keep fallback on hard error.
-      if (!error && rows) {
+      const rows = await fetchTableOnce(table);
+      if (alive && rows) {
         setData(transform ? rows.map(transform) : (rows as unknown as T[]));
       }
     };
+    const refetch = () => {
+      tableFetches.delete(table);
+      fetchData();
+    };
     fetchData();
-    window.addEventListener('fmt-data-changed', fetchData);
-    return () => window.removeEventListener('fmt-data-changed', fetchData);
+    window.addEventListener('fmt-data-changed', refetch);
+    return () => {
+      alive = false;
+      window.removeEventListener('fmt-data-changed', refetch);
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return data;

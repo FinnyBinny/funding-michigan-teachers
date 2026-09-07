@@ -65,7 +65,7 @@ export default function DonationNudge({ onDonate }: DonationNudgeProps) {
               Michigan teachers give everything. Can you give a little back?
             </h3>
             <p className="text-sm text-chalkboard/55 font-light leading-relaxed mb-5">
-              100% of every donation goes directly to teachers — no overhead, no exceptions. Even $10/month makes a real difference.
+              At least 80¢ of every dollar goes straight to teachers and classrooms, and nobody here takes a salary. Even $10/month makes a real difference.
             </p>
 
             <button

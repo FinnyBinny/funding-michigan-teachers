@@ -4,7 +4,16 @@ import { cn } from '../lib/utils';
 import { useEvents } from '../hooks/useLocalData';
 
 export default function EventCalendar() {
-  const events = useEvents();
+  const allEvents = useEvents();
+
+  // Only show what's actually still ahead. Without this an event kept
+  // rendering under the "Upcoming Events" heading months after it happened,
+  // which is exactly the kind of staleness that reads as an abandoned site.
+  // Compared as YYYY-MM-DD strings so there's no timezone drift.
+  const today = new Date().toISOString().slice(0, 10);
+  const events = allEvents
+    .filter((e) => !e.date || String(e.date).slice(0, 10) >= today)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
   if (events.length === 0) {
     return (

@@ -5,6 +5,8 @@ import {
   Coffee, UtensilsCrossed, Award, Mailbox, GraduationCap,
   Calendar, CheckCircle2, Building2, Send, Loader2,
 } from 'lucide-react';
+import SiteHeader from '../components/SiteHeader';
+import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
@@ -62,7 +64,7 @@ const IMPACT_NUMBERS = [
   { value: '1,000+', label: 'Educators Reached', color: 'text-apple' },
   { value: '$15K+', label: 'Raised for Teachers', color: 'text-ruler' },
   { value: '9', label: 'Schools Supported', color: 'text-pencil-dark' },
-  { value: '100%', label: 'Direct to Teachers', color: 'text-apple' },
+  { value: '80¢+', label: 'Of Every Dollar to Teachers', color: 'text-apple' },
 ];
 
 const ROADMAP = [
@@ -91,43 +93,19 @@ export default function ForSchoolsPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    setPageMeta({
+      title: 'Bring FMT to Your School | Funding Michigan Teachers',
+      description:
+        "Teacher appreciation programs for Michigan schools — staff meals, Teacher of the Month, door decorating competitions, and classroom supply grants. Nine pilot spots for 2026–27.",
+      path: '/for-schools',
+    });
   }, []);
 
   return (
     <div className="min-h-screen bg-paper overflow-x-hidden">
 
       {/* Floating glass nav island */}
-      <nav className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto bg-white/80 backdrop-blur-2xl ring-1 ring-chalkboard/10 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex items-center gap-1 pl-2 pr-2 py-2">
-          <button
-            onClick={() => navigate('/')}
-            className="group flex items-center gap-2 pl-1 pr-3 py-1.5 rounded-full hover:bg-chalkboard/5 transition-colors"
-            style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
-          >
-            <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10 transition-colors">
-              <ArrowLeft size={13} />
-            </span>
-            <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hidden sm:inline">Home</span>
-          </button>
-          <div className="w-px h-6 bg-chalkboard/10 mx-1" />
-          <div className="hidden md:flex items-center gap-0.5">
-            <button onClick={() => scrollTo('programs')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Programs</button>
-            <button onClick={() => scrollTo('teachers-of-month')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Honorees</button>
-            <button onClick={() => scrollTo('roadmap')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Trial Year</button>
-            <button onClick={() => scrollTo('cta')} className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/60 hover:text-chalkboard px-3 py-2 rounded-full hover:bg-chalkboard/5 transition-colors">Bring to Your School</button>
-          </div>
-          <button
-            onClick={() => scrollTo('cta')}
-            className="group flex items-center gap-2 bg-chalkboard text-white pl-4 pr-1 py-1 rounded-full hover:bg-apple transition-colors ml-1"
-            style={{ transition: `all 600ms cubic-bezier(${EASE.join(',')})` }}
-          >
-            <span className="text-[10px] uppercase tracking-[0.18em] font-bold">Get in Touch</span>
-            <span className="w-7 h-7 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
-              <ArrowRight size={12} />
-            </span>
-          </button>
-        </div>
-      </nav>
+      <SiteHeader />
 
       {/* HERO — Editorial Split layout */}
       <section
@@ -393,7 +371,7 @@ export default function ForSchoolsPage() {
             <div className="bg-white/[0.04] ring-1 ring-white/10 rounded-[2.25rem] p-2">
               <div className="relative rounded-[calc(2.25rem-0.5rem)] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                 <img
-                  src="/images/may-staff-meeting.jpg"
+                  src="/images/may-staff-meeting-opt.jpg"
                   alt="May 2026 OHS staff meeting — Teacher of the Month certificates for Mrs. Turner, Miss Richter, and Miss Abbott"
                   className="w-full aspect-[16/9] object-cover"
                   loading="lazy"
@@ -483,7 +461,7 @@ export default function ForSchoolsPage() {
               <div className="md:col-span-5 relative">
                 <div className="aspect-square md:aspect-auto md:h-full">
                   <img
-                    src="/images/may-chick-fil-a-cards.jpg"
+                    src="/images/may-chick-fil-a-cards-opt.jpg"
                     alt="1,000 Chick-fil-A 'Be our guest' meal cards — over $3,000 in value — distributed to educators across 9 schools"
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -606,9 +584,9 @@ export default function ForSchoolsPage() {
             </p>
             <div className="flex flex-wrap justify-center items-start gap-5 md:gap-2">
               {[
-                { src: '/images/may-staff-meeting.jpg',      caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
+                { src: '/images/may-staff-meeting-opt.jpg',      caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
                 { src: '/images/IMG_5568-opt.jpg',           caption: 'Special delivery',                     rotate: 2.5,  y: 18 },
-                { src: '/images/may-chick-fil-a-cards.jpg',  caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
+                { src: '/images/may-chick-fil-a-cards-opt.jpg',  caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
                 { src: '/images/IMG_6113-opt.jpg',           caption: 'Post Office of Love, ready for delivery', rotate: 3,    y: 22 },
                 { src: '/images/IMG_6116-opt.jpg',           caption: '"Share the Love" writing station',     rotate: -2,   y: 10 },
               ].map((photo, i) => (

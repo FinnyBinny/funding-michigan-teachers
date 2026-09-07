@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Lock, Eye, EyeOff, ShieldCheck, ArrowLeft } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { cn } from '../lib/utils';
 import AdminPanel from '../components/AdminPanel';
+import { supabase } from '../lib/supabase';
+import { setPageMeta } from '../lib/seo';
 
-const ADMIN_PASSWORD = 'FMT2025!';
-const SESSION_KEY = 'fmt_admin_session';
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
 function navigate(path: string) {
@@ -13,30 +13,71 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
+/**
+ * Admin sign-in.
+ *
+ * This is real authentication via Supabase Auth (email + password user created
+ * in the Supabase dashboard under Authentication → Users). It replaced a
+ * hardcoded password that shipped inside the public JS bundle — anyone could
+ * read it with View Source. The authenticated session is also what Row Level
+ * Security now requires for every content write and for reading form
+ * submissions, so the anon key in the bundle can't be used to vandalize the
+ * site.
+ */
 export default function AccessPage() {
   const [authed, setAuthed] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [pwError, setPwError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === 'unlocked') setAuthed(true);
+    setPageMeta({
+      title: 'Admin · Funding Michigan Teachers',
+      description: 'Internal dashboard.',
+      path: '/access',
+      noindex: true,
+    });
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!supabase) {
+      setChecking(false);
+      return;
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      setAuthed(!!data.session);
+      setChecking(false);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthed(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pw === ADMIN_PASSWORD) {
-      setAuthed(true);
-      setPwError(false);
-      sessionStorage.setItem(SESSION_KEY, 'unlocked');
-    } else {
-      setPwError(true);
+    if (!supabase || busy) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: pw,
+    });
+    setBusy(false);
+    if (err) {
+      setError(
+        err.message === 'Invalid login credentials'
+          ? 'Wrong email or password. Try again.'
+          : err.message,
+      );
     }
   };
 
-  const signOut = () => {
-    sessionStorage.removeItem(SESSION_KEY);
-    setAuthed(false);
+  const signOut = async () => {
+    await supabase?.auth.signOut();
     setPw('');
   };
 
@@ -96,55 +137,76 @@ export default function AccessPage() {
               <p className="text-[10px] uppercase tracking-[0.32em] font-bold text-white/40 mb-3">Restricted</p>
               <h1 className="text-3xl font-serif font-bold leading-tight text-center mb-2">Admin Access</h1>
               <p className="text-white/40 text-sm font-light text-center max-w-xs leading-relaxed mb-8">
-                Enter the dashboard password to manage sponsors, partners, projects, stories, and site content.
+                {supabase
+                  ? 'Sign in to manage sponsors, partners, projects, stories, and site content.'
+                  : 'The dashboard is offline: the database connection is not configured in this build.'}
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="relative">
-                <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
-                <input
-                  type={showPw ? 'text' : 'password'}
-                  value={pw}
-                  onChange={e => { setPw(e.target.value); setPwError(false); }}
-                  className={cn(
-                    'w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-12 py-3.5 text-sm font-medium outline-none placeholder:text-white/30 text-white',
-                    pwError && 'ring-2 ring-apple/60'
-                  )}
-                  placeholder="Password"
-                  autoFocus
-                />
+            {!checking && supabase && (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="relative">
+                  <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                  <input
+                    type="email"
+                    id="admin-email"
+                    name="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={e => { setEmail(e.target.value); setError(null); }}
+                    className="w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium outline-none placeholder:text-white/30 text-white"
+                    placeholder="Email"
+                    autoFocus
+                  />
+                </div>
+                <div className="relative">
+                  <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    id="admin-password"
+                    name="password"
+                    autoComplete="current-password"
+                    value={pw}
+                    onChange={e => { setPw(e.target.value); setError(null); }}
+                    className={cn(
+                      'w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-12 py-3.5 text-sm font-medium outline-none placeholder:text-white/30 text-white',
+                      error && 'ring-2 ring-apple/60'
+                    )}
+                    placeholder="Password"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowPw(!showPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+                  >
+                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-apple text-xs font-bold tracking-wide pl-1"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+
                 <button
-                  type="button"
-                  aria-label={showPw ? 'Hide password' : 'Show password'}
-                  onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+                  type="submit"
+                  disabled={busy}
+                  className="group relative w-full bg-white text-chalkboard rounded-full py-3.5 font-bold text-sm uppercase tracking-[0.18em] flex items-center justify-center gap-3 active:scale-[0.98] shadow-[0_8px_30px_rgba(255,255,255,0.15)] disabled:opacity-60"
+                  style={{ transition: `transform 600ms ${EASE}, background-color 400ms ${EASE}` }}
                 >
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  <span>{busy ? 'Signing in…' : 'Unlock Dashboard'}</span>
+                  <span className="w-7 h-7 rounded-full bg-chalkboard/5 group-hover:bg-apple group-hover:text-white flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
+                    →
+                  </span>
                 </button>
-              </div>
-
-              {pwError && (
-                <motion.p
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-apple text-xs font-bold tracking-wide pl-1"
-                >
-                  Incorrect password. Try again.
-                </motion.p>
-              )}
-
-              <button
-                type="submit"
-                className="group relative w-full bg-white text-chalkboard rounded-full py-3.5 font-bold text-sm uppercase tracking-[0.18em] flex items-center justify-center gap-3 active:scale-[0.98] shadow-[0_8px_30px_rgba(255,255,255,0.15)]"
-                style={{ transition: `transform 600ms ${EASE}, background-color 400ms ${EASE}` }}
-              >
-                <span>Unlock Dashboard</span>
-                <span className="w-7 h-7 rounded-full bg-chalkboard/5 group-hover:bg-apple group-hover:text-white flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
-                  →
-                </span>
-              </button>
-            </form>
+              </form>
+            )}
 
             <button
               onClick={() => navigate('/')}
@@ -155,7 +217,7 @@ export default function AccessPage() {
           </div>
         </div>
 
-        <p className="text-center text-[10px] uppercase tracking-[0.28em] font-bold text-white/20 mt-8">
+        <p className="text-center text-[10px] uppercase tracking-[0.28em] font-bold text-white/40 mt-8">
           Funding Michigan Teachers · Internal
         </p>
       </motion.div>

@@ -12,21 +12,21 @@ import { rowToEvent, rowToLocation } from '../hooks/useLocalData';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { Event, Donor, Project, Story, Location, Sponsor, FoodPartner, TeacherOfTheMonth } from '../data/initialData';
 
-const ADMIN_PASSWORD = 'FMT2025!';
-
-const inp = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-apple/20 outline-none';
+const inp ='w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-apple/20 outline-none';
 const lbl = 'block text-[10px] uppercase tracking-widest font-bold opacity-40 mb-1';
 const btnSave = 'flex-[2] bg-apple text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-apple/90 transition-all';
 const btnCancel = 'flex-1 bg-chalkboard/10 text-chalkboard py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-chalkboard/20 transition-all';
 
 type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations' | 'sponsors' | 'food_partners' | 'teachers_of_month';
 
-export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isOpen: boolean; onClose: () => void; preAuthed?: boolean }) {
-  const [authed, setAuthed] = useState(preAuthed);
-  const [pw, setPw] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [pwError, setPwError] = useState(false);
-
+/**
+ * Content dashboard. Authentication lives in AccessPage (real Supabase Auth) —
+ * this component is only ever mounted for an already-signed-in admin. The old
+ * in-component password check shipped its password inside the public bundle
+ * and is gone.
+ */
+export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOpen: boolean; onClose: () => void; preAuthed?: boolean }) {
+  const authed = preAuthed;
   const [activeTab, setActiveTab] = useState<Tab>('stories');
   const [items, setItems] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | number | null>(null);
@@ -42,9 +42,6 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
   const [fpf, setFpf] = useState({ month: '', business: '', detail: '', image: '', avif: '', display_order: 0 });
   const [tomf, setTomf] = useState({ month: '', teacher_name: '', school: '', subject: '', why: '', image: '', display_order: 0 });
 
-  useEffect(() => {
-    if (!isOpen) { setAuthed(preAuthed); setPw(''); setPwError(false); }
-  }, [isOpen, preAuthed]);
 
   const loadItems = async (tab: Tab) => {
     if (!supabase) { setItems([]); return; }
@@ -77,12 +74,6 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
     setSpf({ name: '', tier: 'Campus Champion', website: '', logo: '', description: '', amount: 0, active: true });
     setFpf({ month: '', business: '', detail: '', image: '', avif: '', display_order: 0 });
     setTomf({ month: '', teacher_name: '', school: '', subject: '', why: '', image: '', display_order: 0 });
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pw === ADMIN_PASSWORD) { setAuthed(true); setPwError(false); }
-    else setPwError(true);
   };
 
   const loadForEdit = (item: any) => {
@@ -248,33 +239,13 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = false }: { isO
             </button>
           </div>
 
-          {/* Password Screen */}
           {!authed ? (
             <div className="p-16 flex flex-col items-center justify-center min-h-[400px]">
               <div className="w-16 h-16 bg-apple/10 rounded-2xl flex items-center justify-center mb-6">
                 <Lock size={28} className="text-apple" />
               </div>
-              <h3 className="text-2xl font-bold mb-2">Admin Access</h3>
-              <p className="text-chalkboard/50 mb-10 text-sm">Enter your password to manage site content.</p>
-              <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
-                <div className="relative">
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    value={pw}
-                    onChange={e => { setPw(e.target.value); setPwError(false); }}
-                    className={cn(inp, 'pr-12', pwError && 'ring-2 ring-red-400 border-red-300')}
-                    placeholder="Password"
-                    autoFocus
-                  />
-                  <button type="button" aria-label={showPw ? 'Hide password' : 'Show password'} onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-chalkboard/30 hover:text-chalkboard transition-colors p-1">
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {pwError && <p className="text-red-500 text-xs font-bold">Incorrect password. Try again.</p>}
-                <button type="submit" className="w-full bg-apple text-white py-3 rounded-xl font-bold hover:bg-apple/90 transition-all">
-                  Unlock Dashboard
-                </button>
-              </form>
+              <h3 className="text-2xl font-bold mb-2">Signed out</h3>
+              <p className="text-chalkboard/50 text-sm">Sign in at /access to manage site content.</p>
             </div>
 
           ) : (

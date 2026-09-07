@@ -3,10 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#fcfaf5" />
 
-    <!-- Primary Meta -->
+    <!-- Primary Meta — the SPA overrides title/description/canonical per route
+         via src/lib/seo.ts; these are the homepage defaults. -->
     <title>Funding Michigan Teachers | 501(c)(3) Student-Led Nonprofit | Okemos, MI</title>
-    <meta name="description" content="Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. A student-led 501(c)(3) nonprofit (EIN: 93-4485967) funding classroom supplies, monthly staff meals, and teacher appreciation across Michigan — 100% of donations go directly to teachers." />
+    <meta name="description" content="Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. A student-led 501(c)(3) nonprofit (EIN: 93-4485967) funding classroom supplies, staff meals, and teacher appreciation across Michigan — at least 80¢ of every dollar goes directly to teachers." />
     <meta name="keywords" content="Michigan teachers nonprofit, teacher appreciation Okemos, classroom funding Michigan, student-led nonprofit, donate to Michigan teachers, 501c3 education nonprofit Michigan, Okemos nonprofit, teacher support Michigan" />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="Funding Michigan Teachers" />
@@ -15,24 +17,23 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Funding Michigan Teachers" />
     <meta property="og:title" content="Funding Michigan Teachers | 501(c)(3) Student-Led Nonprofit" />
-    <meta property="og:description" content="A student-led nonprofit founded in 2023 to support Michigan educators. 100% of donations go directly to teachers — classroom supplies, appreciation events, and monthly staff meals." />
+    <meta property="og:description" content="A student-led nonprofit founded in 2023 to support Michigan educators. At least 80¢ of every dollar goes directly to teachers — classroom supplies, appreciation events, and staff meals." />
     <meta property="og:url" content="https://www.fundingmichiganteachers.org" />
-    <meta property="og:image" content="https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-opt.jpg" />
+    <meta property="og:image" content="https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-og.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Finn Regan, founder of Funding Michigan Teachers, with Mrs. Freeman at Okemos High School" />
     <meta property="og:locale" content="en_US" />
 
-    <!-- Twitter Card -->
+    <!-- Twitter/X card (rendered by several platforms; no X account is linked) -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@fundingmiteachers" />
     <meta name="twitter:title" content="Funding Michigan Teachers | Student-Led Nonprofit" />
-    <meta name="twitter:description" content="Student-led 501(c)(3) nonprofit supporting Michigan teachers. 100% of donations go directly to educators." />
-    <meta name="twitter:image" content="https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-opt.jpg" />
+    <meta name="twitter:description" content="Student-led 501(c)(3) nonprofit supporting Michigan teachers. At least 80¢ of every dollar goes directly to educators." />
+    <meta name="twitter:image" content="https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-og.jpg" />
     <meta name="twitter:image:alt" content="Finn Regan with Mrs. Freeman at Okemos High School" />
 
-    <!-- Canonical -->
-    <link rel="canonical" href="https://www.fundingmichiganteachers.org" />
+    <!-- Canonical (homepage default; per-route canonicals set client-side) -->
+    <link rel="canonical" href="https://www.fundingmichiganteachers.org/" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
@@ -50,12 +51,12 @@
         "url": "https://www.fundingmichiganteachers.org",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.fundingmichiganteachers.org/images/fmt-logo-lc.png",
+          "url": "https://www.fundingmichiganteachers.org/images/fmt-logo-512.png",
           "width": 512,
           "height": 512
         },
-        "image": "https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-opt.jpg",
-        "description": "Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. Funding Michigan Teachers is a student-led 501(c)(3) nonprofit founded in 2023 by Finn Regan, a high school student from Okemos, Michigan. Values: teachers are valued; no teacher pays out of pocket; students lead; every dollar stays in Michigan. The organization supports Michigan educators through classroom supply grants, monthly staff appreciation meals, door decorating competitions, and teacher appreciation events. 100% of all donations go directly to teachers and classrooms.",
+        "image": "https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-og.jpg",
+        "description": "Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. Funding Michigan Teachers is a student-led 501(c)(3) nonprofit founded in 2023 by Finn Regan, a high school student from Okemos, Michigan. Values: teachers are valued; no teacher pays out of pocket; students lead; every dollar stays in Michigan. The organization supports Michigan educators through classroom supply grants, staff appreciation meals, door decorating competitions, and teacher appreciation events. At least 80 cents of every dollar donated goes directly to teachers and classrooms.",
         "slogan": "Teachers deserve better; let's make it happen.",
         "foundingDate": "2023-11-01",
         "foundingLocation": {
@@ -86,10 +87,11 @@
         },
         "sameAs": [
           "https://www.instagram.com/fundingmichiganteachers",
-          "https://twitter.com/fundingmiteachers"
+          "https://www.facebook.com/fundingmichiganteachers",
+          "https://www.linkedin.com/company/funding-michigan-teachers"
         ],
         "taxID": "93-4485967",
-        "nonprofitStatus": "Nonprofit501c3",
+        "nonprofitStatus": "https://schema.org/Nonprofit501c3",
         "knowsAbout": [
           "Teacher appreciation",
           "Education funding",
@@ -97,7 +99,6 @@
           "Michigan public schools",
           "Student-led nonprofits"
         ],
-        "slogan": "Michigan teachers give everything. We give back.",
         "founder": {
           "@type": "Person",
           "@id": "https://www.fundingmichiganteachers.org/#founder",
@@ -121,12 +122,12 @@
         "@id": "https://www.fundingmichiganteachers.org/#website",
         "url": "https://www.fundingmichiganteachers.org",
         "name": "Funding Michigan Teachers",
-        "description": "Student-led 501(c)(3) nonprofit supporting Michigan educators through classroom grants, appreciation events, and monthly staff meals.",
+        "description": "Student-led 501(c)(3) nonprofit supporting Michigan educators through classroom grants, appreciation events, and staff meals.",
         "publisher": {
           "@id": "https://www.fundingmichiganteachers.org/#organization"
         },
         "inLanguage": "en-US",
-        "dateModified": "2026-03-26"
+        "dateModified": "2026-09-06"
       },
       {
         "@context": "https://schema.org",
@@ -137,7 +138,7 @@
             "name": "How do I donate to Funding Michigan Teachers?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Click 'Donate Now' at the top of the page, or scroll down and choose your impact level. Donation tiers start at $10/month (Bell Ringer), $50/month (Honor Roll), and $250/month (Hall of Fame). All donations are processed securely through Zeffy — a free platform for nonprofits, meaning zero processing fees come out of your gift."
+              "text": "Click 'Donate Now' anywhere on the site, or go to fundingmichiganteachers.org/donate. You can give once or monthly — monthly tiers run from $25 (Supply Starter) to $250 (Grant Maker), and any custom amount works. Checkout is a secure embedded card form powered by Stripe, with Apple Pay and Google Pay supported."
             }
           },
           {
@@ -161,7 +162,7 @@
             "name": "How does Funding Michigan Teachers use donations?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "100% of all donations go directly to teachers and classrooms — supplies, food for monthly staff meetings, teacher appreciation events, door decorating competitions, and classroom grants. Funding Michigan Teachers is a student-run organization with zero paid staff, so every dollar goes exactly where it should."
+              "text": "At least 80 cents of every dollar goes directly to teachers and classrooms — supplies, food for staff meetings, teacher appreciation events, door decorating competitions, and classroom grants. The rest covers card-processing fees and the basic costs of running the organization. FMT is student-run and pays no salaries."
             }
           },
           {
@@ -169,7 +170,7 @@
             "name": "Who runs Funding Michigan Teachers?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Funding Michigan Teachers is a student-led nonprofit founded in November 2023 by Finn Regan, a high school student from Okemos, Michigan. Finn started the organization at age 14 after years of watching teachers spend their own money on classrooms without recognition. The organization is operated entirely by high school students."
+              "text": "Funding Michigan Teachers is a student-led nonprofit founded in November 2023 by Finn Regan, a high school student from Okemos, Michigan. Finn started the organization at age 14 after years of watching teachers spend their own money on classrooms without recognition. The organization is operated by high school students."
             }
           },
           {
@@ -177,7 +178,7 @@
             "name": "What has Funding Michigan Teachers accomplished?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Since founding in 2023, Funding Michigan Teachers has raised over $15,000 for Michigan educators and reached 1,000+ staff members across 9 schools. Accomplishments include monthly staff appreciation meals from local Okemos businesses (Chick-Fil-A, Dunkin', Nothing Bundt Cakes, Hungry Howie's), two door decorating competitions awarding $500+ in prizes, a Valentine's Day student letter campaign, classroom supply grants, and a funded dissection lab project at Okemos High School."
+              "text": "Since founding in 2023, Funding Michigan Teachers has raised over $15,000 for Michigan educators and reached 1,000+ staff members across 9 schools. Accomplishments include staff appreciation meals from local Okemos businesses (Chick-Fil-A, Dunkin', Nothing Bundt Cakes, Hungry Howie's), two door decorating competitions awarding $500+ in prizes, a Valentine's Day student letter campaign, classroom supply grants, and a funded dissection lab project at Okemos High School."
             }
           },
           {
@@ -192,37 +193,13 @@
       },
       {
         "@context": "https://schema.org",
-        "@type": "Event",
-        "name": "FMT Coffee Bar at OHS Kickstart",
-        "startDate": "2026-08-19T09:00",
-        "endDate": "2026-08-19T14:00",
-        "description": "The FMT Coffee Bar comes to Okemos High School's Kickstart — fresh coffee, decaf, and hot chocolate for staff gearing up for the new school year, with Biggby Coffee. 9am–2pm, or while supplies last.",
-        "location": {
-          "@type": "Place",
-          "name": "Okemos High School",
-          "address": {
-            "@type": "PostalAddress",
-            "addressLocality": "Okemos",
-            "addressRegion": "MI",
-            "addressCountry": "US"
-          }
-        },
-        "organizer": {
-          "@id": "https://www.fundingmichiganteachers.org/#organization"
-        },
-        "eventStatus": "https://schema.org/EventScheduled",
-        "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-        "url": "https://www.fundingmichiganteachers.org/#events"
-      },
-      {
-        "@context": "https://schema.org",
         "@type": "DonateAction",
         "name": "Donate to Funding Michigan Teachers",
-        "description": "Support Michigan teachers by donating to Funding Michigan Teachers, a 501(c)(3) nonprofit. 100% of donations go directly to educators.",
+        "description": "Support Michigan teachers by donating to Funding Michigan Teachers, a 501(c)(3) nonprofit. At least 80¢ of every dollar goes directly to educators.",
         "recipient": {
           "@id": "https://www.fundingmichiganteachers.org/#organization"
         },
-        "url": "https://www.fundingmichiganteachers.org"
+        "url": "https://www.fundingmichiganteachers.org/donate"
       }
     ]
     </script>
@@ -230,23 +207,21 @@
     <!-- Preconnect to external origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://www.zeffy.com" />
-    <link rel="preconnect" href="https://zeffy-scripts.s3.ca-central-1.amazonaws.com" />
 
     <!-- Premium typography pairing:
-         Display: Fraunces (variable serif with optical sizing — Apple-tier)
-         Body:    Plus Jakarta Sans (modern grotesk, distinct from Inter)
-         Hand:    Architects Daughter (legacy accent for marginalia) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Architects+Daughter&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Architects+Daughter&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Architects+Daughter&display=swap" /></noscript>
+         Display: Fraunces (variable serif — only the opsz+wght axes we use)
+         Body:    Plus Jakarta Sans (variable weight range)
+         Hand:    Architects Daughter (accent for marginalia) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Plus+Jakarta+Sans:wght@300..800&family=Architects+Daughter&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Plus+Jakarta+Sans:wght@300..800&family=Architects+Daughter&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Plus+Jakarta+Sans:wght@300..800&family=Architects+Daughter&display=swap" /></noscript>
 
-    <!-- Preload LCP hero image -->
-    <link rel="preload" as="image" href="/images/finn-and-mrs-freeman-opt.jpg" />
+    <!-- Preload LCP hero image — desktop only: the hero photo is hidden below
+         1024px, and without the media query every phone downloaded it anyway. -->
+    <link rel="preload" as="image" type="image/avif" href="/images/finn-and-mrs-freeman-1280.avif" media="(min-width: 1024px)" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script defer src="https://zeffy-scripts.s3.ca-central-1.amazonaws.com/embed-form-script.min.js"></script>
   </body>
 </html>

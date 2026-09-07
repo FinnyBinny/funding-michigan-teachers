@@ -103,11 +103,87 @@ export interface TeacherOfTheMonth {
 }
 
 export const EVENTS: Event[] = [
+  // The 2026-27 season. EventCalendar hides anything already past, so old
+  // rows age out on their own. Month-long programs are dated at the END of
+  // their window so they stay listed throughout; the copy carries the real
+  // timing. More staff-meeting dates get added through the year.
   {
-    id: 3,
-    title: 'FMT Coffee Bar at OHS Kickstart',
-    date: '2026-08-19',
-    description: "We're bringing the FMT Coffee Bar to Okemos High School's Kickstart — fresh coffee, decaf, and hot chocolate for staff as they gear up for the new school year, with our friends at Biggby Coffee. 9am–2pm, or while supplies last.",
+    id: 10,
+    title: 'First Staff Meeting Smoothies — East Lansing',
+    date: '2026-09-08',
+    description: '80 Jamba Juice smoothies (16 oz) and coupons for East Lansing High School\'s first staff meeting of the year.',
+    location: 'East Lansing High School',
+    type: 'appreciation',
+  },
+  {
+    id: 11,
+    title: 'Staff Meeting Catering — Haslett',
+    date: '2026-09-15',
+    description: "Catering Haslett High School's September staff meeting.",
+    location: 'Haslett High School',
+    type: 'appreciation',
+  },
+  {
+    id: 12,
+    title: 'Staff Meeting Catering — Okemos',
+    date: '2026-09-16',
+    description: 'Catering the September staff meeting at Okemos High School.',
+    location: 'Okemos High School',
+    type: 'appreciation',
+  },
+  {
+    id: 13,
+    title: 'Boo Baskets — October Teacher of the Month',
+    date: '2026-10-30',
+    description: 'Halloween edition of Teacher of the Month: custom-themed boo baskets delivered to two or three Okemos teachers every week, all October long.',
+    location: 'Okemos High School',
+    type: 'appreciation',
+  },
+  {
+    id: 14,
+    title: 'FMT Turns Three',
+    date: '2026-11-20',
+    description: 'Our founding anniversary — three years since Funding Michigan Teachers started in November 2023.',
+    location: 'Okemos, MI',
+    type: 'milestone',
+  },
+  {
+    id: 15,
+    title: 'Door Decorating Competition',
+    date: '2026-12-18',
+    description: 'The door decorating competition returns — classrooms go all out and winners take home prizes.',
+    location: 'Okemos High School',
+    type: 'competition',
+  },
+  {
+    id: 16,
+    title: 'December School Supply Drive',
+    date: '2026-12-31',
+    description: 'Collecting classroom supplies all through December, delivered to teachers when school resumes in January.',
+    location: 'Greater Lansing area',
+    type: 'fundraiser',
+  },
+  {
+    id: 17,
+    title: 'Post Office of Love',
+    date: '2027-02-12',
+    description: 'Students write letters to the staff members who matter to them, and we deliver every one at the end of the day. Runs for about a week in February.',
+    location: 'Okemos High School',
+    type: 'appreciation',
+  },
+  {
+    id: 18,
+    title: 'Teacher Appreciation Week',
+    date: '2027-05-07',
+    description: 'Our biggest week of the year — meals, meal cards, and appreciation events for educators across our partner schools.',
+    location: 'All partner schools',
+    type: 'appreciation',
+  },
+  {
+    id: 19,
+    title: 'End-of-Year Staff Appreciation Breakfast',
+    date: '2027-06-04',
+    description: 'Closing out the school year the right way: breakfast for the staff who made it happen.',
     location: 'Okemos High School',
     type: 'appreciation',
   },
@@ -292,8 +368,8 @@ export const FOOD_PARTNERS: FoodPartner[] = [
   { id: 2, month: 'October', business: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
   { id: 3, month: 'January', business: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
   { id: 4, month: 'March', business: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
-  { id: 5, month: 'May', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — 1,000 "Be our guest" meal cards ($3,000+ value) for educators across 9 schools', image: '/images/may-chick-fil-a-cards.jpg', display_order: 5 },
-  { id: 6, month: 'May', business: "Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting.jpg', display_order: 6 },
+  { id: 5, month: 'May', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — 1,000 "Be our guest" meal cards ($3,000+ value) for educators across 9 schools', image: '/images/may-chick-fil-a-cards-opt.jpg', display_order: 5 },
+  { id: 6, month: 'May', business: "Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting-opt.jpg', display_order: 6 },
   { id: 7, month: '2025–27', business: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)', detail: 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', image: '/images/coffee-bar-biggby-opt.jpg', display_order: 7 },
   { id: 9, month: 'May', business: 'Playmakers (2299 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
   { id: 10, month: 'May', business: 'Cottage Inn Pizza (1743 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated five $20 gift cards for staff appreciation', display_order: 10 },
@@ -334,6 +410,22 @@ export const TEACHERS_OF_THE_MONTH: TeacherOfTheMonth[] = [
 ];
 
 export const PAST_EVENTS: PastEvent[] = [
+  {
+    id: 0,
+    month: 'September 2026',
+    title: 'Back-to-School Smoothies at Haslett',
+    description: 'Brought 60 Jamba Juice smoothies and coupons to Haslett High School during the school day — a cold start to a hot September.',
+    type: 'appreciation',
+    partner: 'Jamba Juice',
+  },
+  {
+    id: 20,
+    month: 'August 2026',
+    title: 'FMT Coffee Bar at OHS Kickstart',
+    description: "Fresh coffee, decaf, and hot chocolate for Okemos High School staff gearing up for the new school year, with our friends at Biggby Coffee.",
+    type: 'appreciation',
+    partner: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)',
+  },
   {
     id: 1,
     month: 'September 2025',
@@ -409,7 +501,7 @@ export const PAST_EVENTS: PastEvent[] = [
 export const FAQ_DATA = [
   {
     question: 'How do I donate?',
-    answer: 'Click "Donate Now" at the top of the page, or scroll down and choose your impact level. All donations are processed securely through Zeffy — a free platform for nonprofits, meaning zero processing fees come out of your gift.',
+    answer: 'Click "Donate Now" anywhere on the site, or head to the Donate page. You can give once or monthly, from $25 up — or any custom amount. Checkout is a secure card form powered by Stripe, and Apple Pay and Google Pay both work.',
   },
   {
     question: 'Are donations tax-deductible?',
@@ -421,7 +513,7 @@ export const FAQ_DATA = [
   },
   {
     question: 'How is the money used?',
-    answer: '100% of donations go directly to teachers and classroom resources — supplies, food for staff meetings, appreciation events, and materials. We are a student-run organization with zero paid staff, which means your dollar goes exactly where it should.',
+    answer: 'At least 80¢ of every dollar goes directly to teachers and classroom resources — supplies, food for staff meetings, appreciation events, and materials. The rest covers card-processing fees and the basic costs of running a nonprofit. We are student-run and pay no salaries.',
   },
   {
     question: 'Who runs Funding Michigan Teachers?',

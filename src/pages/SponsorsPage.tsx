@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Heart, ArrowLeft, Building2, ExternalLink, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
+import SiteHeader from '../components/SiteHeader';
+import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
@@ -16,6 +18,16 @@ export default function SponsorsPage() {
   const foodPartners = useFoodPartners();
   const sponsors = useSponsors().filter(s => s.active !== false);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setPageMeta({
+      title: 'Corporate Sponsorship | Funding Michigan Teachers',
+      description:
+        "Partner with a student-led Michigan nonprofit. Sponsorship tiers put your business in front of local educators while funding classroom supplies, staff meals, and teacher appreciation.",
+      path: '/sponsors',
+    });
+  }, []);
+
   // All donations route through /donate, which hosts the embedded Stripe
   // checkout panel — one consistent, on-page payment flow site-wide.
   const handleDonate = (amount?: number) => {
@@ -25,42 +37,7 @@ export default function SponsorsPage() {
   return (
     <div className="min-h-screen bg-paper overflow-x-hidden">
 
-      {/* Minimal Header */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-chalkboard/5 shadow-[0_2px_20px_rgba(0,0,0,0.04)]">
-        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-6 py-4 flex items-center justify-between">
-
-          {/* Logo + back */}
-          <div className="flex items-center gap-5">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-1.5 text-chalkboard/50 hover:text-chalkboard transition-colors text-sm font-bold uppercase tracking-widest cursor-pointer"
-            >
-              <ArrowLeft size={15} />
-              <span className="hidden sm:inline">Home</span>
-            </button>
-
-            <div className="w-px h-6 bg-chalkboard/10" />
-
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-3 group cursor-pointer"
-            >
-              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md transform -rotate-3 group-hover:rotate-0 transition-transform shrink-0">
-                <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" />
-              </div>
-              <span className="font-serif text-base font-bold tracking-tight hidden sm:block">Funding Michigan Teachers</span>
-            </button>
-          </div>
-
-          {/* Donate button only */}
-          <button
-            onClick={() => handleDonate()}
-            className="bg-chalkboard text-white px-6 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold text-sm cursor-pointer"
-          >
-            Donate Now
-          </button>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main>
 
@@ -85,7 +62,7 @@ export default function SponsorsPage() {
               </p>
               <p className="text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
-                501(c)(3) Nonprofit · EIN 93-4485967 · 100% to teachers
+                501(c)(3) Nonprofit · EIN 93-4485967 · 80¢+ of every dollar to teachers
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
               </p>
             </motion.div>

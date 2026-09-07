@@ -18,15 +18,64 @@ export type AnalyticsEvent =
   | 'stripe_donation_clicked'
   | 'faq_opened';
 
+/**
+ * Google Analytics 4 measurement ID (looks like "G-XXXXXXXXXX").
+ *
+ * Empty = analytics fully off (nothing loads, nothing is sent). To turn it on:
+ * analytics.google.com → Admin → Create property → Web stream for
+ * www.fundingmichiganteachers.org → paste the Measurement ID here. This is the
+ * only line that needs to change; the Google Ad Grant requires conversion
+ * tracking, which is configured on top of this once it's live.
+ */
+export const GA_MEASUREMENT_ID = '';
+
 declare global {
   interface Window {
-    dataLayer?: Record<string, unknown>[];
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+/**
+ * Loads gtag.js when a measurement ID is configured; a no-op otherwise.
+ * Called once from main.tsx.
+ */
+export function initAnalytics(): void {
+  try {
+    if (!GA_MEASUREMENT_ID || typeof document === 'undefined') return;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag(...args: unknown[]) {
+      window.dataLayer!.push(args);
+    };
+    window.gtag('js', new Date());
+    // SPA: we send page_view ourselves from setPageMeta on route changes.
+    window.gtag('config', GA_MEASUREMENT_ID, { send_page_view: false });
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+    document.head.appendChild(s);
+  } catch {
+    /* analytics is never allowed to surface an error to a visitor */
+  }
+}
+
+/** Reports an SPA page view; called by setPageMeta whenever a route mounts. */
+export function trackPageView(path: string, title: string): void {
+  try {
+    if (!GA_MEASUREMENT_ID) return;
+    window.gtag?.('event', 'page_view', { page_path: path, page_title: title });
+  } catch {
+    /* never surface */
   }
 }
 
 export function track(event: AnalyticsEvent, props: Record<string, unknown> = {}): void {
   try {
     if (typeof window === 'undefined') return;
+    if (GA_MEASUREMENT_ID && window.gtag) {
+      window.gtag('event', event, props);
+      return;
+    }
     window.dataLayer?.push({ event, ...props });
   } catch {
     /* analytics is never allowed to surface an error to a visitor */

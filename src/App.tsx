@@ -3,16 +3,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Heart,
   Sparkles,
-  ChevronRight,
   BookOpen,
   MapPin,
   Trophy,
   Calendar,
-  Menu,
-  X,
   ArrowRight,
 } from 'lucide-react';
-import { cn } from './lib/utils';
+import { setPageMeta } from './lib/seo';
+import SiteHeader from './components/SiteHeader';
 import { Button, ButtonTrailing } from './components/ui/button';
 import MichiganMap from './components/MichiganMap';
 import DonationTiers from './components/DonationTiers';
@@ -27,12 +25,16 @@ import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
-import PrivacyPolicy from './components/PrivacyPolicy';
 
 export default function App() {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
+  useEffect(() => {
+    setPageMeta({
+      title: 'Funding Michigan Teachers | 501(c)(3) Student-Led Nonprofit | Okemos, MI',
+      description:
+        'Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. A student-led 501(c)(3) nonprofit (EIN: 93-4485967) funding classroom supplies, staff meals, and teacher appreciation across Michigan.',
+      path: '/',
+    });
+  }, []);
 
   const handleDonate = (amount?: number, project?: { title: string; teacher_name: string }) => {
     // 3-click donation flow:
@@ -63,93 +65,9 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const navItems = ['Mission', 'Impact', 'Projects', 'Leaderboard', 'Events', 'Stories'];
-
   return (
     <div className="min-h-screen bg-paper selection:bg-pencil/30 overflow-x-hidden">
-      {/* Navbar */}
-      <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4",
-        scrolled ? "bg-white/95 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.05)] py-3" : "bg-transparent"
-      )}>
-        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-3 group cursor-pointer min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-lg transform -rotate-3 transition-transform group-hover:rotate-0 shrink-0">
-              <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-serif text-base sm:text-xl font-bold tracking-tight leading-none truncate">Funding Michigan Teachers</span>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted hidden sm:block">Student-Led Nonprofit</span>
-            </div>
-          </div>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-10 font-medium text-xs uppercase tracking-[0.15em]">
-            {navItems.map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                className="hover:text-apple transition-colors relative group"
-              >
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-apple transition-all group-hover:w-full" />
-              </a>
-            ))}
-            <button
-              onClick={() => handleDonate()}
-              className="bg-chalkboard text-white px-8 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer"
-            >
-              Donate Now
-            </button>
-          </div>
-
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl hover:bg-chalkboard/5 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl pt-24 pb-8 px-6 shadow-2xl lg:hidden"
-          >
-            <div className="flex flex-col gap-4">
-              {navItems.map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-bold uppercase tracking-widest hover:text-apple transition-colors py-2 border-b border-chalkboard/5"
-                >
-                  {item}
-                </a>
-              ))}
-              <button
-                onClick={() => { setMobileMenuOpen(false); handleDonate(); }}
-                className="mt-4 bg-apple text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-apple/90 transition-all cursor-pointer"
-              >
-                Donate Now
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <SiteHeader isHome />
 
       <main>
         {/* Hero Section */}
@@ -203,7 +121,7 @@ export default function App() {
               </div>
               <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
-                501(c)(3) Nonprofit · EIN 93-4485967 · 100% to teachers
+                501(c)(3) Nonprofit · EIN 93-4485967 · 80¢+ of every dollar to teachers
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
               </p>
               {/* Grid on mobile (hard 3-column constraint prevents horizontal
@@ -238,14 +156,19 @@ export default function App() {
                   already shown in the left column, so the photo takes that
                   space instead. */}
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
-                <img
-                  src="/images/finn-and-mrs-freeman-opt.jpg"
-                  alt="Finn Regan with Mrs. Freeman at Okemos High School"
-                  className="w-full h-[540px] xl:h-[600px] object-cover object-top"
-                  loading="eager"
-                  decoding="async"
-                  fetchPriority="high"
-                />
+                <picture>
+                  <source srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <img
+                    src="/images/finn-and-mrs-freeman-1280.jpg"
+                    alt="Finn Regan with Mrs. Freeman at Okemos High School"
+                    width={1280}
+                    height={960}
+                    className="w-full h-[540px] xl:h-[600px] object-cover object-top"
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                  />
+                </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/75 via-chalkboard/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
                   <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Finn &amp; Mrs. Freeman · Okemos High School</p>
@@ -486,7 +409,10 @@ export default function App() {
             <div className="sm:col-span-2">
               <div className="flex items-center gap-3 mb-6 sm:mb-8">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-2xl rotate-3 shrink-0">
-                  <img src="/images/fmt-logo-lc.png" alt="Funding Michigan Teachers" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  <picture>
+                    <source srcSet="/images/fmt-logo-96.avif" type="image/avif" />
+                    <img src="/images/fmt-logo-96.png" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  </picture>
                 </div>
                 <span className="font-serif text-xl sm:text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>
               </div>
@@ -497,15 +423,16 @@ export default function App() {
                 A student-led 501(c)(3) funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
               </p>
               <div className="flex gap-6">
-                <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>
-                <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Instagram</a>
-                <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">LinkedIn</a>
+                <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>
+                <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Instagram</a>
+                <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">LinkedIn</a>
               </div>
             </div>
 
             <div>
               <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Navigation</h4>
               <ul className="space-y-5 text-white/60 font-medium">
+                <li><a href="/about" className="hover:text-white transition-colors">About Us</a></li>
                 <li><a href="#mission" className="hover:text-white transition-colors">Our Mission</a></li>
                 <li><a href="#impact" className="hover:text-white transition-colors">Impact Map</a></li>
                 <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>
@@ -535,13 +462,13 @@ export default function App() {
             </div>
           </div>
 
-          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/20 text-xs">
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/60 text-xs">
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
               <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
               <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
             </div>
             <div className="flex items-center gap-6">
-              <button onClick={() => setShowPrivacy(true)} className="hover:text-white transition-colors">Privacy Policy</button>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
             </div>
           </div>
         </div>
@@ -553,9 +480,6 @@ export default function App() {
 
       {/* FAQ Assistant */}
       <FAQAssistant />
-
-      {/* Privacy Policy Modal */}
-      <PrivacyPolicy isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
 
       {/* 5-minute donation nudge */}
       <DonationNudge onDonate={() => handleDonate()} />

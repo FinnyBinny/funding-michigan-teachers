@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, ArrowRight, Compass } from 'lucide-react';
 import SiteFooter from '../components/SiteFooter';
+import { setPageMeta } from '../lib/seo';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -25,12 +26,12 @@ const WAYS_OUT = [
 export default function NotFoundPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Page not found · Funding Michigan Teachers';
-    const meta = document.createElement('meta');
-    meta.name = 'robots';
-    meta.content = 'noindex';
-    document.head.appendChild(meta);
-    return () => { meta.remove(); };
+    setPageMeta({
+      title: 'Page not found · Funding Michigan Teachers',
+      description: 'This page went missing.',
+      path: window.location.pathname,
+      noindex: true,
+    });
   }, []);
 
   return (
