@@ -207,6 +207,10 @@
     <!-- Preconnect to external origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Site content (events, projects, schools, stories) is fetched from
+         Supabase during hydration; opening the connection early saves a full
+         DNS + TLS round trip on first paint. -->
+    <link rel="preconnect" href="https://zvzlgawpezovdwmnvwlg.supabase.co" crossorigin />
 
     <!-- Premium typography pairing:
          Display: Fraunces (variable serif — only the opsz+wght axes we use)
