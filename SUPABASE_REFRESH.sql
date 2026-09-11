@@ -246,40 +246,72 @@ delete from donors where name ilike 'Walmart%';
 -- upcoming). Month-long programs are dated at the END of their window so
 -- they stay visible throughout it; their descriptions carry the real timing.
 
+-- One INSERT per event on purpose. A single multi-row VALUES list forces
+-- Postgres to settle on one type per column before assigning it, which makes
+-- the date literals text — and this table's `date` column is a real date type
+-- in some databases and text in others (it predates these scripts). Written
+-- this way the literals stay untyped and Postgres coerces each one to whatever
+-- the column actually is, so this runs on either schema.
+
 insert into events (title, date, description, location, type)
-select * from (values
-  ('First Staff Meeting Smoothies — East Lansing', '2026-09-08',
-   '80 Jamba Juice smoothies (16 oz) and coupons for East Lansing High School''s first staff meeting of the year.',
-   'East Lansing High School', 'appreciation'),
-  ('Staff Meeting Catering — Haslett', '2026-09-15',
-   'Catering Haslett High School''s September staff meeting.',
-   'Haslett High School', 'appreciation'),
-  ('Staff Meeting Catering — Okemos', '2026-09-16',
-   'Catering the September staff meeting at Okemos High School.',
-   'Okemos High School', 'appreciation'),
-  ('Boo Baskets — October Teacher of the Month', '2026-10-30',
-   'Halloween edition of Teacher of the Month: custom-themed boo baskets delivered to two or three Okemos teachers every week, all October long.',
-   'Okemos High School', 'appreciation'),
-  ('FMT Turns Three', '2026-11-20',
-   'Our founding anniversary — three years since Funding Michigan Teachers started in November 2023.',
-   'Okemos, MI', 'milestone'),
-  ('Door Decorating Competition', '2026-12-18',
-   'The door decorating competition returns — classrooms go all out and winners take home prizes.',
-   'Okemos High School', 'competition'),
-  ('December School Supply Drive', '2026-12-31',
-   'Collecting classroom supplies all through December, delivered to teachers when school resumes in January.',
-   'Greater Lansing area', 'fundraiser'),
-  ('Post Office of Love', '2027-02-12',
-   'Students write letters to the staff members who matter to them, and we deliver every one at the end of the day. Runs for about a week in February.',
-   'Okemos High School', 'appreciation'),
-  ('Teacher Appreciation Week', '2027-05-07',
-   'Our biggest week of the year — meals, meal cards, and appreciation events for educators across our partner schools.',
-   'All partner schools', 'appreciation'),
-  ('End-of-Year Staff Appreciation Breakfast', '2027-06-04',
-   'Closing out the school year the right way: breakfast for the staff who made it happen.',
-   'Okemos High School', 'appreciation')
-) as v(title, date, description, location, type)
-where not exists (select 1 from events where events.title = v.title);
+select 'First Staff Meeting Smoothies — East Lansing', '2026-09-08',
+       '80 Jamba Juice smoothies (16 oz) and coupons for East Lansing High School''s first staff meeting of the year.',
+       'East Lansing High School', 'appreciation'
+where not exists (select 1 from events where title = 'First Staff Meeting Smoothies — East Lansing');
+
+insert into events (title, date, description, location, type)
+select 'Staff Meeting Catering — Haslett', '2026-09-15',
+       'Catering Haslett High School''s September staff meeting.',
+       'Haslett High School', 'appreciation'
+where not exists (select 1 from events where title = 'Staff Meeting Catering — Haslett');
+
+insert into events (title, date, description, location, type)
+select 'Staff Meeting Catering — Okemos', '2026-09-16',
+       'Catering the September staff meeting at Okemos High School.',
+       'Okemos High School', 'appreciation'
+where not exists (select 1 from events where title = 'Staff Meeting Catering — Okemos');
+
+insert into events (title, date, description, location, type)
+select 'Boo Baskets — October Teacher of the Month', '2026-10-30',
+       'Halloween edition of Teacher of the Month: custom-themed boo baskets delivered to two or three Okemos teachers every week, all October long.',
+       'Okemos High School', 'appreciation'
+where not exists (select 1 from events where title = 'Boo Baskets — October Teacher of the Month');
+
+insert into events (title, date, description, location, type)
+select 'FMT Turns Three', '2026-11-20',
+       'Our founding anniversary — three years since Funding Michigan Teachers started in November 2023.',
+       'Okemos, MI', 'milestone'
+where not exists (select 1 from events where title = 'FMT Turns Three');
+
+insert into events (title, date, description, location, type)
+select 'Door Decorating Competition', '2026-12-18',
+       'The door decorating competition returns — classrooms go all out and winners take home prizes.',
+       'Okemos High School', 'competition'
+where not exists (select 1 from events where title = 'Door Decorating Competition');
+
+insert into events (title, date, description, location, type)
+select 'December School Supply Drive', '2026-12-31',
+       'Collecting classroom supplies all through December, delivered to teachers when school resumes in January.',
+       'Greater Lansing area', 'fundraiser'
+where not exists (select 1 from events where title = 'December School Supply Drive');
+
+insert into events (title, date, description, location, type)
+select 'Post Office of Love', '2027-02-12',
+       'Students write letters to the staff members who matter to them, and we deliver every one at the end of the day. Runs for about a week in February.',
+       'Okemos High School', 'appreciation'
+where not exists (select 1 from events where title = 'Post Office of Love');
+
+insert into events (title, date, description, location, type)
+select 'Teacher Appreciation Week', '2027-05-07',
+       'Our biggest week of the year — meals, meal cards, and appreciation events for educators across our partner schools.',
+       'All partner schools', 'appreciation'
+where not exists (select 1 from events where title = 'Teacher Appreciation Week');
+
+insert into events (title, date, description, location, type)
+select 'End-of-Year Staff Appreciation Breakfast', '2027-06-04',
+       'Closing out the school year the right way: breakfast for the staff who made it happen.',
+       'Okemos High School', 'appreciation'
+where not exists (select 1 from events where title = 'End-of-Year Staff Appreciation Breakfast');
 
 -- ── 4. Classroom projects (adds Miss Abbott + keeps the submit card) ────────
 
@@ -303,51 +335,86 @@ where not exists (select 1 from projects where teacher_name = 'Submit a Project'
 
 -- ── 5. Impact map — all 9 supported schools ─────────────────────────────────
 
+-- One INSERT per school, for the same reason as the events above: untyped
+-- literals let Postgres coerce each value to the column's real type. The
+-- coordinates here are the real geocoded ones, so no correction pass is
+-- needed afterwards.
+
 insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
-select * from (values
-  ('Okemos High School', 'Okemos Public Schools',
-   'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, 100% community-funded.',
-   '$15K+ org-wide', 42.7244, -84.4333,
-   '{"students":"1,800","lowIncome":"18%","diversity":"34%"}'::jsonb,
-   '["Staff Meeting Food (Every Meeting)","Classroom Supply Grants","Door Decorating Competition","Teacher of the Month","Post Office of Love","Coffee Bar"]'::jsonb),
-  ('Kinawa Middle School', 'Okemos Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
-   '~120 educators', 42.7180, -84.4180,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('Chippewa Middle School', 'Okemos Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
-   '~120 educators', 42.7080, -84.4430,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('Cornell Elementary', 'Okemos Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
-   '~120 educators', 42.7320, -84.4260,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('Bennett Woods Elementary', 'Okemos Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
-   '~120 educators', 42.6990, -84.4640,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('Hiawatha Elementary', 'Okemos Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
-   '~120 educators', 42.7150, -84.4520,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('Central Montessori', 'Okemos Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
-   '~120 educators', 42.7230, -84.4450,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('Haslett High School', 'Haslett Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~130 staff members.',
-   '~130 educators', 42.7530, -84.4010,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb),
-  ('East Lansing High School', 'East Lansing Public Schools',
-   'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~170 staff members.',
-   '~170 educators', 42.7480, -84.4840,
-   '{"students":"","lowIncome":"","diversity":""}'::jsonb, '["Teacher Appreciation Week Meal Cards"]'::jsonb)
-) as v(name, district, impact, amount, lat, lng, demographics, projects)
-where not exists (select 1 from locations where locations.name = v.name);
+select 'Okemos High School', 'Okemos Public Schools',
+       'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, funded entirely by the community.',
+       '$15K+ org-wide', 42.6878, -84.4267,
+       '{"students":"1,800","lowIncome":"18%","diversity":"34%"}'::jsonb,
+       '["Staff Meeting Food (Every Meeting)","Classroom Supply Grants","Door Decorating Competition","Teacher of the Month","Post Office of Love","Coffee Bar"]'::jsonb
+where not exists (select 1 from locations where name = 'Okemos High School');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Kinawa Middle School', 'Okemos Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
+       '~120 educators', 42.7016, -84.4172,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Kinawa Middle School');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Chippewa Middle School', 'Okemos Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
+       '~120 educators', 42.7014, -84.4267,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Chippewa Middle School');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Cornell Elementary', 'Okemos Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
+       '~120 educators', 42.701, -84.3936,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Cornell Elementary');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Bennett Woods Elementary', 'Okemos Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
+       '~120 educators', 42.6895, -84.4388,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Bennett Woods Elementary');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Hiawatha Elementary', 'Okemos Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
+       '~120 educators', 42.6861, -84.4099,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Hiawatha Elementary');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Central Montessori', 'Okemos Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A "Be our guest" meal cards delivered to all ~120 staff members.',
+       '~120 educators', 42.7098, -84.4183,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Central Montessori');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'Haslett High School', 'Haslett Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~130 staff members.',
+       '~130 educators', 42.7489, -84.401,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'Haslett High School');
+
+insert into locations (name, district, impact, amount, lat, lng, demographics, projects)
+select 'East Lansing High School', 'East Lansing Public Schools',
+       'Teacher Appreciation Week — Chick-fil-A free entrée cards for ~170 staff members.',
+       '~170 educators', 42.7522, -84.4716,
+       '{"students":"","lowIncome":"","diversity":""}'::jsonb,
+       '["Teacher Appreciation Week Meal Cards"]'::jsonb
+where not exists (select 1 from locations where name = 'East Lansing High School');
 
 -- Okemos High: make sure Post Office of Love is credited on the map
 update locations set
-  impact = 'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, 100% community-funded.',
+  impact = 'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, funded entirely by the community.',
   projects = '["Staff Meeting Food (Every Meeting)","Classroom Supply Grants","Door Decorating Competition","Teacher of the Month","Post Office of Love","Coffee Bar"]'::jsonb
 where name = 'Okemos High School';
 
