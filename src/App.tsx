@@ -25,6 +25,7 @@ import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
+import { STAT } from './data/impactStats';
 import Programs from './components/Programs';
 
 export default function App() {
@@ -130,18 +131,18 @@ export default function App() {
                   there's enough room at sm: and up. */}
               <div className="mt-10 grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
                 <div className="flex flex-col min-w-0">
-                  <span className="text-apple font-bold text-xl sm:text-2xl leading-none">200+</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Teachers Reached</span>
+                  <span className="text-apple font-bold text-xl sm:text-2xl leading-none">{STAT.teachers.value}</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.teachers.label}</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">350+</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Staff Reached</span>
+                  <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">{STAT.staff.value}</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.staff.label}</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">3</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Partner Schools</span>
+                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">{STAT.partnerSchools.value}</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.partnerSchools.label}</span>
                 </div>
               </div>
             </motion.div>

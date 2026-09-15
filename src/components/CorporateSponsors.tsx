@@ -1,3 +1,4 @@
+import { STAT } from '../data/impactStats';
 import { motion } from 'motion/react';
 import {
   Building2,
@@ -99,22 +100,22 @@ const SPONSOR_TIERS = [
 const WHY_STATS = [
   {
     icon: Users,
-    value: '350+',
-    label: 'Staff Reached',
+    value: STAT.staff.value,
+    label: STAT.staff.label,
     color: 'text-ruler',
     bg: 'bg-ruler/10',
   },
   {
     icon: TrendingUp,
-    value: '$8,500+',
-    label: 'In Donations & In-Kind',
+    value: STAT.support.value,
+    label: STAT.support.label,
     color: 'text-apple',
     bg: 'bg-apple/10',
   },
   {
     icon: Heart,
-    value: '3',
-    label: 'Partner Schools',
+    value: STAT.partnerSchools.value,
+    label: STAT.partnerSchools.label,
     color: 'text-pencil-dark',
     bg: 'bg-pencil/20',
   },

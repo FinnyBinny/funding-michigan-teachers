@@ -50,6 +50,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The impact figures drifted apart once already — the same card read
+      # "1,000+ staff members" in its heading and "Educators reached" in the
+      # stat beneath it. src/data/impactStats.ts is the single source now;
+      # this fails the build if a stale figure is retyped anywhere.
+      - name: Check impact figures are consistent
+        run: bash scripts/check-consistency.sh
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty

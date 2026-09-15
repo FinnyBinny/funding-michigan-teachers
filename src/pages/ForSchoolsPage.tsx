@@ -11,6 +11,7 @@ import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { STAT, TAW_CARD_VALUE } from '../data/impactStats';
 import { track } from '../lib/analytics';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -62,9 +63,9 @@ const ACCENT_MAP = {
 } as const;
 
 const IMPACT_NUMBERS = [
-  { value: '200+', label: 'Teachers Reached', color: 'text-apple' },
-  { value: '350+', label: 'Staff Reached', color: 'text-ruler' },
-  { value: '3', label: 'Partner Schools', color: 'text-pencil-dark' },
+  { value: STAT.teachers.value, label: STAT.teachers.label, color: 'text-apple' },
+  { value: STAT.staff.value, label: STAT.staff.label, color: 'text-ruler' },
+  { value: STAT.partnerSchools.value, label: STAT.partnerSchools.label, color: 'text-pencil-dark' },
   { value: '80¢+', label: 'Of Every Dollar to Teachers', color: 'text-apple' },
 ];
 
@@ -483,20 +484,20 @@ export default function ForSchoolsPage() {
                   And there's more
                 </div>
                 <h3 className="font-serif font-bold text-3xl md:text-4xl text-white leading-[1.05] tracking-[-0.01em] mb-5">
-                  <span className="text-pencil italic font-normal">1,000+ staff members</span><br/>
+                  <span className="text-pencil italic font-normal">{STAT.tawStaff.value} staff members</span><br/>
                   across nine buildings.
                 </h3>
                 <p className="text-white/55 text-base md:text-lg font-light leading-relaxed mb-7">
-                  During Teacher Appreciation Week, five local businesses showed up for teachers: <span className="text-white font-medium">Chick-fil-A</span> gave 1,000 "Be our guest" meal cards (over $3,000 in value), <span className="text-white font-medium">Dunkin'</span> brought coffee and donuts to the OHS staff meeting where our first Teachers of the Month were announced, <span className="text-white font-medium">Playmakers</span> donated two $25 gift cards, <span className="text-white font-medium">Cottage Inn</span> gave five $20 gift cards, and <span className="text-white font-medium">Culver's</span> donated 75 free scoop tokens — reaching every Okemos school, plus Haslett High School and East Lansing High School.
+                  During Teacher Appreciation Week, five local businesses showed up for teachers: <span className="text-white font-medium">Chick-fil-A</span> gave over 1,000 meal cards — 500 breakfast, 500 lunch entrées, roughly $5,000 in value —, <span className="text-white font-medium">Dunkin'</span> brought coffee and donuts to the OHS staff meeting where our first Teachers of the Month were announced, <span className="text-white font-medium">Playmakers</span> donated two $25 gift cards, <span className="text-white font-medium">Cottage Inn</span> gave five $20 gift cards, and <span className="text-white font-medium">Culver's</span> donated ~70–75 free custard coupons — reaching every Okemos school, plus Haslett High School and East Lansing High School.
                 </p>
                 <div className="grid grid-cols-3 gap-5 pt-6 border-t border-white/10">
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">1,000+</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Educators reached</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">{STAT.tawStaff.value}</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Staff reached</p>
                   </div>
                   <div>
-                    <p className="font-serif font-bold text-3xl text-pencil leading-none">9</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Schools, 3 districts</p>
+                    <p className="font-serif font-bold text-3xl text-pencil leading-none">{STAT.tawBuildings.value}</p>
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Buildings, 3 districts</p>
                   </div>
                   <div>
                     <p className="font-serif font-bold text-3xl text-pencil leading-none">5</p>

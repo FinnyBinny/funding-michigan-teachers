@@ -590,3 +590,35 @@ update locations
  where name in ('Kinawa Middle School','Chippewa Middle School','Cornell Elementary',
                 'Bennett Woods Elementary','Hiawatha Elementary','Central Montessori')
    and district not like '%Reached%';
+
+-- ── Consistency pass (September 2026) ───────────────────────────────────────
+-- Teachers and staff are different counts of different people, and the site
+-- had been using the words interchangeably. The database carried the same
+-- confusion: a pin whose impact text said "~120 staff members" displayed
+-- "~120 educators" as its headline figure.
+--
+-- Partner schools show the real split. The six one-touch schools show no
+-- headcount at all: the repeated "~120" was a placeholder, and inventing a
+-- number is worse than omitting one.
+
+update locations set amount = '~75–80 teachers · ~120 staff'
+ where name = 'Okemos High School';
+update locations set amount = '~50–60 teachers · ~100 staff'
+ where name = 'Haslett High School';
+update locations set amount = '~90 teachers · 120–140 staff'
+ where name = 'East Lansing High School';
+
+update locations
+   set amount = 'One-time delivery',
+       impact = 'Teacher Appreciation Week — Chick-fil-A meal cards delivered to the main office for staff. A school we''d like to come back to.'
+ where name in ('Kinawa Middle School','Chippewa Middle School','Cornell Elementary',
+                'Bennett Woods Elementary','Hiawatha Elementary','Central Montessori');
+
+-- Any lingering "educators" headline figure, wherever it came from.
+update locations set amount = 'One-time delivery'
+ where amount ilike '%educator%';
+
+-- The $8,500 figure covers the 2025-26 school year alone, not everything
+-- since founding — the earlier wording undersold a single year's work.
+update locations set amount = '$8,500+ in support, 2025–26'
+ where amount ilike '%8,500%' and amount not ilike '%2025%';
