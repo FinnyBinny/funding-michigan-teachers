@@ -4,6 +4,7 @@ import { Check, ArrowRight, Mail, Heart } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { STAT } from '../data/impactStats';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
@@ -21,9 +22,9 @@ const VALUES = [
 ];
 
 const NUMBERS = [
-  { value: '200+', label: 'Teachers at our three partner high schools' },
-  { value: '350+', label: 'Total staff at those schools, counting everyone who keeps a building running' },
-  { value: '$8,500+', label: 'In donations and in-kind support since 2023' },
+  { value: STAT.teachers.value, label: 'Teachers at our three partner high schools' },
+  { value: STAT.staff.value, label: 'Total staff at those schools — everyone who keeps a building running' },
+  { value: STAT.support.value, label: 'In donations and in-kind support during the 2025–26 school year alone' },
 ];
 
 /** What FMT runs across a school year — the founder's actual calendar. */
