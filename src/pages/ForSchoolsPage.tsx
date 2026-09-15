@@ -11,6 +11,7 @@ import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { track } from '../lib/analytics';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -812,6 +813,7 @@ function PilotInterestForm() {
       window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
     }
 
+    track('school_inquiry_submitted');
     setStatus('success');
   };
 

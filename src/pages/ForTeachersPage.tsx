@@ -6,6 +6,7 @@ import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { track } from '../lib/analytics';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
@@ -69,6 +70,7 @@ export default function ForTeachersPage() {
     }
 
     if (sent) {
+      track('supply_request_submitted', { school: form.school });
       setStatus('success');
       setForm({ name: '', email: '', school: '', needs: '' });
       return;

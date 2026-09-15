@@ -1,20 +1,30 @@
 /**
  * Provider-agnostic event hooks.
  *
- * The site has no analytics installed today, so these calls are inert — they
- * push to `window.dataLayer` when something is listening and no-op otherwise.
- * That means the returnables funnel is already instrumented, and connecting
- * Google Analytics, Plausible, Cloudflare Web Analytics, or Meta later is a
- * change to this one file rather than a hunt through components.
+ * Google Analytics 4 is live (see GA_MEASUREMENT_ID below). Events go through
+ * gtag when it's configured and fall back to a `window.dataLayer` push
+ * otherwise, so swapping GA for Plausible, Cloudflare Web Analytics or Meta
+ * later is a change to this one file rather than a hunt through components.
  *
- * Never throws: analytics must not be able to break a donation or a pickup
- * request.
+ * Never throws: analytics must not be able to break a donation, a supply
+ * request, or a pickup.
+ */
+/**
+ * Events worth counting. The five marked "conversion" are the ones to mark as
+ * key events in GA4 (Admin → Events → Mark as key event) — the Google Ad Grant
+ * requires at least one meaningful conversion, and a page view is not one.
  */
 export type AnalyticsEvent =
+  | 'donation_completed'        // conversion — a gift actually cleared Stripe
+  | 'supply_request_submitted'  // conversion — a teacher asked for supplies
+  | 'school_inquiry_submitted'  // conversion — a school asked about a pilot
+  | 'sponsor_inquiry_submitted' // conversion — a business made contact
+  | 'returnables_form_submitted'// conversion — a pickup was requested
+  | 'newsletter_signup'
+  | 'contact_form_submitted'
   | 'returnables_page_view'
   | 'returnables_cta_clicked'
   | 'returnables_form_started'
-  | 'returnables_form_submitted'
   | 'stripe_donation_clicked'
   | 'faq_opened';
 
@@ -27,7 +37,7 @@ export type AnalyticsEvent =
  * only line that needs to change; the Google Ad Grant requires conversion
  * tracking, which is configured on top of this once it's live.
  */
-export const GA_MEASUREMENT_ID = '';
+export const GA_MEASUREMENT_ID = 'G-KJ7R4XRHX2';
 
 declare global {
   interface Window {

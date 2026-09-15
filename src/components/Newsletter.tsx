@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { track } from '../lib/analytics';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -31,6 +32,7 @@ export default function Newsletter() {
     }
 
     if (submitted) {
+      track('newsletter_signup');
       setStatus('success');
       setEmail('');
       setTimeout(() => setStatus('idle'), 5000);
