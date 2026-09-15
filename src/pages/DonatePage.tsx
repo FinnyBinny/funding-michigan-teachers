@@ -11,6 +11,7 @@ import ImpactVisualizer from '../components/ImpactVisualizer';
 import EmbeddedDonateCheckout from '../components/EmbeddedDonateCheckout';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
+import { track } from '../lib/analytics';
 import SiteFooter from '../components/SiteFooter';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -65,6 +66,9 @@ export default function DonatePage() {
         .then((data) => {
           const ok = data.status === 'complete' || data.paymentStatus === 'paid' || data.paymentStatus === 'no_payment_required';
           setSuccess(ok ? 'confirmed' : 'failed');
+          // Counted on Stripe's confirmation, never on the click — a click is
+          // intent, this is a gift that actually cleared.
+          if (ok) track('donation_completed', { amount: data.amountTotal ? data.amountTotal / 100 : undefined, mode: data.mode });
         })
         .catch(() => setSuccess('failed'));
       return;

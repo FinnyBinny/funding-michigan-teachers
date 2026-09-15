@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { track } from '../lib/analytics';
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -34,6 +35,7 @@ export default function ContactForm() {
     }
 
     if (submitted) {
+      track('contact_form_submitted');
       setStatus('success');
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setStatus('idle'), 5000);

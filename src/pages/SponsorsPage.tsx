@@ -8,6 +8,7 @@ import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { track } from '../lib/analytics';
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -282,6 +283,7 @@ function SponsorInterestForm() {
       window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
     }
 
+    track('sponsor_inquiry_submitted');
     setStatus('success');
   };
 
