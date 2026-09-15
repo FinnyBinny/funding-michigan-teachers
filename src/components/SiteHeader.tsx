@@ -19,12 +19,19 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
+/**
+ * Audience-based navigation: a visitor picks the row that describes them
+ * rather than guessing which action applies. Donate stays a standing button
+ * so it never competes with the four audience pages.
+ *
+ * Returnables is deliberately absent — the word means nothing to a stranger.
+ * It lives inside both footers and on the donate page instead.
+ */
 const PAGES = [
   { label: 'About', path: '/about' },
-  { label: 'Donate', path: '/donate' },
+  { label: 'For Teachers', path: '/for-teachers' },
   { label: 'For Schools', path: '/for-schools' },
-  { label: 'Sponsors', path: '/sponsors' },
-  { label: 'Returnables', path: '/returnables' },
+  { label: 'For Businesses', path: '/sponsors' },
 ];
 
 /** Section anchors offered in the mobile menu on the homepage only. */
@@ -32,6 +39,7 @@ const HOME_ANCHORS = [
   { label: 'Mission', hash: '#mission' },
   { label: 'Impact', hash: '#impact' },
   { label: 'Projects', hash: '#projects' },
+  { label: 'Programs', hash: '#programs' },
   { label: 'Events', hash: '#events' },
   { label: 'Stories', hash: '#stories' },
 ];

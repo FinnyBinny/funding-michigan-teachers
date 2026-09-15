@@ -83,8 +83,13 @@ export default function ForSchoolsPage() {
   const heroRef = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroTitleY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  // The fade held at full strength only at scroll position 0, so the headline
+  // started dissolving the instant anyone scrolled — it was unreadable before
+  // you finished it. It now stays fully opaque through the first 40% of the
+  // hero's travel and fades over the remainder, and the parallax drift is
+  // gentler so the text isn't sliding while it's being read.
+  const heroTitleY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const heroOpacity = useTransform(scrollYProgress, [0.4, 0.95], [1, 0]);
 
   // Scroll-to-section
   const scrollTo = (id: string) => {
@@ -140,7 +145,7 @@ export default function ForSchoolsPage() {
             >
               Bring the<br/>
               programs that <span className="text-apple italic font-normal">empower teachers</span><br/>
-              <span className="text-chalkboard/30">to your school.</span>
+              <span className="text-chalkboard/55">to your school.</span>
             </motion.h1>
 
             <motion.p

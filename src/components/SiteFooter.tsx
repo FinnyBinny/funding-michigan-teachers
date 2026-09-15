@@ -10,9 +10,10 @@ function navigate(path: string) {
 const NAV = [
   { label: 'Home', path: '/' },
   { label: 'About', path: '/about' },
-  { label: 'Donate', path: '/donate' },
+  { label: 'For Teachers', path: '/for-teachers' },
   { label: 'For Schools', path: '/for-schools' },
-  { label: 'Corporate Sponsors', path: '/sponsors' },
+  { label: 'For Businesses', path: '/sponsors' },
+  { label: 'Donate', path: '/donate' },
   { label: 'Returnables', path: '/returnables' },
 ];
 

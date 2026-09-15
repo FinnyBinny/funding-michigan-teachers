@@ -25,6 +25,7 @@ import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
+import Programs from './components/Programs';
 
 export default function App() {
   useEffect(() => {
@@ -306,6 +307,14 @@ export default function App() {
           </div>
         </section>
 
+        {/* Ongoing programs. Sits just before the event calendar on purpose:
+            these run all year, what follows has dates on it. */}
+        <section id="programs" className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper">
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
+            <Programs />
+          </div>
+        </section>
+
         {/* Event Calendar Section */}
         <section
           id="events"
@@ -433,6 +442,7 @@ export default function App() {
               <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Navigation</h4>
               <ul className="space-y-5 text-white/60 font-medium">
                 <li><a href="/about" className="hover:text-white transition-colors">About Us</a></li>
+                <li><a href="/for-teachers" className="hover:text-white transition-colors">For Teachers</a></li>
                 <li><a href="#mission" className="hover:text-white transition-colors">Our Mission</a></li>
                 <li><a href="#impact" className="hover:text-white transition-colors">Impact Map</a></li>
                 <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>

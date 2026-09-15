@@ -50,7 +50,12 @@ export interface PastEvent {
   month: string;
   title: string;
   description: string;
-  type: 'appreciation' | 'competition' | 'community';
+  /**
+   * 'fundraiser' covers can drives, bottle returns and merch — how the money
+   * comes in. Everything else is FMT showing up in a building. They render
+   * differently on purpose and fundraisers are never counted as appearances.
+   */
+  type: 'appreciation' | 'competition' | 'community' | 'fundraiser';
   partner?: string;
 }
 
@@ -415,6 +420,96 @@ export const TEACHERS_OF_THE_MONTH: TeacherOfTheMonth[] = [
 ];
 
 export const PAST_EVENTS: PastEvent[] = [
+  // ── 2024–25 ──────────────────────────────────────────────────────────────
+  {
+    id: 110,
+    month: 'November 2024',
+    title: 'For the teachers who were grieving too',
+    description: 'After the loss of a student in our community, we brought gift baskets to the teachers who had taught and known her. When a school loses a student, educators grieve too — usually quietly, and usually while still showing up for everyone else.',
+    type: 'appreciation',
+  },
+  {
+    id: 111,
+    month: 'December 2024',
+    title: 'Door Decorating Competition',
+    description: 'The competition came back bigger, in partnership with the Okemos Fun Squad — and it brought in a large volume of donated school supplies for teachers along the way.',
+    type: 'competition',
+    partner: 'Okemos Fun Squad',
+  },
+  {
+    id: 112,
+    month: 'December 2024',
+    title: 'Door Decorating Winners Announced',
+    description: 'Winners announced on December 20th, with prizes for the classrooms that went all out.',
+    type: 'competition',
+  },
+  {
+    id: 113,
+    month: 'April 2025',
+    title: 'Teacher Thank-You Baskets',
+    description: 'Baskets delivered to teachers as a straightforward thank-you — no occasion needed.',
+    type: 'appreciation',
+  },
+  {
+    id: 114,
+    month: 'May 2025',
+    title: 'The Coffee and Donut Walk-Around',
+    description: 'Teacher Appreciation Week, and a direct descendant of where all of this started: walking the building handing out coffee and donuts, classroom by classroom. The same gesture Finn and his friends made in elementary school, now on a school-wide scale.',
+    type: 'appreciation',
+  },
+  {
+    id: 115,
+    month: 'May 2025',
+    title: 'Letters of Encouragement to OHS Faculty',
+    description: 'Students wrote letters of encouragement to Okemos High faculty, organized with Love 4 Our Elders.',
+    type: 'community',
+    partner: 'Love 4 Our Elders',
+  },
+  {
+    id: 116,
+    month: 'June 2025',
+    title: 'End-of-Year and Retirement Baskets',
+    description: 'Baskets with flowers for staff leaving us — those retiring, those being let go, and those we simply wanted to send off knowing they mattered.',
+    type: 'appreciation',
+  },
+  {
+    id: 117,
+    month: 'June 2025',
+    title: 'Bottle Drive',
+    description: 'A community bottle drive — Michigan\'s ten-cent deposit turned into classroom support.',
+    type: 'fundraiser',
+  },
+
+  // ── 2023–24: the first events, and where the org really begins ───────────
+  {
+    id: 120,
+    month: 'December 2023',
+    title: 'The First Door Decorating Competition',
+    description: 'Our very first event, weeks after FMT was incorporated. Classrooms decorated their doors, the building got loud about it, and winners were announced on December 23rd.',
+    type: 'competition',
+  },
+  {
+    id: 121,
+    month: 'December 2023',
+    title: 'FMT T-Shirts',
+    description: 'The first thing we ever sold — t-shirts, to fund what came next.',
+    type: 'fundraiser',
+  },
+  {
+    id: 122,
+    month: 'December 2023',
+    title: 'Pop Can Drive',
+    description: 'Ran from December 23rd through January 5th over winter break. The start of what is now our returnables program.',
+    type: 'fundraiser',
+  },
+  {
+    id: 123,
+    month: 'March 2024',
+    title: 'Teacher Appreciation Letter Writing',
+    description: 'Students wrote letters of appreciation to their teachers, organized with Love 4 Our Elders and Key Club. This is the event that grew into the Post Office of Love.',
+    type: 'community',
+    partner: 'Love 4 Our Elders · Key Club',
+  },
   {
     id: 0,
     month: 'September 2026',
