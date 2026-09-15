@@ -129,18 +129,18 @@ export default function App() {
                   there's enough room at sm: and up. */}
               <div className="mt-10 grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
                 <div className="flex flex-col min-w-0">
-                  <span className="text-apple font-bold text-xl sm:text-2xl leading-none">1,000+</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Educators Reached</span>
+                  <span className="text-apple font-bold text-xl sm:text-2xl leading-none">200+</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Teachers Reached</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">$15K+</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Raised Overall</span>
+                  <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">350+</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Staff Reached</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">9</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Schools Supported</span>
+                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">3</span>
+                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">Partner Schools</span>
                 </div>
               </div>
             </motion.div>
@@ -235,7 +235,7 @@ export default function App() {
                 className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
               >
                 <MapPin size={14} />
-                <span>Statewide Reach</span>
+                <span>Ingham County &amp; Growing</span>
               </motion.div>
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
                 Our Impact Across <span className="text-pencil italic font-normal">Michigan</span>.

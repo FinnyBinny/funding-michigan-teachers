@@ -13,7 +13,7 @@ const MISSION_POINTS = [
   {
     icon: Coffee,
     title: "Every Month, Without Fail",
-    description: "During every staff meeting, we show up with real food from local Okemos businesses — Chick-Fil-A, Dunkin, Nothing Bundt Cakes, Hungry Howie's. Because a teacher who stayed until 7 PM deserves more than a granola bar.",
+    description: "During every staff meeting, we show up with real food from local Okemos businesses — Chick-fil-A, Dunkin', Nothing Bundt Cakes, Ozzy's Kabobs, Jamba Juice. Because a teacher who stayed until 7 PM deserves more than a granola bar.",
     color: "text-apple",
     bgColor: "bg-apple/10"
   },
@@ -82,7 +82,7 @@ export default function OurMission() {
             Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
           </p>
           <p className="text-base text-chalkboard/70 leading-relaxed font-light">
-            Since founding, FMT has raised over $15,000, served Okemos High School staff at every monthly meeting during the 2025–2026 school year, reached 1,000+ educators across 9 schools during Teacher Appreciation Week, awarded $500+ in door decorating prizes, organized a Valentine's Day letter campaign, and funded classroom grants — all run by high school students, with at least 80¢ of every dollar going directly to teachers.
+            Since founding, FMT has delivered more than $8,500 in donations and in-kind support, served Okemos High School staff at every staff meeting through the 2025–26 school year, handed meal cards to staff at nine buildings during Teacher Appreciation Week, awarded $500+ in door decorating prizes, run a Valentine's letter campaign, and funded classroom grants — all by high school students, with at least 80¢ of every dollar going directly to teachers.
           </p>
 
           {/* The full founding story lives on /about — hiding it behind an
@@ -106,8 +106,8 @@ export default function OurMission() {
               <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Direct to Classrooms</div>
             </div>
             <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-ruler/20 transition-colors">
-              <div className="text-3xl font-serif font-bold text-ruler mb-1 group-hover:scale-110 transition-transform origin-left">9</div>
-              <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Schools Supported</div>
+              <div className="text-3xl font-serif font-bold text-ruler mb-1 group-hover:scale-110 transition-transform origin-left">350+</div>
+              <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Staff Reached</div>
             </div>
           </div>
         </motion.div>

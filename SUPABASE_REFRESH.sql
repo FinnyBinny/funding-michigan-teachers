@@ -503,3 +503,90 @@ update food_partners set
   business = 'Culver''s (3440 Okemos Rd. Okemos, MI)',
   detail = 'Teacher Appreciation Week — donated 75 free scoop tokens for staff'
 where business like 'Culver%';
+
+-- ═════════════════════════════════════════════════════════════════════════════
+-- SEPTEMBER 2026 ACCURACY PASS
+--
+-- The site reads the database in preference to the code's built-in content, so
+-- correcting the code alone changes nothing on the live site. These statements
+-- fix the same things in the database. Safe to run repeatedly.
+-- ═════════════════════════════════════════════════════════════════════════════
+
+-- ── Never credit a business that didn't give ────────────────────────────────
+-- The March 2026 staff-meeting pizza was bought with the founder's own
+-- certificates. Hungry Howie's donated nothing and must not appear as a
+-- partner. Same for Asian Buffet and Dave's Hot Chicken if they ever appear.
+delete from food_partners where business ilike 'Hungry Howie%';
+delete from food_partners where business ilike 'Asian Buffet%';
+delete from food_partners where business ilike 'Dave%Hot Chicken%';
+
+-- ── The 2026–27 Kickstart Coffee Bar never happened ─────────────────────────
+delete from events where title ilike '%Coffee Bar%Kickstart%';
+update food_partners
+   set detail = 'Donated coffee, decaf, and hot chocolate for the April and end-of-year FMT Coffee Bar events',
+       month  = '2025–26'
+ where business ilike 'Biggby%';
+
+-- ── Walmart: a 2025 grant, not a current sponsor ────────────────────────────
+update sponsors set active = false where name ilike 'Walmart%';
+
+-- ── Current-year (2026–27) sponsors ─────────────────────────────────────────
+-- In-kind counts toward tier at fair market value, the same as cash.
+insert into sponsors (name, tier, description, amount, active)
+select 'Ozzy''s Kabobs', 'Principal''s Circle',
+       '60 individually wrapped meals across two staff meetings — Haslett High School and Okemos High School the next day. Roughly $2,100 in donated food.',
+       2100, true
+where not exists (select 1 from sponsors where name ilike 'Ozzy%');
+
+insert into sponsors (name, tier, description, amount, active)
+select 'Jamba Juice (Matt & Stephanie Wagemann)', 'Principal''s Circle',
+       'About 60 smoothies for Haslett on a hot back-to-school day, another 70–80 for East Lansing''s first staff meeting of the year, plus coupons for Haslett staff.',
+       1200, true
+where not exists (select 1 from sponsors where name ilike 'Jamba%');
+
+insert into sponsors (name, tier, description, amount, active)
+select 'Dusty''s Wine Cellar', 'Pencil Partner',
+       'A $25 gift certificate for a teacher appreciation basket.', 25, true
+where not exists (select 1 from sponsors where name ilike 'Dusty%');
+
+-- ── Stats: replace unverified figures with sourced ones ─────────────────────
+-- "$15,000 raised" was never documented. Documented in-kind for 2025–26 is
+-- about $6,500; with the founder's own contributions the defensible total is
+-- $8,500+. "Raised" also reads as cash, so the site says "in support".
+update locations
+   set amount = '$8,500+ in support'
+ where amount ilike '%15K%' or amount ilike '%15,000%';
+
+-- Chick-fil-A's real fair market value, and an honest description of reach.
+update food_partners
+   set detail = 'Teacher Appreciation Week — 1,000+ meal cards (500 breakfast, 500 lunch entrées), roughly $5,000 in value'
+ where business ilike 'Chick%' and month = 'May';
+
+-- ── Partner schools vs. schools reached ─────────────────────────────────────
+-- Three schools are ongoing partnerships. The other six received one-time
+-- meal-card deliveries to the main office. Presenting all nine identically
+-- overstates the relationship; the district field now carries the distinction
+-- and the counts are real rather than a repeated ~120 placeholder.
+update locations set district = 'Okemos Public Schools · Partner School',
+       impact = 'Our home base: food at every staff meeting through the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events.',
+       amount = '~75–80 teachers · ~120 staff'
+ where name = 'Okemos High School';
+
+update locations set district = 'Haslett Public Schools · Partner School',
+       impact = 'Ongoing partner. Back-to-school smoothies from Jamba Juice on a hot September day, catered staff meetings from Ozzy''s Kabobs, and Teacher Appreciation Week meal cards.',
+       amount = '~50–60 teachers · ~100 staff'
+ where name = 'Haslett High School';
+
+update locations set district = 'East Lansing Public Schools · Partner School',
+       impact = 'Ongoing partner. Jamba Juice smoothies and coupons for the first staff meeting of the year, plus Teacher Appreciation Week meal cards.',
+       amount = '~90 teachers · 120–140 staff'
+ where name = 'East Lansing High School';
+
+-- The six one-touch schools: honest about what actually happened.
+update locations
+   set district = district || ' · Reached',
+       impact = 'Teacher Appreciation Week — Chick-fil-A meal cards delivered to the main office for staff. A school we''d like to come back to.',
+       amount = 'One-time delivery'
+ where name in ('Kinawa Middle School','Chippewa Middle School','Cornell Elementary',
+                'Bennett Woods Elementary','Hiawatha Elementary','Central Montessori')
+   and district not like '%Reached%';

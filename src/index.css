@@ -12,7 +12,10 @@
   --color-pencil: #eebc5e;
   --color-pencil-dark: #b8893e;
   --color-apple: #c0392b;
-  --color-ruler: #2980b9;
+  /* Ink blue. The old #2980b9 was a stock UI blue that also failed WCAG AA
+     on cream (4.12:1) and under white button text (4.30:1). This clears both
+     comfortably (7.63:1 and 7.96:1) and reads as pen ink, not template. */
+  --color-ruler: #1f5673;
   --color-ink: #141414;
   --color-muted: #8e9299;
 

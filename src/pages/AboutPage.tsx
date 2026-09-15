@@ -21,16 +21,16 @@ const VALUES = [
 ];
 
 const NUMBERS = [
-  { value: '$15,000+', label: 'Raised for Michigan educators since 2023' },
-  { value: '1,000+', label: 'Staff members reached during Teacher Appreciation Week' },
-  { value: '9', label: 'Schools across Okemos, Haslett, and East Lansing' },
+  { value: '200+', label: 'Teachers at our three partner high schools' },
+  { value: '350+', label: 'Total staff at those schools, counting everyone who keeps a building running' },
+  { value: '$8,500+', label: 'In donations and in-kind support since 2023' },
 ];
 
 /** What FMT runs across a school year — the founder's actual calendar. */
 const YEAR = [
   { when: 'Every month', what: 'Food at staff meetings, catered from local businesses.' },
   { when: 'October', what: 'Teacher of the Month, Halloween edition — custom boo baskets for two or three teachers every week.' },
-  { when: 'November', what: 'Our founding anniversary. FMT started in November 2023.' },
+  { when: 'November', what: 'Our founding anniversary — FMT was incorporated as a Michigan nonprofit on November 17, 2023.' },
   { when: 'December', what: 'Door decorating competition, plus a month-long school supply drive delivered when school resumes in January.' },
   { when: 'February', what: 'The Post Office of Love — students write letters to staff members and we deliver every one.' },
   { when: 'May', what: 'Teacher Appreciation Week: meals, meal cards, and events across all our partner schools.' },
@@ -115,8 +115,8 @@ export default function AboutPage() {
               </p>
               <p>
                 Since then FMT has hosted two door decorating competitions awarding $500–$700 in
-                prizes, delivered surprise staff meals from Chick-Fil-A, Dunkin', Nothing Bundt
-                Cakes, and Hungry Howie's, run a student-written Valentine's Day letter campaign,
+                prizes, delivered surprise staff meals from Chick-fil-A, Dunkin', Nothing Bundt
+                Cakes, Ozzy's Kabobs and Jamba Juice, run a student-written Valentine's letter campaign,
                 and funded classroom grants — from a dissection lab at Okemos High School to
                 greenhouse equipment for a life-science teacher.
               </p>
