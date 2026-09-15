@@ -12,6 +12,7 @@
 export const KNOWN_ROUTES = [
   '/',
   '/about',
+  '/for-teachers',
   '/donate',
   '/for-schools',
   '/sponsors',

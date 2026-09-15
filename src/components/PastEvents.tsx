@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Star, Users, Gift } from 'lucide-react';
+import { Calendar, Star, Users, Gift, Coins } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { PAST_EVENTS, type PastEvent } from '../data/initialData';
 
@@ -10,6 +10,9 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; icon: typeof C
   appreciation: { label: 'Appreciation', color: 'bg-apple/10 text-apple', icon: Gift },
   competition:  { label: 'Competition',  color: 'bg-ruler/10 text-ruler',  icon: Star },
   community:    { label: 'Community',    color: 'bg-pencil/10 text-pencil-dark', icon: Users },
+  // Fundraisers are how the money came in, not a time we showed up in a
+  // building — labelled and coloured apart so the two never read as one.
+  fundraiser:   { label: 'Fundraiser',   color: 'bg-chalkboard/8 text-chalkboard/60', icon: Coins },
 };
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];

@@ -25,6 +25,9 @@ export const FORMBOLD = {
   // the contact inbox for now, tagged Form: 'Returnables pickup request'.
   // Create a dedicated FormBold form and paste its ID here to split them out.
   returnables: '6QXyV',
+  // Teacher supply requests. Same inbox for now, tagged
+  // Form: 'Teacher supply request' — nothing to set up before the page works.
+  supplies: '6QXyV',
 } as const;
 
 export async function submitToFormBold(formId: string, fields: Record<string, unknown>): Promise<boolean> {
