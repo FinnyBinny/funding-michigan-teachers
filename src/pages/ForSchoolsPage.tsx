@@ -61,9 +61,9 @@ const ACCENT_MAP = {
 } as const;
 
 const IMPACT_NUMBERS = [
-  { value: '1,000+', label: 'Educators Reached', color: 'text-apple' },
-  { value: '$15K+', label: 'Raised for Teachers', color: 'text-ruler' },
-  { value: '9', label: 'Schools Supported', color: 'text-pencil-dark' },
+  { value: '200+', label: 'Teachers Reached', color: 'text-apple' },
+  { value: '350+', label: 'Staff Reached', color: 'text-ruler' },
+  { value: '3', label: 'Partner Schools', color: 'text-pencil-dark' },
   { value: '80¢+', label: 'Of Every Dollar to Teachers', color: 'text-apple' },
 ];
 
@@ -149,7 +149,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.9, delay: 0.25, ease: EASE }}
               className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-10"
             >
-              Okemos High School was our proving ground — a full school year of showing up at every staff meeting. Then, during Teacher Appreciation Week, we reached 1,000+ educators across 9 schools in 3 districts — including free-entrée-card deliveries to the full staffs of Haslett High School and East Lansing High School. Now we're growing. Same programs. Same student-led model. Zero cost to your building.
+              Okemos High School was our proving ground — a full school year of showing up at every staff meeting. Haslett and East Lansing High School followed, and during Teacher Appreciation Week we got meal cards into the hands of staff at nine buildings across three districts. Three of those are ongoing partnerships; the rest are schools we want to come back to. Same programs, same student-led model, zero cost to your building.
             </motion.p>
 
             <motion.div
@@ -462,7 +462,7 @@ export default function ForSchoolsPage() {
                 <div className="aspect-square md:aspect-auto md:h-full">
                   <img
                     src="/images/may-chick-fil-a-cards-opt.jpg"
-                    alt="1,000 Chick-fil-A 'Be our guest' meal cards — over $3,000 in value — distributed to educators across 9 schools"
+                    alt="Over 1,000 Chick-fil-A meal cards, roughly $5,000 in value, sorted for delivery to school staff"
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -477,8 +477,8 @@ export default function ForSchoolsPage() {
                   And there's more
                 </div>
                 <h3 className="font-serif font-bold text-3xl md:text-4xl text-white leading-[1.05] tracking-[-0.01em] mb-5">
-                  <span className="text-pencil italic font-normal">1,000+ educators</span><br/>
-                  across 9 schools.
+                  <span className="text-pencil italic font-normal">1,000+ staff members</span><br/>
+                  across nine buildings.
                 </h3>
                 <p className="text-white/55 text-base md:text-lg font-light leading-relaxed mb-7">
                   During Teacher Appreciation Week, five local businesses showed up for teachers: <span className="text-white font-medium">Chick-fil-A</span> gave 1,000 "Be our guest" meal cards (over $3,000 in value), <span className="text-white font-medium">Dunkin'</span> brought coffee and donuts to the OHS staff meeting where our first Teachers of the Month were announced, <span className="text-white font-medium">Playmakers</span> donated two $25 gift cards, <span className="text-white font-medium">Cottage Inn</span> gave five $20 gift cards, and <span className="text-white font-medium">Culver's</span> donated 75 free scoop tokens — reaching every Okemos school, plus Haslett High School and East Lansing High School.

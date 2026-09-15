@@ -266,7 +266,7 @@ export const LOCATIONS: Location[] = [
     name: 'Okemos High School',
     district: 'Okemos Public Schools',
     impact: 'Our home base: food at every staff meeting during the 2025–26 school year, classroom supply grants, door decorating competitions with $500+ in prizes, Teacher of the Month, the Post Office of Love letter campaign, and year-round appreciation events — all student-run, 100% community-funded.',
-    amount: '$15K+ org-wide',
+    amount: '$8,500+ in support',
     lat: 42.6878,
     lng: -84.4267,
     demographics: { students: '1,800', lowIncome: '18%', diversity: '34%' },
@@ -354,11 +354,17 @@ export const LOCATIONS: Location[] = [
   },
 ];
 
-// Walmart Okemos is the only cash sponsor to date. Every other business
-// below is an in-kind partner (donated goods/services, not a cash gift) —
-// they belong on the In-Kind Partners wall, not here.
+// Current-year (2026–27) supporters. Walmart's $250 was a 2025 grant that
+// hasn't repeated, so it belongs in the archive rather than here; a new
+// application is pending. In-kind gifts count toward tier at fair market
+// value, the same as cash.
+//
+// Never list Hungry Howie's, Asian Buffet, or Dave's Hot Chicken: the
+// founder paid for those personally, so the businesses donated nothing.
 export const SPONSORS: Sponsor[] = [
-  { id: 1, name: 'Walmart (5110 Times Square Pl. Okemos, MI)', tier: 'Principal\'s Circle', amount: 250, description: 'Proud to support the Okemos community.', active: true },
+  { id: 1, name: "Ozzy's Kabobs", tier: "Principal's Circle", amount: 2100, description: '60 individually wrapped meals across two staff meetings — Haslett High School and Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
+  { id: 2, name: 'Jamba Juice (Matt & Stephanie Wagemann)', tier: "Principal's Circle", amount: 1200, description: 'About 60 smoothies for Haslett on a hot back-to-school day, another 70–80 for East Lansing\'s first staff meeting of the year, plus coupons for Haslett staff.', active: true },
+  { id: 3, name: "Dusty's Wine Cellar", tier: 'Pencil Partner', amount: 25, description: 'A $25 gift certificate for a teacher appreciation basket.', active: true },
 ];
 
 // Every business carries its full street address so the right store/location
@@ -367,10 +373,9 @@ export const FOOD_PARTNERS: FoodPartner[] = [
   { id: 1, month: 'September', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Cookies + free meal coupons for every staff member', image: '/images/IMG_3714(CFA)-opt.jpg', avif: '/images/IMG_3714(CFA).avif', display_order: 1 },
   { id: 2, month: 'October', business: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Fresh donuts for the whole staff — one of many donut runs they\'ve donated for FMT events throughout the year', image: '/images/IMG_4369(DNK)-opt.jpg', avif: '/images/IMG_4369(DNK).avif', display_order: 2 },
   { id: 3, month: 'January', business: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)', detail: 'Mini Bundt Cakes — the perfect January pick-me-up', image: '/images/IMG_5678(NBC)-opt.jpg', avif: '/images/IMG_5678(NBC).avif', display_order: 3 },
-  { id: 4, month: 'March', business: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)", detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan', image: '/images/IMG_6308(FR)-opt.jpg', avif: '/images/IMG_6308(FR).avif', display_order: 4 },
-  { id: 5, month: 'May', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — 1,000 "Be our guest" meal cards ($3,000+ value) for educators across 9 schools', image: '/images/may-chick-fil-a-cards-opt.jpg', display_order: 5 },
+  { id: 5, month: 'May', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — 1,000+ meal cards (500 breakfast, 500 lunch entrées), roughly $5,000 in value', image: '/images/may-chick-fil-a-cards-opt.jpg', display_order: 5 },
   { id: 6, month: 'May', business: "Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting-opt.jpg', display_order: 6 },
-  { id: 7, month: '2025–27', business: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)', detail: 'Donated coffee, decaf, and hot chocolate for both FMT Coffee Bar events this year — and again for the 2026–27 Kickstart', image: '/images/coffee-bar-biggby-opt.jpg', display_order: 7 },
+  { id: 7, month: '2025–26', business: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)', detail: 'Donated coffee, decaf, and hot chocolate for the April and end-of-year FMT Coffee Bar events', image: '/images/coffee-bar-biggby-opt.jpg', display_order: 7 },
   { id: 9, month: 'May', business: 'Playmakers (2299 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
   { id: 10, month: 'May', business: 'Cottage Inn Pizza (1743 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated five $20 gift cards for staff appreciation', display_order: 10 },
   { id: 11, month: 'May', business: "Culver's (3440 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — donated 75 free scoop tokens for staff', display_order: 11 },
@@ -419,14 +424,6 @@ export const PAST_EVENTS: PastEvent[] = [
     partner: 'Jamba Juice',
   },
   {
-    id: 20,
-    month: 'August 2026',
-    title: 'FMT Coffee Bar at OHS Kickstart',
-    description: "Fresh coffee, decaf, and hot chocolate for Okemos High School staff gearing up for the new school year, with our friends at Biggby Coffee.",
-    type: 'appreciation',
-    partner: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)',
-  },
-  {
     id: 1,
     month: 'September 2025',
     title: 'Back-to-School Appreciation',
@@ -470,7 +467,6 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Pizza Party for the Staff',
     description: 'Brought in a full pizza spread for the teachers at the staff meeting — because great teachers deserve more than a thank you. Hot slices, real gratitude.',
     type: 'appreciation',
-    partner: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)",
   },
   {
     id: 7,

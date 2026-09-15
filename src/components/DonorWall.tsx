@@ -25,13 +25,6 @@ const FOOD_PARTNERS = [
     avif: '/images/IMG_5678(NBC).avif',
     image: '/images/IMG_5678(NBC)-opt.jpg',
   },
-  {
-    month: 'March',
-    business: "Hungry Howie's (2160 W Grand River Ave. Okemos, MI)",
-    detail: 'Pizza for the whole staff, donated by FMT founder Finn Regan',
-    avif: '/images/IMG_6308(FR).avif',
-    image: '/images/IMG_6308(FR)-opt.jpg',
-  },
 ];
 
 export default function DonorWall() {
