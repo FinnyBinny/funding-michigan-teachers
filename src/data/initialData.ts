@@ -367,7 +367,7 @@ export const LOCATIONS: Location[] = [
 // Never list Hungry Howie's, Asian Buffet, or Dave's Hot Chicken: the
 // founder paid for those personally, so the businesses donated nothing.
 export const SPONSORS: Sponsor[] = [
-  { id: 1, name: "Ozzy's Kabobs", tier: "Principal's Circle", amount: 2100, description: '60 individually wrapped meals across two staff meetings — Haslett High School and Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
+  { id: 1, name: "Ozzy's Kabobs", tier: "Principal's Circle", amount: 2100, description: '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
   { id: 2, name: 'Jamba Juice (Matt & Stephanie Wagemann)', tier: "Principal's Circle", amount: 1200, description: 'About 60 smoothies for Haslett on a hot back-to-school day, another 70–80 for East Lansing\'s first staff meeting of the year, plus coupons for Haslett staff.', active: true },
   { id: 3, name: "Dusty's Wine Cellar", tier: 'Pencil Partner', amount: 25, description: 'A $25 gift certificate for a teacher appreciation basket.', active: true },
 ];

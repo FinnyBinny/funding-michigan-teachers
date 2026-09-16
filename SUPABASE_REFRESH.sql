@@ -534,9 +534,17 @@ update sponsors set active = false where name ilike 'Walmart%';
 -- In-kind counts toward tier at fair market value, the same as cash.
 insert into sponsors (name, tier, description, amount, active)
 select 'Ozzy''s Kabobs', 'Principal''s Circle',
-       '60 individually wrapped meals across two staff meetings — Haslett High School and Okemos High School the next day. Roughly $2,100 in donated food.',
+       '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.',
        2100, true
 where not exists (select 1 from sponsors where name ilike 'Ozzy%');
+
+-- The insert above is guarded by `where not exists`, so it does nothing once
+-- Ozzy's is already in the table — which is why the count stayed wrong after a
+-- re-run. This corrects the row that is actually there: it was 130 meals, 60 at
+-- Haslett and 70 at Okemos, not 60 in total.
+update sponsors
+   set description = '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.'
+ where name ilike 'Ozzy%';
 
 insert into sponsors (name, tier, description, amount, active)
 select 'Jamba Juice (Matt & Stephanie Wagemann)', 'Principal''s Circle',

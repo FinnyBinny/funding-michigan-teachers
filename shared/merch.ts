@@ -31,18 +31,16 @@ export const MERCH_COLORS: readonly MerchColor[] = [
 export interface MerchProduct {
   id: string;
   name: string;
-  /** Retail price in cents. */
+  /** Price in cents. This is what everyone pays — there is one price. */
   price: number;
   /**
-   * What the item costs FMT to make, in cents — this is what a teacher pays.
-   * The t-shirt is exact: $5 DTF film from Swift Prints plus a ~$9 blank.
-   *
-   * ⚠️ The sweatshirt and hoodie figures are ESTIMATES and need replacing with
-   * real blank costs before launch. They set the teacher price, so a wrong
-   * number here either loses money on every teacher order or overcharges the
-   * people this organization exists to help.
+   * What the item costs FMT to make, in cents. Nobody is ever charged this;
+   * it exists only so the shop can say what an order sends to classrooms.
+   * The t-shirt is exact: $5 DTF film from Swift Prints plus a ~$9 blank; the
+   * sweatshirt and hoodie are still estimates, which now only shade a sentence
+   * rather than set a price.
    */
-  cost: number;
+  materialCost: number;
   blurb: string;
   /** Longer description shown when the product is selected. */
   detail: string;
@@ -53,7 +51,7 @@ export const MERCH: readonly MerchProduct[] = [
     id: 'tee',
     name: 'FMT T-Shirt',
     price: 2500,
-    cost: 1400, // exact: $5 film + $9 blank
+    materialCost: 1400, // exact: $5 film + $9 blank
     blurb: 'Soft cotton tee, pressed by hand.',
     detail:
       'The everyday one. DTF-printed by Swift Prints here in town, then heat-pressed by our students one shirt at a time.',
@@ -62,7 +60,7 @@ export const MERCH: readonly MerchProduct[] = [
     id: 'sweatshirt',
     name: 'FMT Crewneck Sweatshirt',
     price: 4000,
-    cost: 2500, // ESTIMATE — replace with the real blank cost
+    materialCost: 2500, // estimate
     blurb: 'Midweight crewneck for the staff room.',
     detail:
       'Warm enough for a cold classroom in February. Same hand-pressed print, same local shop.',
@@ -71,7 +69,7 @@ export const MERCH: readonly MerchProduct[] = [
     id: 'hoodie',
     name: 'FMT Hoodie',
     price: 4500,
-    cost: 3000, // ESTIMATE — replace with the real blank cost
+    materialCost: 3000, // estimate
     blurb: 'Heavyweight hooded sweatshirt.',
     detail:
       'The one people actually live in. Thick, roomy, and printed to outlast the school year.',
@@ -90,16 +88,10 @@ export interface CartLine {
   size: string;
   colorId: string;
   qty: number;
-  /** Teacher pricing: the item is sold at cost, with no margin for FMT. */
-  atCost?: boolean;
 }
 
 export function findProduct(id: string): MerchProduct | undefined {
   return MERCH.find((p) => p.id === id);
-}
-
-export function unitPrice(p: MerchProduct, atCost?: boolean): number {
-  return atCost ? p.cost : p.price;
 }
 
 /**
@@ -114,7 +106,7 @@ export function orderTotal(lines: CartLine[], fulfilment: Fulfilment): {
   const subtotal = lines.reduce((sum, l) => {
     const p = findProduct(l.productId);
     if (!p) return sum;
-    return sum + unitPrice(p, l.atCost) * l.qty;
+    return sum + p.price * l.qty;
   }, 0);
 
   const delivery =
@@ -155,10 +147,14 @@ export function formatPrice(cents: number): string {
  * They live in the Cloudflare dashboard instead, as a MERCH_CODES variable on
  * the Worker (Settings → Variables and Secrets), in the form:
  *
- *     OKEMOS26:educator, TOM-OCT26:free-tee, HASLETT26:educator
+ *     TOM-OCT26:free-tee, OKEMOS26:free-tee
  *
- *   educator  — the whole order is sold at cost, no margin to FMT
  *   free-tee  — one t-shirt is free; everything else is charged normally
+ *
+ * There used to be a second kind, `educator`, which sold a whole order at our
+ * material cost. That is gone — merch has one price now — and an old
+ * `NAME:educator` entry is ignored rather than guessed at, so a stale variable
+ * fails closed instead of silently discounting.
  *
  * Because an environment variable cannot count redemptions, a code is reusable
  * until it is changed. That is a deliberate trade: rotate the free-shirt code
@@ -166,7 +162,7 @@ export function formatPrice(cents: number): string {
  * season, and edit the variable to kill a code instantly with no deploy.
  */
 
-export type CodeKind = 'educator' | 'free-tee';
+export type CodeKind = 'free-tee';
 
 export interface MerchCode {
   code: string;
@@ -180,7 +176,7 @@ export function parseCodes(raw: string | undefined): MerchCode[] {
     .split(',')
     .map((entry) => {
       const [code, kind] = entry.split(':').map((x) => x.trim());
-      if (!code || (kind !== 'educator' && kind !== 'free-tee')) return null;
+      if (!code || kind !== 'free-tee') return null;
       return { code: code.toUpperCase(), kind: kind as CodeKind };
     })
     .filter((c): c is MerchCode => c !== null);
@@ -193,6 +189,5 @@ export function findCode(raw: string | undefined, entered: string): MerchCode | 
 }
 
 export const CODE_LABEL: Record<CodeKind, string> = {
-  educator: 'Educator pricing applied — you pay our cost.',
   'free-tee': 'One free t-shirt applied. Thank you for everything you do.',
 };
