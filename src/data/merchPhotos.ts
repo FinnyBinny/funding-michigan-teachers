@@ -30,25 +30,25 @@ export const MERCH_PHOTOS: Record<string, MerchPhoto> = {
   tee: {
     src: '/images/shop-tee.jpg',
     colorId: 'speckled-black',
-    width: 1125,
-    height: 1500,
+    width: 800,
+    height: 1000,
     alt:
       'The FMT t-shirt in speckled black — a crayon-drawn schoolhouse, rainbow and three kids under the words Funding Michigan Teachers.',
   },
   sweatshirt: {
     src: '/images/shop-sweatshirt.jpg',
     colorId: 'white',
-    width: 1069,
-    height: 1426,
+    width: 800,
+    height: 1000,
     alt:
-      'The FMT crewneck sweatshirt in light heather, the crayon-drawn schoolhouse and rainbow printed large across the chest.',
+      'The FMT crewneck sweatshirt in white, the crayon-drawn schoolhouse and rainbow printed large across the chest.',
   },
   hoodie: {
     src: '/images/shop-hoodie.jpg',
     colorId: 'white',
-    width: 1069,
-    height: 1426,
+    width: 800,
+    height: 1000,
     alt:
-      'The FMT hoodie in light heather, with the same crayon-drawn schoolhouse and rainbow across the chest.',
+      'The FMT hoodie in white, with the same crayon-drawn schoolhouse and rainbow across the chest.',
   },
 };
