@@ -14,7 +14,7 @@
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
 import {
-  MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart, findCode,
+  MERCH_COLORS, findProduct, orderTotal, validateCart, findCode,
   CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
 
@@ -29,7 +29,7 @@ export interface Env {
   BLOCKED_IPS?: string;
   /**
    * Merch codes, set in the Cloudflare dashboard so they never ship to the
-   * browser. Format: "OKEMOS26:educator, TOM-OCT26:free-tee".
+   * browser. Format: "TOM-OCT26:free-tee, OKEMOS26:free-tee".
    * See shared/merch.ts for the kinds and the rotation advice.
    */
   MERCH_CODES?: string;
@@ -218,9 +218,8 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   if (problem) return json({ error: problem }, 400);
 
   // The code is re-checked here, not trusted from the page. A browser that
-  // claims educator pricing without a valid code simply does not get it.
+  // claims a free shirt without a valid code simply does not get one.
   const code = findCode(env.MERCH_CODES, String(body.code ?? ''));
-  const educatorPricing = code?.kind === 'educator';
   let freeTeeRemaining = code?.kind === 'free-tee' ? 1 : 0;
 
   if (!env.STRIPE_SECRET_KEY) {
@@ -247,7 +246,6 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   for (const l of lines) {
     const product = findProduct(l.productId)!;
     const color = MERCH_COLORS.find((c) => c.id === l.colorId)!;
-    const atCost = educatorPricing || l.atCost;
 
     // A free-tee code covers exactly one shirt. The rest of the line is
     // charged normally rather than the whole line going free.
@@ -277,11 +275,9 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
           currency: 'usd',
           product_data: {
             name: `${product.name} — ${color.name}, ${l.size}`,
-            description: atCost
-              ? 'Educator pricing: sold at our cost, no margin to FMT.'
-              : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
+            description: 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
           },
-          unit_amount: unitPrice(product, atCost),
+          unit_amount: product.price,
         },
         quantity: l.qty - freeHere,
       });
@@ -305,7 +301,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
     .map((l) => {
       const p = findProduct(l.productId)!;
       const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
-      return `${l.qty}x ${p.name}/${c.name}/${l.size}${l.atCost ? ' (educator)' : ''}`;
+      return `${l.qty}x ${p.name}/${c.name}/${l.size}`;
     })
     .join('; ')
     .slice(0, 480);
