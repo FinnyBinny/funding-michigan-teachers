@@ -25,6 +25,22 @@ function navigate(path: string) {
 /** Per-product picker state, before the item is added to the bag. */
 interface Picker { size: MerchSize; colorId: string; qty: number; }
 
+/**
+ * What a shirt actually pays for.
+ *
+ * This line used to compute a supply count from price minus cost — "about 8
+ * spiral notebooks" — which was wrong twice over. It was only as honest as
+ * the cost figures behind it, and two of those are still estimates; and it
+ * counted the whole margin as though every cent reached a classroom, when
+ * card fees and overhead come out of it first. It also published the margin
+ * sideways, since a notebook count divides straight back into dollars.
+ *
+ * Naming the program the money feeds is true of every order, needs no
+ * arithmetic, and cannot drift out of date when a blank price changes.
+ */
+const IMPACT_NOTE =
+  'Shirt sales pay for supply restocks — the box that turns up when a classroom runs out of markers in February.';
+
 function MerchCheckout({ lines, fulfilment, code, onClose }: {
   lines: CartLine[]; fulfilment: Fulfilment; code: string; onClose: () => void;
 }) {
@@ -126,38 +142,6 @@ export default function ShopPage() {
   // rewrite the lines already in the bag, not just the ones added afterwards.
   const lines = useMemo(() => cart.map((l) => ({ ...l, atCost: educator })), [cart, educator]);
   const { subtotal, delivery, total } = orderTotal(lines, fulfilment);
-
-  // What reaches a classroom: retail minus what the garment cost to make.
-  // The supply prices match the donate page's, so the two never disagree.
-  //
-  // This number is used to count supplies, never printed as a dollar figure:
-  // "sends $11 to classrooms" out of a $25 shirt tells every visitor exactly
-  // what FMT makes on one. The supply count says the same true thing without
-  // publishing the margin.
-  const toClassrooms = useMemo(
-    () => lines.reduce((sum, l) => {
-      const p = findProduct(l.productId);
-      return p ? sum + (p.price - p.cost) * l.qty : sum;
-    }, 0),
-    [lines],
-  );
-
-  const impactNote = useMemo(() => {
-    if (toClassrooms <= 0) return '';
-    const dollars = toClassrooms / 100;
-    // Pick the largest supply this order covers a sensible number of.
-    const units: [number, string, string][] = [
-      [6.0, 'classroom book', 'classroom books'],
-      [1.25, 'spiral notebook', 'spiral notebooks'],
-      [0.6, 'glue stick', 'glue sticks'],
-      [0.1, 'pencil', 'pencils'],
-    ];
-    for (const [unit, one, many] of units) {
-      const n = Math.floor(dollars / unit);
-      if (n >= 3) return `This order puts about ${n} ${n === 1 ? one : many} on a teacher's desk.`;
-    }
-    return "This order puts classroom supplies on a teacher's desk.";
-  }, [toClassrooms]);
 
   const setPicker = (id: string, patch: Partial<Picker>) =>
     setPickers((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
@@ -557,14 +541,14 @@ export default function ShopPage() {
                     </div>
 
                     {/* What the order actually does — the reason this isn't
-                        just a store. Uses the same honest unit prices as the
-                        donate page rather than inventing new ones. */}
+                        just a store. See IMPACT_NOTE for why it names a
+                        program instead of counting supplies. */}
                     <div className="bg-paper rounded-2xl px-5 py-4 mb-6 flex items-start gap-3">
                       <Pencil size={15} className="text-apple shrink-0 mt-1" strokeWidth={1.8} />
                       <p className="font-hand text-lg text-chalkboard/80 leading-snug">
                         {educator
                           ? "You're paying our cost, so none of this goes to FMT — which is the whole point."
-                          : impactNote}
+                          : IMPACT_NOTE}
                       </p>
                     </div>
 
