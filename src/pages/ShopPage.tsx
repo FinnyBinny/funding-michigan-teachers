@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import { ShoppingBag, X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap } from 'lucide-react';
+import { X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Pencil } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
@@ -121,6 +121,33 @@ export default function ShopPage() {
   // rewrite the lines already in the bag, not just the ones added afterwards.
   const lines = useMemo(() => cart.map((l) => ({ ...l, atCost: educator })), [cart, educator]);
   const { subtotal, delivery, total } = orderTotal(lines, fulfilment);
+
+  // What reaches a classroom: retail minus what the garment cost to make.
+  // The supply prices match the donate page's, so the two never disagree.
+  const toClassrooms = useMemo(
+    () => lines.reduce((sum, l) => {
+      const p = findProduct(l.productId);
+      return p ? sum + (p.price - p.cost) * l.qty : sum;
+    }, 0),
+    [lines],
+  );
+
+  const impactNote = useMemo(() => {
+    if (toClassrooms <= 0) return '';
+    const dollars = toClassrooms / 100;
+    // Pick the largest supply this order covers a sensible number of.
+    const units: [number, string, string][] = [
+      [6.0, 'classroom book', 'classroom books'],
+      [1.25, 'spiral notebook', 'spiral notebooks'],
+      [0.6, 'glue stick', 'glue sticks'],
+      [0.1, 'pencil', 'pencils'],
+    ];
+    for (const [unit, one, many] of units) {
+      const n = Math.floor(dollars / unit);
+      if (n >= 3) return `This order sends ${formatPrice(toClassrooms)} to classrooms — about ${n} ${n === 1 ? one : many}.`;
+    }
+    return `This order sends ${formatPrice(toClassrooms)} to classrooms.`;
+  }, [toClassrooms]);
 
   const setPicker = (id: string, patch: Partial<Picker>) =>
     setPickers((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
@@ -317,111 +344,161 @@ export default function ShopPage() {
           </div>
         </section>
 
-        {/* Bag */}
+        {/* The order slip.
+
+            This was a plain white box with a bulleted list in it — the least
+            designed thing on a site that otherwise has a voice. It is now the
+            paper artifact the rest of the site is built around: a supply order
+            slip, torn along the top, ruled like a notebook, with the garment
+            drawn on each line and a hand-written note saying what the order
+            actually buys a classroom. */}
         <section className="px-4 sm:px-6 pb-16">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-[1.75rem] ring-1 ring-chalkboard/8 p-6 sm:p-7">
-              <h2 className="font-serif font-bold text-xl mb-5 flex items-center gap-2">
-                <ShoppingBag size={18} className="text-apple" />
-                Your order
-              </h2>
+            <div className="relative bg-white rounded-[1.5rem] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.12)] ring-1 ring-chalkboard/8 overflow-hidden">
+              {/* torn top edge */}
+              <div
+                className="h-3 w-full"
+                style={{
+                  background:
+                    'repeating-linear-gradient(90deg, #fcfaf5 0 7px, transparent 7px 14px)',
+                  boxShadow: 'inset 0 -1px 0 rgba(26,28,29,0.08)',
+                }}
+                aria-hidden="true"
+              />
 
-              <p className="text-xs text-chalkboard/55 font-light leading-relaxed bg-paper rounded-xl px-4 py-3 mb-5">
-                Merch is a purchase, not a donation — <strong className="text-chalkboard/75">it isn't
-                tax-deductible</strong>. What's left after materials goes to classrooms.
-              </p>
+              <div className="p-6 sm:p-8">
+                <div className="flex items-baseline justify-between mb-1">
+                  <h2 className="font-hand text-3xl text-chalkboard -rotate-1">Your order</h2>
+                  <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/40">
+                    FMT · Okemos
+                  </span>
+                </div>
+                <div className="h-px bg-chalkboard/15 mb-5" />
 
-              {cart.length === 0 ? (
-                <p className="text-sm text-chalkboard/55 font-light py-6 text-center">
-                  Nothing in your order yet — pick a size and color above.
+                <p className="text-xs text-chalkboard/55 font-light leading-relaxed mb-6">
+                  Merch is a purchase, not a donation —{' '}
+                  <strong className="text-chalkboard/75 font-semibold">it isn't tax-deductible</strong>.
+                  What's left after materials goes to classrooms.
                 </p>
-              ) : (
-                <>
-                  <ul className="divide-y divide-chalkboard/8 mb-5">
-                    {lines.map((l, i) => {
-                      const p = findProduct(l.productId)!;
-                      const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
-                      return (
-                        <li key={`${l.productId}-${l.size}-${l.colorId}`} className="py-3 flex items-center gap-3">
-                          <span className="flex-1 min-w-0">
-                            <span className="block text-sm font-bold truncate">{p.name}</span>
-                            <span className="block text-xs text-chalkboard/55">
-                              {c.name} · {l.size} · ×{l.qty}
+
+                {cart.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <p className="font-hand text-2xl text-chalkboard/30 -rotate-1 mb-1">nothing here yet</p>
+                    <p className="text-sm text-chalkboard/50 font-light">
+                      Pick a size and color above.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* ruled lines, like the pad this would be written on */}
+                    <ul className="mb-7">
+                      {lines.map((l, i) => {
+                        const prod = findProduct(l.productId)!;
+                        const col = MERCH_COLORS.find((x) => x.id === l.colorId)!;
+                        const Art = GARMENT_ART[l.productId];
+                        return (
+                          <li
+                            key={`${l.productId}-${l.size}-${l.colorId}`}
+                            className="flex items-center gap-4 py-3 border-b border-dashed border-chalkboard/15"
+                          >
+                            <span className="w-11 h-11 shrink-0 bg-paper rounded-xl p-1">
+                              {Art && <Art color={col} className="w-full h-full" />}
                             </span>
+                            <span className="flex-1 min-w-0">
+                              <span className="block text-sm font-bold leading-snug truncate">{prod.name}</span>
+                              <span className="block text-xs text-chalkboard/55">
+                                {col.name} · {l.size} · ×{l.qty}
+                              </span>
+                            </span>
+                            <span className="text-sm font-bold tabular-nums">
+                              {formatPrice((educator ? prod.cost : prod.price) * l.qty)}
+                            </span>
+                            <button
+                              onClick={() => removeLine(i)}
+                              aria-label={`Remove ${prod.name}`}
+                              className="p-1.5 rounded-lg text-chalkboard/30 hover:text-apple hover:bg-apple/5 transition-colors shrink-0"
+                            >
+                              <X size={15} />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+
+                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mb-2.5">
+                      How would you like it?
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-2.5 mb-7">
+                      {([
+                        { id: 'pickup' as const, icon: MapPin, title: 'Pickup — free',
+                          body: 'We drop off at your school, or catch us at a popup event.' },
+                        { id: 'delivery' as const, icon: Truck,
+                          title: `Delivery — ${formatPrice(DELIVERY_FEE)}`,
+                          body: `Free on orders over ${formatPrice(FREE_DELIVERY_OVER)}.` },
+                      ]).map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setFulfilment(opt.id)}
+                          aria-pressed={fulfilment === opt.id}
+                          className={`text-left p-4 rounded-2xl ring-1 transition-all ${
+                            fulfilment === opt.id
+                              ? 'ring-apple bg-apple/5 shadow-[0_4px_14px_rgba(192,57,43,0.08)]'
+                              : 'ring-chalkboard/10 hover:ring-chalkboard/30'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2 font-bold text-sm mb-1">
+                            <opt.icon size={14} className="text-apple" />
+                            {opt.title}
                           </span>
-                          <span className="text-sm font-bold tabular-nums">
-                            {formatPrice((educator ? p.cost : p.price) * l.qty)}
+                          <span className="block text-xs text-chalkboard/60 font-light leading-snug">
+                            {opt.body}
                           </span>
-                          <button onClick={() => removeLine(i)} aria-label={`Remove ${p.name}`}
-                            className="p-1.5 rounded-lg text-chalkboard/35 hover:text-apple hover:bg-apple/5 transition-colors">
-                            <X size={15} />
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                        </button>
+                      ))}
+                    </div>
 
-                  {/* Fulfilment */}
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
-                    How would you like it?
-                  </p>
-                  <div className="grid sm:grid-cols-2 gap-2 mb-5">
+                    <div className="space-y-2 text-sm mb-6">
+                      <div className="flex justify-between text-chalkboard/65">
+                        <span>Subtotal</span>
+                        <span className="tabular-nums">{formatPrice(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-chalkboard/65">
+                        <span>{fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}</span>
+                        <span className="tabular-nums">
+                          {delivery === 0 ? 'Free' : formatPrice(delivery)}
+                        </span>
+                      </div>
+                      <div className="h-px bg-chalkboard/20 !mt-3" />
+                      <div className="flex justify-between font-serif font-bold text-xl !mt-3">
+                        <span>Total</span>
+                        <span className="tabular-nums">{formatPrice(total)}</span>
+                      </div>
+                    </div>
+
+                    {/* What the order actually does — the reason this isn't
+                        just a store. Uses the same honest unit prices as the
+                        donate page rather than inventing new ones. */}
+                    <div className="bg-paper rounded-2xl px-5 py-4 mb-6 flex items-start gap-3">
+                      <Pencil size={15} className="text-apple shrink-0 mt-1" strokeWidth={1.8} />
+                      <p className="font-hand text-lg text-chalkboard/80 leading-snug">
+                        {educator
+                          ? "You're paying our cost, so none of this goes to FMT — which is the whole point."
+                          : impactNote}
+                      </p>
+                    </div>
+
                     <button
-                      onClick={() => setFulfilment('pickup')}
-                      aria-pressed={fulfilment === 'pickup'}
-                      className={`text-left p-4 rounded-2xl ring-1 transition-all ${
-                        fulfilment === 'pickup' ? 'ring-apple bg-apple/5' : 'ring-chalkboard/10 hover:ring-chalkboard/25'
-                      }`}
+                      onClick={() => setCheckingOut(true)}
+                      className="w-full bg-chalkboard text-white py-4 rounded-2xl font-bold hover:bg-apple transition-colors active:scale-[0.98]"
                     >
-                      <span className="flex items-center gap-2 font-bold text-sm mb-1">
-                        <MapPin size={14} className="text-apple" /> Pickup — free
-                      </span>
-                      <span className="block text-xs text-chalkboard/60 font-light leading-snug">
-                        We drop off at your school, or catch us at a popup event.
-                      </span>
+                      Check out — {formatPrice(total)}
                     </button>
-                    <button
-                      onClick={() => setFulfilment('delivery')}
-                      aria-pressed={fulfilment === 'delivery'}
-                      className={`text-left p-4 rounded-2xl ring-1 transition-all ${
-                        fulfilment === 'delivery' ? 'ring-apple bg-apple/5' : 'ring-chalkboard/10 hover:ring-chalkboard/25'
-                      }`}
-                    >
-                      <span className="flex items-center gap-2 font-bold text-sm mb-1">
-                        <Truck size={14} className="text-apple" />
-                        Delivery — {formatPrice(DELIVERY_FEE)}
-                      </span>
-                      <span className="block text-xs text-chalkboard/60 font-light leading-snug">
-                        Free on orders over {formatPrice(FREE_DELIVERY_OVER)}.
-                      </span>
-                    </button>
-                  </div>
-
-                  {/* Totals */}
-                  <div className="space-y-1.5 text-sm border-t border-chalkboard/8 pt-4 mb-5">
-                    <div className="flex justify-between text-chalkboard/65">
-                      <span>Subtotal</span><span className="tabular-nums">{formatPrice(subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-chalkboard/65">
-                      <span>{fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}</span>
-                      <span className="tabular-nums">{delivery === 0 ? 'Free' : formatPrice(delivery)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-base pt-1.5">
-                      <span>Total</span><span className="tabular-nums">{formatPrice(total)}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setCheckingOut(true)}
-                    className="w-full bg-chalkboard text-white py-3.5 rounded-xl font-bold hover:bg-apple transition-colors active:scale-[0.98]"
-                  >
-                    Check out — {formatPrice(total)}
-                  </button>
-                  <p className="text-xs text-chalkboard/50 font-light text-center mt-3 leading-relaxed">
-                    Secure card payment through Stripe.
-                  </p>
-                </>
-              )}
+                    <p className="text-xs text-chalkboard/50 font-light text-center mt-3">
+                      Secure card payment through Stripe.
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
 
             <p className="text-sm text-chalkboard/60 font-light text-center mt-6 leading-relaxed">
@@ -433,6 +510,7 @@ export default function ShopPage() {
             </p>
           </div>
         </section>
+
       </main>
 
       <AnimatePresence>
