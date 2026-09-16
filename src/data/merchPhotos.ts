@@ -6,9 +6,10 @@
  * comes back, because a photo of a black shirt is not a picture of a navy
  * one. The drawing recolors; a photograph cannot.
  *
- * Anything without an entry here (the sweatshirt, today) keeps its drawing,
- * which is why that is a working state rather than a gap: the doodles were
- * built to stand in indefinitely, not to be a placeholder with a deadline.
+ * Anything without an entry here keeps its drawing, and so does any colorway
+ * we have not shot. That is a working state rather than a gap: the doodles
+ * were built to stand in indefinitely, not to be placeholders with a
+ * deadline. Two of three colorways are drawings today.
  *
  * If a file listed here is missing, the shop falls back to the drawing rather
  * than showing a broken image — see the onError handler in ShopPage.
@@ -33,6 +34,14 @@ export const MERCH_PHOTOS: Record<string, MerchPhoto> = {
     height: 1500,
     alt:
       'The FMT t-shirt in speckled black — a crayon-drawn schoolhouse, rainbow and three kids under the words Funding Michigan Teachers.',
+  },
+  sweatshirt: {
+    src: '/images/shop-sweatshirt.jpg',
+    colorId: 'white',
+    width: 1069,
+    height: 1426,
+    alt:
+      'The FMT crewneck sweatshirt in light heather, the crayon-drawn schoolhouse and rainbow printed large across the chest.',
   },
   hoodie: {
     src: '/images/shop-hoodie.jpg',
