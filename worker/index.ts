@@ -14,8 +14,8 @@
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
 import {
-  MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart,
-  type CartLine, type Fulfilment,
+  MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart, findCode,
+  CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
 
 export interface Env {
@@ -27,6 +27,12 @@ export interface Env {
    * effect without a deploy and doesn't publish the addresses to GitHub.
    */
   BLOCKED_IPS?: string;
+  /**
+   * Merch codes, set in the Cloudflare dashboard so they never ship to the
+   * browser. Format: "OKEMOS26:educator, TOM-OCT26:free-tee".
+   * See shared/merch.ts for the kinds and the rotation advice.
+   */
+  MERCH_CODES?: string;
 }
 
 /**
@@ -165,12 +171,32 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
 }
 
 /**
+ * Answers "is this code any good?" for the shop, so the order slip can show
+ * the discount before checkout. It reveals nothing beyond the answer for the
+ * one code asked about — it never enumerates codes, and the real enforcement
+ * still happens when the session is created.
+ */
+async function checkMerchCode(request: Request, env: Env): Promise<Response> {
+  let body: { code?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid request body' }, 400);
+  }
+  const entered = String(body.code ?? '').slice(0, 40);
+  const match = findCode(env.MERCH_CODES, entered);
+  if (!match) return json({ valid: false });
+  return json({ valid: true, kind: match.kind, label: CODE_LABEL[match.kind] });
+}
+
+/**
  * Merch checkout.
  *
- * The browser sends product ids, sizes, colors and quantities — never prices.
- * Every amount is looked up from shared/merch.ts here on the server, because a
- * checkout that trusts the page can be bought from for whatever the buyer
- * types into dev tools.
+ * The browser sends product ids, sizes, colors and quantities — never prices,
+ * and never a claim about which discount applies. Every amount, and the code
+ * itself, is resolved from the server's own data, because a checkout that
+ * trusts the page can be bought from for whatever the buyer types into dev
+ * tools.
  *
  * Size and color ride along in metadata so the packing list in the Stripe
  * dashboard says exactly what to press.
@@ -180,7 +206,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   // fault whatever the server's own configuration is, so it earns a 400 rather
   // than being masked by a 500 about a missing key — and rejecting it here
   // costs nothing.
-  let body: { lines?: CartLine[]; fulfilment?: Fulfilment };
+  let body: { lines?: CartLine[]; fulfilment?: Fulfilment; code?: string };
   try {
     body = await request.json();
   } catch {
@@ -190,6 +216,12 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   const lines = body.lines ?? [];
   const problem = validateCart(lines);
   if (problem) return json({ error: problem }, 400);
+
+  // The code is re-checked here, not trusted from the page. A browser that
+  // claims educator pricing without a valid code simply does not get it.
+  const code = findCode(env.MERCH_CODES, String(body.code ?? ''));
+  const educatorPricing = code?.kind === 'educator';
+  let freeTeeRemaining = code?.kind === 'free-tee' ? 1 : 0;
 
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Payments are not configured on the server.' }, 500);
@@ -203,23 +235,58 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   });
   const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
 
-  const items = lines.map((l) => {
+  const items: {
+    price_data: {
+      currency: string;
+      product_data: { name: string; description: string };
+      unit_amount: number;
+    };
+    quantity: number;
+  }[] = [];
+
+  for (const l of lines) {
     const product = findProduct(l.productId)!;
     const color = MERCH_COLORS.find((c) => c.id === l.colorId)!;
-    return {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: `${product.name} — ${color.name}, ${l.size}`,
-          description: l.atCost
-            ? 'Educator pricing: sold at our cost, no margin to FMT.'
-            : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
+    const atCost = educatorPricing || l.atCost;
+
+    // A free-tee code covers exactly one shirt. The rest of the line is
+    // charged normally rather than the whole line going free.
+    let freeHere = 0;
+    if (freeTeeRemaining > 0 && product.id === 'tee') {
+      freeHere = Math.min(freeTeeRemaining, l.qty);
+      freeTeeRemaining -= freeHere;
+    }
+
+    if (freeHere > 0) {
+      items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `${product.name} — ${color.name}, ${l.size}`,
+            description: 'Teacher of the Month — on us.',
+          },
+          unit_amount: 0,
         },
-        unit_amount: unitPrice(product, l.atCost),
-      },
-      quantity: l.qty,
-    };
-  });
+        quantity: freeHere,
+      });
+    }
+
+    if (l.qty - freeHere > 0) {
+      items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `${product.name} — ${color.name}, ${l.size}`,
+            description: atCost
+              ? 'Educator pricing: sold at our cost, no margin to FMT.'
+              : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
+          },
+          unit_amount: unitPrice(product, atCost),
+        },
+        quantity: l.qty - freeHere,
+      });
+    }
+  }
 
   if (delivery > 0) {
     items.push({
@@ -255,7 +322,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
         : {}),
       phone_number_collection: { enabled: true },
       return_url: `${origin}/shop?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      metadata: { order_type: 'merch', fulfilment, packing },
+      metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
       custom_text: {
         submit: {
           message:
@@ -345,6 +412,9 @@ export default {
 
     if (path === '/api/create-checkout-session' && request.method === 'POST') {
       return createCheckoutSession(request, env);
+    }
+    if (path === '/api/check-merch-code' && request.method === 'POST') {
+      return checkMerchCode(request, env);
     }
     if (path === '/api/create-merch-session' && request.method === 'POST') {
       return createMerchSession(request, env);

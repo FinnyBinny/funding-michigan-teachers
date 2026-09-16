@@ -144,3 +144,55 @@ export function validateCart(lines: unknown): string | null {
 export function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2).replace(/\.00$/, '')}`;
 }
+
+/* ── Codes ──────────────────────────────────────────────────────────────────
+ *
+ * Codes are NEVER defined in this file. Anything written here ships inside the
+ * JavaScript every visitor downloads, so a "secret" code would be readable by
+ * anyone who opens dev tools — the same reason the IP blocklist lives in an
+ * environment variable rather than in the repo.
+ *
+ * They live in the Cloudflare dashboard instead, as a MERCH_CODES variable on
+ * the Worker (Settings → Variables and Secrets), in the form:
+ *
+ *     OKEMOS26:educator, TOM-OCT26:free-tee, HASLETT26:educator
+ *
+ *   educator  — the whole order is sold at cost, no margin to FMT
+ *   free-tee  — one t-shirt is free; everything else is charged normally
+ *
+ * Because an environment variable cannot count redemptions, a code is reusable
+ * until it is changed. That is a deliberate trade: rotate the free-shirt code
+ * each month (TOM-OCT26, TOM-NOV26) so a leak costs one month rather than a
+ * season, and edit the variable to kill a code instantly with no deploy.
+ */
+
+export type CodeKind = 'educator' | 'free-tee';
+
+export interface MerchCode {
+  code: string;
+  kind: CodeKind;
+}
+
+/** Parses the MERCH_CODES variable. Unknown kinds are ignored, not guessed. */
+export function parseCodes(raw: string | undefined): MerchCode[] {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((entry) => {
+      const [code, kind] = entry.split(':').map((x) => x.trim());
+      if (!code || (kind !== 'educator' && kind !== 'free-tee')) return null;
+      return { code: code.toUpperCase(), kind: kind as CodeKind };
+    })
+    .filter((c): c is MerchCode => c !== null);
+}
+
+export function findCode(raw: string | undefined, entered: string): MerchCode | null {
+  const want = entered.trim().toUpperCase();
+  if (!want) return null;
+  return parseCodes(raw).find((c) => c.code === want) ?? null;
+}
+
+export const CODE_LABEL: Record<CodeKind, string> = {
+  educator: 'Educator pricing applied — you pay our cost.',
+  'free-tee': 'One free t-shirt applied. Thank you for everything you do.',
+};

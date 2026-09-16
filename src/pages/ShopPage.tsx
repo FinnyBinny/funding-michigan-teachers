@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import { X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Pencil } from 'lucide-react';
+import { X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Pencil, Ticket, Loader2 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
@@ -25,8 +25,8 @@ function navigate(path: string) {
 /** Per-product picker state, before the item is added to the bag. */
 interface Picker { size: MerchSize; colorId: string; qty: number; }
 
-function MerchCheckout({ lines, fulfilment, onClose }: {
-  lines: CartLine[]; fulfilment: Fulfilment; onClose: () => void;
+function MerchCheckout({ lines, fulfilment, code, onClose }: {
+  lines: CartLine[]; fulfilment: Fulfilment; code: string; onClose: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ function MerchCheckout({ lines, fulfilment, onClose }: {
     const res = await fetch('/api/create-merch-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lines, fulfilment }),
+      body: JSON.stringify({ lines, fulfilment, code }),
     });
     const data = await res.json();
     if (!res.ok || !data.clientSecret) {
@@ -48,7 +48,7 @@ function MerchCheckout({ lines, fulfilment, onClose }: {
       throw new Error(data.error || 'merch session failed');
     }
     return data.clientSecret as string;
-  }, [lines, fulfilment]);
+  }, [lines, fulfilment, code]);
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 
@@ -102,6 +102,11 @@ export default function ShopPage() {
   const [fulfilment, setFulfilment] = useState<Fulfilment>('pickup');
   const [educator, setEducator] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
+  // Codes are checked by the server; the page never knows what any code is,
+  // only what the server says about the one that was typed.
+  const [codeInput, setCodeInput] = useState('');
+  const [code, setCode] = useState<{ value: string; kind: string; label: string } | null>(null);
+  const [codeState, setCodeState] = useState<'idle' | 'checking' | 'bad'>('idle');
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
@@ -166,6 +171,36 @@ export default function ShopPage() {
   };
 
   const removeLine = (i: number) => setCart((prev) => prev.filter((_, idx) => idx !== i));
+
+  const applyCode = async () => {
+    const entered = codeInput.trim();
+    if (!entered) return;
+    setCodeState('checking');
+    try {
+      const res = await fetch('/api/check-merch-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: entered }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCode({ value: entered.toUpperCase(), kind: data.kind, label: data.label });
+        if (data.kind === 'educator') setEducator(true);
+        setCodeState('idle');
+        setCodeInput('');
+      } else {
+        setCodeState('bad');
+      }
+    } catch {
+      setCodeState('bad');
+    }
+  };
+
+  const clearCode = () => {
+    setCode(null);
+    setCodeState('idle');
+    setEducator(false);
+  };
 
   if (confirmed) {
     return (
@@ -457,6 +492,48 @@ export default function ShopPage() {
                       ))}
                     </div>
 
+                    {/* Code entry. Partner schools and Teacher of the Month
+                        winners get one; the server decides what it unlocks. */}
+                    <div className="mb-6">
+                      {code ? (
+                        <div className="flex items-center gap-3 bg-apple/5 ring-1 ring-apple/25 rounded-2xl px-4 py-3">
+                          <Ticket size={15} className="text-apple shrink-0" />
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-xs font-bold tracking-wide">{code.value}</span>
+                            <span className="block text-xs text-chalkboard/60 font-light">{code.label}</span>
+                          </span>
+                          <button onClick={clearCode} aria-label="Remove code"
+                            className="p-1.5 rounded-lg text-chalkboard/35 hover:text-apple transition-colors">
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <label htmlFor="merch-code" className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mb-2 block">
+                            Have a code?
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              id="merch-code" name="code" value={codeInput}
+                              onChange={(e) => { setCodeInput(e.target.value); setCodeState('idle'); }}
+                              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCode(); } }}
+                              placeholder="From your school or Teacher of the Month"
+                              className="flex-1 min-w-0 bg-paper border border-chalkboard/10 rounded-xl px-4 py-2.5 text-sm uppercase tracking-wide outline-none focus:ring-4 focus:ring-apple/10 focus:border-apple/40 transition-all placeholder:normal-case placeholder:tracking-normal placeholder:text-chalkboard/35"
+                            />
+                            <button onClick={applyCode} disabled={codeState === 'checking' || !codeInput.trim()}
+                              className="px-5 rounded-xl bg-chalkboard/8 hover:bg-chalkboard/15 font-bold text-sm transition-colors disabled:opacity-40">
+                              {codeState === 'checking' ? <Loader2 size={15} className="animate-spin" /> : 'Apply'}
+                            </button>
+                          </div>
+                          {codeState === 'bad' && (
+                            <p className="text-xs text-apple font-bold mt-2">
+                              That code isn't working. Check it with whoever gave it to you.
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+
                     <div className="space-y-2 text-sm mb-6">
                       <div className="flex justify-between text-chalkboard/65">
                         <span>Subtotal</span>
@@ -515,7 +592,7 @@ export default function ShopPage() {
 
       <AnimatePresence>
         {checkingOut && (
-          <MerchCheckout lines={lines} fulfilment={fulfilment} onClose={() => setCheckingOut(false)} />
+          <MerchCheckout lines={lines} fulfilment={fulfilment} code={code?.value ?? ''} onClose={() => setCheckingOut(false)} />
         )}
       </AnimatePresence>
 

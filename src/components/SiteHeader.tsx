@@ -26,12 +26,18 @@ function navigate(path: string) {
  *
  * Returnables is deliberately absent — the word means nothing to a stranger.
  * It lives inside both footers and on the donate page instead.
+ *
+ * Shop sits last on purpose. It was originally left out entirely to keep an
+ * Ad Grants site from reading as commercial, but that buried it in the footer
+ * where nobody found it. One store link after four mission links is not a
+ * commercial site; an unfindable shop is just a shop nobody uses.
  */
 const PAGES = [
   { label: 'About', path: '/about' },
   { label: 'For Teachers', path: '/for-teachers' },
   { label: 'For Schools', path: '/for-schools' },
   { label: 'For Businesses', path: '/sponsors' },
+  { label: 'Shop', path: '/shop' },
 ];
 
 /** Section anchors offered in the mobile menu on the homepage only. */

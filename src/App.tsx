@@ -26,6 +26,8 @@ import FAQAssistant from './components/FAQAssistant';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import { STAT } from './data/impactStats';
+import { TeeArt as ShopTee, HoodieArt as ShopHoodie } from './components/merchDoodles';
+import { MERCH_COLORS as SHOP_COLORS } from '../shared/merch';
 import Programs from './components/Programs';
 
 export default function App() {
@@ -305,6 +307,39 @@ export default function App() {
               </p>
             </div>
             <TeacherLeaderboard />
+          </div>
+        </section>
+
+        {/* Merch, as a band rather than a section: the shop earns a mention on
+            the homepage because that is where people land, but it stays
+            visually secondary to the programs and events around it. */}
+        <section className="px-4 sm:px-6 py-10">
+          <div className="max-w-5xl mx-auto">
+            <motion.button
+              onClick={() => { window.history.pushState({}, '', '/shop'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
+              className="group w-full bg-chalkboard text-white rounded-[1.75rem] px-7 py-7 sm:px-9 flex flex-col sm:flex-row sm:items-center gap-5 text-left hover:bg-chalkboard/95 transition-colors"
+            >
+              <span className="flex -space-x-3 shrink-0" aria-hidden="true">
+                <ShopTee color={SHOP_COLORS[0]} className="w-16 h-16 rotate-[-6deg]" />
+                <ShopHoodie color={SHOP_COLORS[2]} className="w-16 h-16 rotate-[5deg]" />
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block font-serif font-bold text-2xl leading-snug mb-1">
+                  Wear it. <span className="text-pencil italic font-normal">Fund it.</span>
+                </span>
+                <span className="block text-white/65 text-sm font-light leading-relaxed">
+                  Tees, crewnecks and hoodies — printed in town, hand-pressed by our students.
+                  What's left after materials buys classroom supplies. Teachers pay our cost.
+                </span>
+              </span>
+              <span className="shrink-0 bg-white text-chalkboard px-6 py-3 rounded-full font-bold text-sm group-hover:bg-pencil transition-colors">
+                Shop merch
+              </span>
+            </motion.button>
           </div>
         </section>
 
