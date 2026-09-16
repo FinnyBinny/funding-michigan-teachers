@@ -27,21 +27,49 @@ const jobs = [
   // Below-fold photos still shipping at print resolution.
   { src: 'may-chick-fil-a-cards.jpg', out: 'may-chick-fil-a-cards-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
   { src: 'may-staff-meeting.jpg', out: 'may-staff-meeting-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
-  // Shop product photos. Drop a full-size original in as shop-tee-src.jpg /
-  // shop-hoodie-src.jpg and re-run; these are `optional` because the shop
-  // falls back to its drawings when a photo is absent, so the script must not
-  // die on a garment nobody has photographed yet.
-  { src: 'shop-tee-src.jpg', out: 'shop-tee.jpg', w: 800, jpeg: { quality: 76, mozjpeg: true }, optional: true },
-  { src: 'shop-hoodie-src.jpg', out: 'shop-hoodie.jpg', w: 800, jpeg: { quality: 76, mozjpeg: true }, optional: true },
-  { src: 'shop-sweatshirt-src.jpg', out: 'shop-sweatshirt.jpg', w: 800, jpeg: { quality: 76, mozjpeg: true }, optional: true },
+  // Shop product photos, all normalized to 800x1000 so the three cards hold
+  // one shape. The committed versions were made from originals that are not
+  // in the repo — public/ ships wholesale, and 15MB of source photos would be
+  // downloadable dead weight — so these jobs are `optional` and skip when the
+  // source is absent. Drop an original back in under the -src name to redo one.
+  //
+  // The tee came off a phone: EXIF-rotated upright to 4284x5712, then cropped
+  // to the subject, because a full-length shot leaves the artwork unreadable
+  // at card size. `rotate: true` reapplies the orientation tag; `crop` is that
+  // framing in upright pixels.
+  {
+    src: 'shop-tee-src.jpg', out: 'shop-tee.jpg', w: 800, optional: true, rotate: true,
+    crop: { left: 1118, top: 1885, width: 1919, height: 2399 },
+    jpeg: { quality: 78, mozjpeg: true },
+  },
+  // The mockups arrive well framed at 1086x1448 — trimmed 3:4 to the card's 4:5.
+  {
+    src: 'shop-sweatshirt-src.png', out: 'shop-sweatshirt.jpg', w: 800, optional: true,
+    crop: { left: 0, top: 30, width: 1086, height: 1357 },
+    jpeg: { quality: 78, mozjpeg: true },
+  },
+  {
+    src: 'shop-hoodie-src.png', out: 'shop-hoodie.jpg', w: 800, optional: true,
+    crop: { left: 0, top: 30, width: 1086, height: 1357 },
+    jpeg: { quality: 78, mozjpeg: true },
+  },
 ];
 
 for (const j of jobs) {
-  if (j.optional && !existsSync(dir + j.src)) {
+  // Originals are not kept in the repo — public/ ships wholesale, so a source
+  // photo committed here is dead weight every visitor could download. Outputs
+  // are committed instead, and a job whose source is absent simply skips. That
+  // makes the script re-runnable for the one image you are redoing rather than
+  // failing on the first original that was cleaned up months ago.
+  if (!existsSync(dir + j.src)) {
     console.log(`${j.out}  skipped (no ${j.src})`);
     continue;
   }
-  let img = sharp(dir + j.src).resize({
+  let img = sharp(dir + j.src);
+  // Orientation first, then crop — the crop is expressed in upright pixels.
+  if (j.rotate) img = img.rotate();
+  if (j.crop) img = sharp(await img.toBuffer()).extract(j.crop);
+  img = img.resize({
     width: j.w,
     height: j.h,
     fit: j.h ? 'cover' : 'inside',
