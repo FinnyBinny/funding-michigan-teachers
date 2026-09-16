@@ -14,6 +14,7 @@ const NAV = [
   { label: 'For Schools', path: '/for-schools' },
   { label: 'For Businesses', path: '/sponsors' },
   { label: 'Donate', path: '/donate' },
+  { label: 'Shop', path: '/shop' },
   { label: 'Returnables', path: '/returnables' },
 ];
 

@@ -13,6 +13,10 @@
  */
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
+import {
+  MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart,
+  type CartLine, type Fulfilment,
+} from '../shared/merch';
 
 export interface Env {
   ASSETS: Fetcher;
@@ -160,6 +164,115 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
   }
 }
 
+/**
+ * Merch checkout.
+ *
+ * The browser sends product ids, sizes, colors and quantities — never prices.
+ * Every amount is looked up from shared/merch.ts here on the server, because a
+ * checkout that trusts the page can be bought from for whatever the buyer
+ * types into dev tools.
+ *
+ * Size and color ride along in metadata so the packing list in the Stripe
+ * dashboard says exactly what to press.
+ */
+async function createMerchSession(request: Request, env: Env): Promise<Response> {
+  // Validate the order before anything else. A malformed cart is the caller's
+  // fault whatever the server's own configuration is, so it earns a 400 rather
+  // than being masked by a 500 about a missing key — and rejecting it here
+  // costs nothing.
+  let body: { lines?: CartLine[]; fulfilment?: Fulfilment };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid request body' }, 400);
+  }
+
+  const lines = body.lines ?? [];
+  const problem = validateCart(lines);
+  if (problem) return json({ error: problem }, 400);
+
+  if (!env.STRIPE_SECRET_KEY) {
+    return json({ error: 'Payments are not configured on the server.' }, 500);
+  }
+
+  const fulfilment: Fulfilment = body.fulfilment === 'delivery' ? 'delivery' : 'pickup';
+  const { delivery } = orderTotal(lines, fulfilment);
+
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
+  const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
+
+  const items = lines.map((l) => {
+    const product = findProduct(l.productId)!;
+    const color = MERCH_COLORS.find((c) => c.id === l.colorId)!;
+    return {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: `${product.name} — ${color.name}, ${l.size}`,
+          description: l.atCost
+            ? 'Educator pricing: sold at our cost, no margin to FMT.'
+            : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
+        },
+        unit_amount: unitPrice(product, l.atCost),
+      },
+      quantity: l.qty,
+    };
+  });
+
+  if (delivery > 0) {
+    items.push({
+      price_data: {
+        currency: 'usd',
+        product_data: { name: 'Local delivery', description: 'Free on orders over $50.' },
+        unit_amount: delivery,
+      },
+      quantity: 1,
+    });
+  }
+
+  // A compact packing list, because Stripe truncates long metadata values and
+  // the line items alone do not say which press setting each shirt needs.
+  const packing = lines
+    .map((l) => {
+      const p = findProduct(l.productId)!;
+      const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
+      return `${l.qty}x ${p.name}/${c.name}/${l.size}${l.atCost ? ' (educator)' : ''}`;
+    })
+    .join('; ')
+    .slice(0, 480);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      ui_mode: 'embedded_page',
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: items,
+      // Delivery needs somewhere to send it; pickup deliberately does not ask.
+      ...(fulfilment === 'delivery'
+        ? { shipping_address_collection: { allowed_countries: ['US' as const] } }
+        : {}),
+      phone_number_collection: { enabled: true },
+      return_url: `${origin}/shop?stripe_session_id={CHECKOUT_SESSION_ID}`,
+      metadata: { order_type: 'merch', fulfilment, packing },
+      custom_text: {
+        submit: {
+          message:
+            fulfilment === 'pickup'
+              ? 'We will email you to arrange pickup at a school or one of our events.'
+              : 'We will email you once your order is pressed and on its way.',
+        },
+      },
+    });
+    return json({ clientSecret: session.client_secret });
+  } catch (err) {
+    console.error('Merch checkout session failed:', err);
+    const message = err instanceof Error ? err.message : 'Unknown error creating checkout session';
+    return json({ error: message }, 500);
+  }
+}
+
 async function checkoutSessionStatus(request: Request, env: Env): Promise<Response> {
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Stripe is not configured on the server.' }, 500);
@@ -232,6 +345,9 @@ export default {
 
     if (path === '/api/create-checkout-session' && request.method === 'POST') {
       return createCheckoutSession(request, env);
+    }
+    if (path === '/api/create-merch-session' && request.method === 'POST') {
+      return createMerchSession(request, env);
     }
     if (path === '/api/checkout-session-status' && request.method === 'GET') {
       return checkoutSessionStatus(request, env);
