@@ -8,6 +8,7 @@
  */
 import sharp from 'sharp';
 import { mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 
 const dir = new URL('../public/images/', import.meta.url).pathname;
 await mkdir(dir, { recursive: true });
@@ -26,9 +27,20 @@ const jobs = [
   // Below-fold photos still shipping at print resolution.
   { src: 'may-chick-fil-a-cards.jpg', out: 'may-chick-fil-a-cards-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
   { src: 'may-staff-meeting.jpg', out: 'may-staff-meeting-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
+  // Shop product photos. Drop a full-size original in as shop-tee-src.jpg /
+  // shop-hoodie-src.jpg and re-run; these are `optional` because the shop
+  // falls back to its drawings when a photo is absent, so the script must not
+  // die on a garment nobody has photographed yet.
+  { src: 'shop-tee-src.jpg', out: 'shop-tee.jpg', w: 800, jpeg: { quality: 76, mozjpeg: true }, optional: true },
+  { src: 'shop-hoodie-src.jpg', out: 'shop-hoodie.jpg', w: 800, jpeg: { quality: 76, mozjpeg: true }, optional: true },
+  { src: 'shop-sweatshirt-src.jpg', out: 'shop-sweatshirt.jpg', w: 800, jpeg: { quality: 76, mozjpeg: true }, optional: true },
 ];
 
 for (const j of jobs) {
+  if (j.optional && !existsSync(dir + j.src)) {
+    console.log(`${j.out}  skipped (no ${j.src})`);
+    continue;
+  }
   let img = sharp(dir + j.src).resize({
     width: j.w,
     height: j.h,

@@ -5,11 +5,15 @@ import type { MerchColor } from '../../shared/merch';
  * Hand-drawn garment illustrations, in the same ink-outline style as the
  * supply and campaign doodles.
  *
- * These stand in until real product photos exist, and they are deliberately
- * not fake photographs: a drawing reads honestly as "this is roughly what it
- * looks like", where a rendered mockup would read as a photo of a shirt
- * nobody has seen. Swap them for photos by replacing <GarmentArt> with an
- * <img> in ShopPage — the layout does not change.
+ * These are deliberately not fake photographs: a drawing reads honestly as
+ * "this is roughly what it looks like", where a rendered mockup would read as
+ * a photo of a shirt nobody has seen.
+ *
+ * They are not a placeholder with a deadline either. Where a real photo of the
+ * selected colorway exists (see src/data/merchPhotos.ts) the shop shows it;
+ * everywhere else — a garment nobody has photographed, a color we only have
+ * one shot of, a photo file that fails to load — these carry the page, and
+ * they recolor with the swatches in a way a photograph cannot.
  */
 
 const INK = '#2b2b2b';
