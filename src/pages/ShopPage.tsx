@@ -8,10 +8,11 @@ import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
 import { STRIPE_PUBLISHABLE_KEY } from '../lib/donate';
 import { GARMENT_ART } from '../components/merchDoodles';
+import { MERCH_PHOTOS } from '../data/merchPhotos';
 import {
   MERCH, MERCH_COLORS, MERCH_SIZES, orderTotal, formatPrice, findProduct,
   FREE_DELIVERY_OVER, DELIVERY_FEE,
-  type CartLine, type Fulfilment, type MerchSize,
+  type CartLine, type Fulfilment, type MerchSize, type MerchColor,
 } from '../../shared/merch';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -111,6 +112,43 @@ function MerchCheckout({ lines, fulfilment, code, onClose }: {
   );
 }
 
+/**
+ * The garment, shown as a photo where we have one of the selected colorway
+ * and as the hand-drawn version otherwise.
+ *
+ * `failed` carries the ids whose photo file did not load. A missing photo
+ * quietly becomes a drawing instead of a broken-image icon, which is what
+ * makes it safe to list a photo here before the file has been committed.
+ */
+function Garment({ productId, color, className, imgClassName, failed, onFail }: {
+  productId: string;
+  color: MerchColor;
+  className?: string;
+  imgClassName?: string;
+  failed: Record<string, boolean>;
+  onFail: (id: string) => void;
+}) {
+  const photo = MERCH_PHOTOS[productId];
+  const Art = GARMENT_ART[productId];
+
+  if (photo && photo.colorId === color.id && !failed[productId]) {
+    return (
+      <img
+        src={photo.src}
+        alt={photo.alt}
+        width={photo.width}
+        height={photo.height}
+        loading="lazy"
+        decoding="async"
+        onError={() => onFail(productId)}
+        className={imgClassName}
+      />
+    );
+  }
+
+  return Art ? <Art color={color} className={className} /> : null;
+}
+
 export default function ShopPage() {
   const [pickers, setPickers] = useState<Record<string, Picker>>(() =>
     Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: MERCH_COLORS[0].id, qty: 1 }])));
@@ -123,6 +161,8 @@ export default function ShopPage() {
   const [codeInput, setCodeInput] = useState('');
   const [code, setCode] = useState<{ value: string; kind: string; label: string } | null>(null);
   const [codeState, setCodeState] = useState<'idle' | 'checking' | 'bad'>('idle');
+  const [photoFailed, setPhotoFailed] = useState<Record<string, boolean>>({});
+  const failPhoto = (id: string) => setPhotoFailed((p) => ({ ...p, [id]: true }));
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
@@ -247,7 +287,6 @@ export default function ShopPage() {
             {MERCH.map((product, i) => {
               const pick = pickers[product.id];
               const color = MERCH_COLORS.find((c) => c.id === pick.colorId)!;
-              const Art = GARMENT_ART[product.id];
               const price = educator ? product.cost : product.price;
               return (
                 <motion.div
@@ -257,8 +296,17 @@ export default function ShopPage() {
                   transition={{ duration: 0.6, delay: i * 0.08, ease: EASE }}
                   className="bg-white rounded-[1.75rem] ring-1 ring-chalkboard/8 p-5 flex flex-col"
                 >
-                  <div className="bg-paper rounded-2xl mb-4 p-3">
-                    {Art && <Art color={color} className="w-full h-44" />}
+                  {/* Portrait box: the photos are full-length shots, and a
+                      short landscape crop of one cuts the artwork in half. */}
+                  <div className="bg-paper rounded-2xl mb-4 aspect-[4/5] overflow-hidden">
+                    <Garment
+                      productId={product.id}
+                      color={color}
+                      className="w-full h-full p-3"
+                      imgClassName="w-full h-full object-cover"
+                      failed={photoFailed}
+                      onFail={failPhoto}
+                    />
                   </div>
 
                   <h2 className="font-serif font-bold text-lg leading-snug">{product.name}</h2>
@@ -394,14 +442,20 @@ export default function ShopPage() {
                       {lines.map((l, i) => {
                         const prod = findProduct(l.productId)!;
                         const col = MERCH_COLORS.find((x) => x.id === l.colorId)!;
-                        const Art = GARMENT_ART[l.productId];
                         return (
                           <li
                             key={`${l.productId}-${l.size}-${l.colorId}`}
                             className="flex items-center gap-4 py-3 border-b border-dashed border-chalkboard/15"
                           >
-                            <span className="w-11 h-11 shrink-0 bg-paper rounded-xl p-1">
-                              {Art && <Art color={col} className="w-full h-full" />}
+                            <span className="w-11 h-11 shrink-0 bg-paper rounded-xl overflow-hidden block">
+                              <Garment
+                                productId={l.productId}
+                                color={col}
+                                className="w-full h-full p-1"
+                                imgClassName="w-full h-full object-cover"
+                                failed={photoFailed}
+                                onFail={failPhoto}
+                              />
                             </span>
                             <span className="flex-1 min-w-0">
                               <span className="block text-sm font-bold leading-snug truncate">{prod.name}</span>
