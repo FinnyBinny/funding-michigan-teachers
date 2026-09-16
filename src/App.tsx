@@ -333,7 +333,7 @@ export default function App() {
                 </span>
                 <span className="block text-white/65 text-sm font-light leading-relaxed">
                   Tees, crewnecks and hoodies — printed in town, hand-pressed by our students.
-                  What's left after materials buys classroom supplies.
+                  What's left after materials buys classroom supplies. Teachers pay our cost.
                 </span>
               </span>
               <span className="shrink-0 bg-white text-chalkboard px-6 py-3 rounded-full font-bold text-sm group-hover:bg-pencil transition-colors">
