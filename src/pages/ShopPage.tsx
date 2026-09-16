@@ -113,6 +113,22 @@ function MerchCheckout({ lines, fulfilment, code, onClose }: {
 }
 
 /**
+ * A card opens on the colorway we have a photo of, and on the first swatch
+ * otherwise. Without this every card started on speckled black, so the
+ * sweatshirt and hoodie opened on a drawing with the photograph one click
+ * away — which sells the shirt worse than it actually looks.
+ *
+ * Falls through to the first swatch if a photo ever names a colorway that
+ * isn't for sale, so a typo cannot leave a card unselectable.
+ */
+function defaultColorId(productId: string): string {
+  const pictured = MERCH_PHOTOS[productId]?.colorId;
+  return pictured && MERCH_COLORS.some((c) => c.id === pictured)
+    ? pictured
+    : MERCH_COLORS[0].id;
+}
+
+/**
  * The garment, shown as a photo where we have one of the selected colorway
  * and as the hand-drawn version otherwise.
  *
@@ -151,7 +167,7 @@ function Garment({ productId, color, className, imgClassName, failed, onFail }: 
 
 export default function ShopPage() {
   const [pickers, setPickers] = useState<Record<string, Picker>>(() =>
-    Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: MERCH_COLORS[0].id, qty: 1 }])));
+    Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: defaultColorId(p.id), qty: 1 }])));
   const [cart, setCart] = useState<CartLine[]>([]);
   const [fulfilment, setFulfilment] = useState<Fulfilment>('pickup');
   const [educator, setEducator] = useState(false);
