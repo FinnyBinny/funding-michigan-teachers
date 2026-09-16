@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import { X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, Pencil, Ticket, Loader2 } from 'lucide-react';
+import { X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Pencil, Ticket, Loader2 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
@@ -100,6 +100,7 @@ export default function ShopPage() {
     Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: MERCH_COLORS[0].id, qty: 1 }])));
   const [cart, setCart] = useState<CartLine[]>([]);
   const [fulfilment, setFulfilment] = useState<Fulfilment>('pickup');
+  const [educator, setEducator] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
   // Codes are checked by the server; the page never knows what any code is,
   // only what the server says about the one that was typed.
@@ -113,7 +114,7 @@ export default function ShopPage() {
     setPageMeta({
       title: 'Shop — FMT Merch | Funding Michigan Teachers',
       description:
-        'FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. Every purchase funds classroom supplies for Michigan teachers.',
+        'FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. Every purchase funds classroom supplies for Michigan teachers. Educator pricing available at cost.',
       path: '/shop',
     });
     if (new URLSearchParams(window.location.search).get('stripe_session_id')) {
@@ -121,16 +122,24 @@ export default function ShopPage() {
     }
   }, []);
 
-  const { subtotal, delivery, total } = orderTotal(cart, fulfilment);
+  // Educator pricing is a property of the whole order, so applying it has to
+  // rewrite the lines already in the bag, not just the ones added afterwards.
+  const lines = useMemo(() => cart.map((l) => ({ ...l, atCost: educator })), [cart, educator]);
+  const { subtotal, delivery, total } = orderTotal(lines, fulfilment);
 
-  // What reaches a classroom: price minus what the garment cost to make.
+  // What reaches a classroom: retail minus what the garment cost to make.
   // The supply prices match the donate page's, so the two never disagree.
+  //
+  // This number is used to count supplies, never printed as a dollar figure:
+  // "sends $11 to classrooms" out of a $25 shirt tells every visitor exactly
+  // what FMT makes on one. The supply count says the same true thing without
+  // publishing the margin.
   const toClassrooms = useMemo(
-    () => cart.reduce((sum, l) => {
+    () => lines.reduce((sum, l) => {
       const p = findProduct(l.productId);
-      return p ? sum + (p.price - p.materialCost) * l.qty : sum;
+      return p ? sum + (p.price - p.cost) * l.qty : sum;
     }, 0),
-    [cart],
+    [lines],
   );
 
   const impactNote = useMemo(() => {
@@ -145,9 +154,9 @@ export default function ShopPage() {
     ];
     for (const [unit, one, many] of units) {
       const n = Math.floor(dollars / unit);
-      if (n >= 3) return `This order sends ${formatPrice(toClassrooms)} to classrooms — about ${n} ${n === 1 ? one : many}.`;
+      if (n >= 3) return `This order puts about ${n} ${n === 1 ? one : many} on a teacher's desk.`;
     }
-    return `This order sends ${formatPrice(toClassrooms)} to classrooms.`;
+    return "This order puts classroom supplies on a teacher's desk.";
   }, [toClassrooms]);
 
   const setPicker = (id: string, patch: Partial<Picker>) =>
@@ -181,6 +190,7 @@ export default function ShopPage() {
       const data = await res.json();
       if (data.valid) {
         setCode({ value: entered.toUpperCase(), kind: data.kind, label: data.label });
+        if (data.kind === 'educator') setEducator(true);
         setCodeState('idle');
         setCodeInput('');
       } else {
@@ -194,6 +204,7 @@ export default function ShopPage() {
   const clearCode = () => {
     setCode(null);
     setCodeState('idle');
+    setEducator(false);
   };
 
   if (confirmed) {
@@ -253,6 +264,7 @@ export default function ShopPage() {
               const pick = pickers[product.id];
               const color = MERCH_COLORS.find((c) => c.id === pick.colorId)!;
               const Art = GARMENT_ART[product.id];
+              const price = educator ? product.cost : product.price;
               return (
                 <motion.div
                   key={product.id}
@@ -268,7 +280,14 @@ export default function ShopPage() {
                   <h2 className="font-serif font-bold text-lg leading-snug">{product.name}</h2>
                   <p className="text-sm text-chalkboard/60 font-light mt-1 mb-3 leading-snug">{product.blurb}</p>
 
-                  <p className="font-serif font-bold text-2xl mb-4">{formatPrice(product.price)}</p>
+                  <p className="font-serif font-bold text-2xl mb-4">
+                    {formatPrice(price)}
+                    {educator && (
+                      <span className="ml-2 text-xs font-sans font-bold uppercase tracking-wider text-apple align-middle">
+                        at cost
+                      </span>
+                    )}
+                  </p>
 
                   {/* Color */}
                   <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
@@ -388,7 +407,7 @@ export default function ShopPage() {
                   <>
                     {/* ruled lines, like the pad this would be written on */}
                     <ul className="mb-7">
-                      {cart.map((l, i) => {
+                      {lines.map((l, i) => {
                         const prod = findProduct(l.productId)!;
                         const col = MERCH_COLORS.find((x) => x.id === l.colorId)!;
                         const Art = GARMENT_ART[l.productId];
@@ -407,7 +426,7 @@ export default function ShopPage() {
                               </span>
                             </span>
                             <span className="text-sm font-bold tabular-nums">
-                              {formatPrice(prod.price * l.qty)}
+                              {formatPrice((educator ? prod.cost : prod.price) * l.qty)}
                             </span>
                             <button
                               onClick={() => removeLine(i)}
@@ -452,6 +471,30 @@ export default function ShopPage() {
                         </button>
                       ))}
                     </div>
+
+                    {/* Educator pricing.
+
+                        This began as a large card at the top of the page that
+                        spelled out what a garment costs us — "a tee is $14
+                        instead of $25" — which published FMT's margin to every
+                        visitor before they had even picked a size. The option
+                        is worth keeping; broadcasting the numbers is not. It
+                        now sits quietly with the other order options and says
+                        nothing about what we make on a shirt. */}
+                    <label className="flex items-start gap-3 mb-7 cursor-pointer group">
+                      <input
+                        type="checkbox" id="educator-pricing" name="educator"
+                        checked={educator} onChange={(e) => setEducator(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 accent-[#c0392b] shrink-0"
+                      />
+                      <span className="flex items-start gap-2 text-sm text-chalkboard/70 font-light leading-snug group-hover:text-chalkboard transition-colors">
+                        <GraduationCap size={15} className="text-apple shrink-0 mt-0.5" />
+                        <span>
+                          I'm a teacher or school staff member —{' '}
+                          <strong className="font-semibold text-chalkboard">educator pricing</strong>
+                        </span>
+                      </span>
+                    </label>
 
                     {/* Code entry. Partner schools and Teacher of the Month
                         winners get one; the server decides what it unlocks. */}
@@ -519,7 +562,9 @@ export default function ShopPage() {
                     <div className="bg-paper rounded-2xl px-5 py-4 mb-6 flex items-start gap-3">
                       <Pencil size={15} className="text-apple shrink-0 mt-1" strokeWidth={1.8} />
                       <p className="font-hand text-lg text-chalkboard/80 leading-snug">
-                        {impactNote}
+                        {educator
+                          ? "You're paying our cost, so none of this goes to FMT — which is the whole point."
+                          : impactNote}
                       </p>
                     </div>
 
@@ -551,7 +596,7 @@ export default function ShopPage() {
 
       <AnimatePresence>
         {checkingOut && (
-          <MerchCheckout lines={cart} fulfilment={fulfilment} code={code?.value ?? ''} onClose={() => setCheckingOut(false)} />
+          <MerchCheckout lines={lines} fulfilment={fulfilment} code={code?.value ?? ''} onClose={() => setCheckingOut(false)} />
         )}
       </AnimatePresence>
 
