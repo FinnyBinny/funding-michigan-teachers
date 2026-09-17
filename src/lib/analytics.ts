@@ -47,6 +47,13 @@ declare global {
 }
 
 /**
+ * Set once `config` has fired, because that call carries the first page view.
+ * The first trackPageView after it is the same view arriving twice, so it is
+ * swallowed rather than double-counted.
+ */
+let configReportedFirstView = false;
+
+/**
  * Loads gtag.js when a measurement ID is configured; a no-op otherwise.
  * Called once from main.tsx.
  */
@@ -54,12 +61,25 @@ export function initAnalytics(): void {
   try {
     if (!GA_MEASUREMENT_ID || typeof document === 'undefined') return;
     window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag(...args: unknown[]) {
-      window.dataLayer!.push(args);
-    };
+    // Verbatim from Google's snippet, and it has to be: gtag.js reads each
+    // dataLayer entry and only treats it as a command when it is an
+    // `arguments` object. The tidier `(...args) => dataLayer.push(args)`
+    // pushes a plain Array, which is silently ignored — the tag still loads
+    // and still looks installed to every checker, while `js`, `config` and
+    // every event are dropped. That is how this shipped, and why the property
+    // recorded nothing.
+    // eslint-disable-next-line prefer-rest-params, func-style
+    function gtag() {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer!.push(arguments);
+    }
+    window.gtag = gtag as (...args: unknown[]) => void;
     window.gtag('js', new Date());
-    // SPA: we send page_view ourselves from setPageMeta on route changes.
-    window.gtag('config', GA_MEASUREMENT_ID, { send_page_view: false });
+    // `config` reports the first page view itself. Letting it do that means
+    // traffic is recorded even if the SPA route tracking below breaks;
+    // trackPageView swallows the duplicate and reports every change after.
+    window.gtag('config', GA_MEASUREMENT_ID);
+    configReportedFirstView = true;
     const s = document.createElement('script');
     s.async = true;
     s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
@@ -69,11 +89,23 @@ export function initAnalytics(): void {
   }
 }
 
-/** Reports an SPA page view; called by setPageMeta whenever a route mounts. */
-export function trackPageView(path: string, title: string): void {
+/**
+ * Reports an SPA page view; called by setPageMeta whenever a route mounts.
+ *
+ * GA4 reads `page_location` and `page_title`. `page_path` is a Universal
+ * Analytics field and is ignored here, so it is not sent.
+ */
+export function trackPageView(_path: string, title: string): void {
   try {
     if (!GA_MEASUREMENT_ID) return;
-    window.gtag?.('event', 'page_view', { page_path: path, page_title: title });
+    if (configReportedFirstView) {
+      configReportedFirstView = false;
+      return;
+    }
+    window.gtag?.('event', 'page_view', {
+      page_location: window.location.href,
+      page_title: title,
+    });
   } catch {
     /* never surface */
   }
