@@ -17,7 +17,7 @@ export const okemos: School = {
   partnerSince: '____',
 
   intro:
-    'Okemos is where this started. It is the building Finn walked a donut cart down in elementary school, and the first staff room FMT ever catered. Most of what we try anywhere else gets tried here first.',
+    'Okemos is where FMT was built. Finn started buying donuts and coffee for his teachers back in elementary school, wheeling a cart down the hallways so nobody got missed; by ninth grade that had become this. Okemos High School is our home building, and most of what we try anywhere else gets tried here first.',
 
   colors: {
     // TODO: verify against Okemos Public Schools style guide. No official hex
@@ -37,13 +37,10 @@ export const okemos: School = {
 
   photos: [],
 
-  pastHighlights: [
-    {
-      when: 'Fall 2025',
-      title: 'A staff meeting nobody had to eat granola bars at',
-      body: "Ozzy's Kabob catered a full staff meeting here — individually wrapped meals, enough for everyone in the room, delivered the afternoon of the meeting.",
-    },
-  ],
+  // "What we've done here" reads PAST_EVENTS tagged with this school, so an
+  // event is written once and shows up in the site history and on this page.
+  // Anything here is extra, for a school-specific note with no dated event.
+  pastHighlights: [],
 
   initiatives: [
     {
@@ -63,8 +60,12 @@ export const okemos: School = {
     },
   ],
 
+  // Food sponsors vary meeting to meeting — a business backs a particular
+  // staff meeting rather than the school for a year. Add each one as it
+  // happens; a sponsor should be able to find their name on the building
+  // they helped.
   sponsors: [
-    { name: "Ozzy's Kabob", note: 'Catered a staff meeting for the whole building' },
+    { name: "Ozzy's Kabob", note: '70 individually wrapped meals for a September staff meeting' },
   ],
 
   club: {

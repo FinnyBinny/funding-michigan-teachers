@@ -533,7 +533,7 @@ update sponsors set active = false where name ilike 'Walmart%';
 -- ── Current-year (2026–27) sponsors ─────────────────────────────────────────
 -- In-kind counts toward tier at fair market value, the same as cash.
 insert into sponsors (name, tier, description, amount, active)
-select 'Ozzy''s Kabobs', 'Principal''s Circle',
+select 'Ozzy''s Kabob', 'Principal''s Circle',
        '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.',
        2100, true
 where not exists (select 1 from sponsors where name ilike 'Ozzy%');
@@ -581,7 +581,7 @@ update locations set district = 'Okemos Public Schools · Partner School',
  where name = 'Okemos High School';
 
 update locations set district = 'Haslett Public Schools · Partner School',
-       impact = 'Ongoing partner. Back-to-school smoothies from Jamba Juice on a hot September day, catered staff meetings from Ozzy''s Kabobs, and Teacher Appreciation Week meal cards.',
+       impact = 'Ongoing partner. Back-to-school smoothies from Jamba Juice on a hot September day, catered staff meetings from Ozzy''s Kabob, and Teacher Appreciation Week meal cards.',
        amount = '~50–60 teachers · ~100 staff'
  where name = 'Haslett High School';
 
@@ -630,3 +630,23 @@ update locations set amount = 'One-time delivery'
 -- since founding — the earlier wording undersold a single year's work.
 update locations set amount = '$8,500+ in support, 2025–26'
  where amount ilike '%8,500%' and amount not ilike '%2025%';
+
+-- ── Teachers' lounge makeover at Okemos, Monday 28 September 2026 ──────────
+-- Upcoming events are read from this table, so a code-only addition would
+-- never appear on the live site.
+insert into events (title, date, description, location, type)
+select 'Teachers'' Lounge Makeover — Okemos',
+       '2026-09-28',
+       'We are cleaning and decorating the Okemos High School teachers'' lounge, together with ACTION, a student club at OHS. FMT bought the decorations; ACTION brought the hands.',
+       'Okemos High School',
+       'appreciation'
+where not exists (select 1 from events where title ilike '%Lounge Makeover%');
+
+-- ── Ozzy's Kabob, singular ────────────────────────────────────────────────
+-- The business is "Ozzy's Kabob". Rows seeded with the plural are corrected
+-- here; a re-run of the guarded insert above would not touch them.
+update sponsors      set name        = replace(name,        'Ozzy''s Kabobs', 'Ozzy''s Kabob') where name        like '%Ozzy''s Kabobs%';
+update sponsors      set description = replace(description, 'Ozzy''s Kabobs', 'Ozzy''s Kabob') where description like '%Ozzy''s Kabobs%';
+update locations     set impact      = replace(impact,      'Ozzy''s Kabobs', 'Ozzy''s Kabob') where impact      like '%Ozzy''s Kabobs%';
+update food_partners set business    = replace(business,    'Ozzy''s Kabobs', 'Ozzy''s Kabob') where business    like '%Ozzy''s Kabobs%';
+update food_partners set detail      = replace(detail,      'Ozzy''s Kabobs', 'Ozzy''s Kabob') where detail      like '%Ozzy''s Kabobs%';

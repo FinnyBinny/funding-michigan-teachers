@@ -107,23 +107,33 @@ export default function EventCalendar() {
             )}
           </div>
 
-          <div className="mt-7">
-            {event.ctaUrl ? (
-              <a
-                href={event.ctaUrl}
-                className="block w-full py-4 rounded-2xl bg-apple text-white font-bold text-sm hover:bg-chalkboard transition-all active:scale-95 shadow-sm text-center"
-              >
-                {event.ctaLabel ?? 'Learn More'}
-              </a>
-            ) : (
-              <button
-                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                className="block w-full py-4 rounded-2xl border-2 border-chalkboard/5 font-bold text-sm hover:bg-chalkboard hover:text-white transition-all active:scale-95 shadow-sm text-center"
-              >
-                Register Interest
-              </button>
-            )}
-          </div>
+          {/* An event is information by default.
+
+              Every event without a link used to get a "Register Interest"
+              button, which invited people to register for a boo basket
+              delivery to a teacher who has already been chosen, and for FMT's
+              own birthday. Nothing happens here now unless the event says
+              what there is to do: a real link, or `inquiry` on the programs
+              another school could actually ask to host. */}
+          {(event.ctaUrl || event.inquiry) && (
+            <div className="mt-7">
+              {event.ctaUrl ? (
+                <a
+                  href={event.ctaUrl}
+                  className="block w-full py-4 rounded-2xl bg-apple text-white font-bold text-sm hover:bg-chalkboard transition-all active:scale-95 shadow-sm text-center"
+                >
+                  {event.ctaLabel ?? 'Learn More'}
+                </a>
+              ) : (
+                <button
+                  onClick={() => { window.history.pushState({}, '', '/for-schools'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+                  className="block w-full py-4 rounded-2xl border-2 border-chalkboard/10 font-bold text-sm hover:bg-chalkboard hover:text-white transition-all active:scale-95 shadow-sm text-center"
+                >
+                  Ask about this for your school
+                </button>
+              )}
+            </div>
+          )}
         </motion.div>
       ))}
     </div>
