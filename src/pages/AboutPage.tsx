@@ -117,7 +117,7 @@ export default function AboutPage() {
               <p>
                 Since then FMT has hosted two door decorating competitions awarding $500–$700 in
                 prizes, delivered surprise staff meals from Chick-fil-A, Dunkin', Nothing Bundt
-                Cakes, Ozzy's Kabobs and Jamba Juice, run a student-written Valentine's letter campaign,
+                Cakes, Ozzy's Kabob and Jamba Juice, run a student-written Valentine's letter campaign,
                 and funded classroom grants — from a dissection lab at Okemos High School to
                 greenhouse equipment for a life-science teacher.
               </p>

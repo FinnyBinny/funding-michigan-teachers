@@ -3,6 +3,7 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
 import { useEvents } from '../hooks/useLocalData';
+import { PAST_EVENTS } from '../data/initialData';
 import { schoolPath, type School } from '../../shared/schools';
 
 /**
@@ -66,6 +67,24 @@ export default function SchoolPage({ school }: { school: School }) {
       .sort((a, b) => String(a.date).localeCompare(String(b.date)))
       .slice(0, 4);
   }, [events, school.name]);
+
+  /**
+   * What we've done here, from the same history the homepage renders.
+   *
+   * A finished event used to live in exactly one place: it aged out of the
+   * upcoming calendar and, having no location, could never appear on the page
+   * of the school it happened in. Tagging the event is now the whole job —
+   * it shows up in both, written once, and cannot drift.
+   *
+   * A school file may still add its own entries for something with no dated
+   * event behind it; those come first.
+   */
+  const history = useMemo(() => {
+    const tagged = PAST_EVENTS
+      .filter((e) => e.location === school.name)
+      .map((e) => ({ when: e.month, title: e.title, body: e.description }));
+    return [...school.pastHighlights, ...tagged];
+  }, [school]);
 
   // The school's palette, handed to CSS. Nothing below reads a hex directly.
   const palette = {
@@ -158,11 +177,11 @@ export default function SchoolPage({ school }: { school: School }) {
           </Section>
         )}
 
-        {school.pastHighlights.length > 0 && (
+        {history.length > 0 && (
           <Section>
             <SectionHeading>What we've done here</SectionHeading>
             <ul className="space-y-7">
-              {school.pastHighlights.map((h) => (
+              {history.map((h) => (
                 <li key={h.title}>
                   <p className="text-sm text-chalkboard/55">{h.when}</p>
                   <p className="font-serif font-bold text-lg mt-0.5">{h.title}</p>

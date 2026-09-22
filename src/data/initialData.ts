@@ -12,6 +12,15 @@ export interface Event {
   ctaLabel?: string;
   ctaUrl?: string;
   deadline?: string;
+  /**
+   * Set only on events another school could host.
+   *
+   * The calendar used to put a "Register Interest" button under every event
+   * with no link, which asked people to register for a boo basket delivery
+   * and for FMT's own birthday. An event is information by default; this
+   * opts one in to the "could we have this too?" ask.
+   */
+  inquiry?: boolean;
 }
 
 export interface Donor {
@@ -57,6 +66,20 @@ export interface PastEvent {
    */
   type: 'appreciation' | 'competition' | 'community' | 'fundraiser';
   partner?: string;
+  /**
+   * Which building this happened in, matching a partner school's `name`
+   * exactly, or 'All partner schools'.
+   *
+   * Upcoming events have always carried a location; past ones did not, so a
+   * finished event showed up in the homepage history and nowhere else — a
+   * school's own page could not list what FMT had actually done there. Set it
+   * and the event appears on that school's page too, from this one row.
+   *
+   * Left undefined where the record does not say which building it was.
+   * Guessing would put an event on a school page that may never have hosted
+   * it, which is worse than a shorter list.
+   */
+  location?: string;
 }
 
 export interface Location {
@@ -137,6 +160,14 @@ export const EVENTS: Event[] = [
     type: 'appreciation',
   },
   {
+    id: 20,
+    title: "Teachers' Lounge Makeover — Okemos",
+    date: '2026-09-28',
+    description: "We are cleaning and decorating the Okemos High School teachers' lounge, together with ACTION, a student club at OHS. FMT bought the decorations; ACTION brought the hands.",
+    location: 'Okemos High School',
+    type: 'appreciation',
+  },
+  {
     id: 13,
     title: 'Boo Baskets — October Teacher of the Month',
     date: '2026-10-30',
@@ -159,6 +190,7 @@ export const EVENTS: Event[] = [
     description: 'The door decorating competition returns — classrooms go all out and winners take home prizes.',
     location: 'Okemos High School',
     type: 'competition',
+    inquiry: true,
   },
   {
     id: 16,
@@ -167,6 +199,7 @@ export const EVENTS: Event[] = [
     description: 'Collecting classroom supplies all through December, delivered to teachers when school resumes in January.',
     location: 'Greater Lansing area',
     type: 'fundraiser',
+    inquiry: true,
   },
   {
     id: 17,
@@ -175,6 +208,7 @@ export const EVENTS: Event[] = [
     description: 'Students write letters to the staff members who matter to them, and we deliver every one at the end of the day. Runs for about a week in February.',
     location: 'Okemos High School',
     type: 'appreciation',
+    inquiry: true,
   },
   {
     id: 18,
@@ -183,6 +217,7 @@ export const EVENTS: Event[] = [
     description: 'Our biggest week of the year — meals, meal cards, and appreciation events for educators across our partner schools.',
     location: 'All partner schools',
     type: 'appreciation',
+    inquiry: true,
   },
   {
     id: 19,
@@ -341,7 +376,7 @@ export const LOCATIONS: Location[] = [
     id: '8',
     name: 'Haslett High School',
     district: 'Haslett Public Schools',
-    impact: "Ongoing partner. Back-to-school smoothies from Jamba Juice on a hot September day, catered staff meetings from Ozzy's Kabobs, and Teacher Appreciation Week meal cards.",
+    impact: "Ongoing partner. Back-to-school smoothies from Jamba Juice on a hot September day, catered staff meetings from Ozzy's Kabob, and Teacher Appreciation Week meal cards.",
     amount: '~50–60 teachers · ~100 staff',
     lat: 42.7489, lng: -84.4010,
     demographics: { students: '', lowIncome: '', diversity: '' },
@@ -367,7 +402,7 @@ export const LOCATIONS: Location[] = [
 // Never list Hungry Howie's, Asian Buffet, or Dave's Hot Chicken: the
 // founder paid for those personally, so the businesses donated nothing.
 export const SPONSORS: Sponsor[] = [
-  { id: 1, name: "Ozzy's Kabobs", tier: "Principal's Circle", amount: 2100, description: '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
+  { id: 1, name: "Ozzy's Kabob", tier: "Principal's Circle", amount: 2100, description: '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
   { id: 2, name: 'Jamba Juice (Matt & Stephanie Wagemann)', tier: "Principal's Circle", amount: 1200, description: 'About 60 smoothies for Haslett on a hot back-to-school day, another 70–80 for East Lansing\'s first staff meeting of the year, plus coupons for Haslett staff.', active: true },
   { id: 3, name: "Dusty's Wine Cellar", tier: 'Pencil Partner', amount: 25, description: 'A $25 gift certificate for a teacher appreciation basket.', active: true },
 ];
@@ -420,6 +455,34 @@ export const TEACHERS_OF_THE_MONTH: TeacherOfTheMonth[] = [
 ];
 
 export const PAST_EVENTS: PastEvent[] = [
+  // ── 2026–27 ──────────────────────────────────────────────────────────────
+  {
+    id: 130,
+    month: 'September 2026',
+    title: 'First staff meeting of the year, East Lansing',
+    description: '80 Jamba Juice smoothies and coupons for East Lansing High School\u2019s first staff meeting of the year, on one of the first hot days back.',
+    type: 'appreciation',
+    location: 'East Lansing High School',
+    partner: 'Jamba Juice',
+  },
+  {
+    id: 131,
+    month: 'September 2026',
+    title: 'Sixty meals for the Haslett staff meeting',
+    description: "Ozzy's Kabob catered Haslett High School's September staff meeting \u2014 60 individually wrapped meals, enough for the room.",
+    type: 'appreciation',
+    location: 'Haslett High School',
+    partner: "Ozzy's Kabob",
+  },
+  {
+    id: 132,
+    month: 'September 2026',
+    title: 'Seventy meals for the Okemos staff meeting',
+    description: "Ozzy's Kabob catered Okemos High School's September staff meeting the next day \u2014 70 individually wrapped meals, part of the same 130-meal donation.",
+    type: 'appreciation',
+    location: 'Okemos High School',
+    partner: "Ozzy's Kabob",
+  },
   // ── 2024–25 ──────────────────────────────────────────────────────────────
   {
     id: 110,
@@ -463,6 +526,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Letters of Encouragement to OHS Faculty',
     description: 'Students wrote letters of encouragement to Okemos High faculty, organized with Love 4 Our Elders.',
     type: 'community',
+    location: 'Okemos High School',
     partner: 'Love 4 Our Elders',
   },
   {
@@ -516,6 +580,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Back-to-School Smoothies at Haslett',
     description: 'Brought 60 Jamba Juice smoothies and coupons to Haslett High School during the school day — a cold start to a hot September.',
     type: 'appreciation',
+    location: 'Haslett High School',
     partner: 'Jamba Juice',
   },
   {
@@ -539,6 +604,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Fresh Donuts for the Whole Staff',
     description: 'Surprised the entire Okemos High School staff with fresh donuts at their staff meeting — because every teacher deserves a great end to their day.',
     type: 'appreciation',
+    location: 'Okemos High School',
     partner: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)",
   },
   {
@@ -577,6 +643,7 @@ export const PAST_EVENTS: PastEvent[] = [
     title: 'Teacher Appreciation Week — District-Wide',
     description: 'Our biggest week ever: over 1,000 Chick-fil-A meal cards — 500 breakfast, 500 lunch entrées, roughly $5,000 in value — delivered to staff at nine buildings, every Okemos school plus Haslett and East Lansing High School. Alongside them: gift cards from Playmakers (two $25) and Cottage Inn ($100 worth), ~70–75 free custard coupons from Culver\'s, and Dunkin\' coffee and donuts at the OHS staff meeting where our first Teachers of the Month were announced.',
     type: 'appreciation',
+    location: 'All partner schools',
     partner: "Chick-fil-A, Dunkin', Playmakers, Cottage Inn & Culver's",
   },
   {

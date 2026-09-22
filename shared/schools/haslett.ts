@@ -34,13 +34,8 @@ export const haslett: School = {
 
   photos: [],
 
-  pastHighlights: [
-    {
-      when: 'Fall 2025',
-      title: 'Seventy meals, one staff meeting',
-      body: "Ozzy's Kabob catered a full staff meeting here — individually wrapped meals for the whole building, part of the same run that fed Okemos the next day.",
-    },
-  ],
+  // See okemos.ts — history is tagged on the events themselves.
+  pastHighlights: [],
 
   initiatives: [
     {
@@ -60,6 +55,8 @@ export const haslett: School = {
   ],
 
   sponsors: [
-    { name: "Ozzy's Kabob", note: 'Catered a staff meeting for the whole building' },
+    { name: "Ozzy's Kabob", note: '60 individually wrapped meals for a September staff meeting' },
+    { name: 'Jamba Juice', note: 'Back-to-school smoothies for the staff' },
+    { name: "Auntie Anne's", note: 'Donated to a Haslett staff appreciation event' },
   ],
 };

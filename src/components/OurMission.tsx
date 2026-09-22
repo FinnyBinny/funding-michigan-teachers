@@ -12,8 +12,8 @@ const VALUES = [
 const MISSION_POINTS = [
   {
     icon: Coffee,
-    title: "Every Month, Without Fail",
-    description: "During every staff meeting, we show up with real food from local Okemos businesses — Chick-fil-A, Dunkin', Nothing Bundt Cakes, Ozzy's Kabobs, Jamba Juice. Because a teacher who stayed until 7 PM deserves more than a granola bar.",
+    title: "At Almost Every Staff Meeting",
+    description: "At almost every staff meeting we show up with real food from local Okemos businesses — Chick-fil-A, Dunkin', Nothing Bundt Cakes, Ozzy's Kabob, Jamba Juice. Because a teacher still in the building at four o'clock deserves more than a granola bar.",
     color: "text-apple",
     bgColor: "bg-apple/10"
   },
@@ -82,7 +82,7 @@ export default function OurMission() {
             Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
           </p>
           <p className="text-base text-chalkboard/70 leading-relaxed font-light">
-            In the 2025–26 school year alone, FMT delivered more than $8,500 in donations and in-kind support, served Okemos High School staff at every staff meeting, handed meal cards to staff at nine buildings during Teacher Appreciation Week, awarded $500+ in door decorating prizes, run a Valentine's letter campaign, and funded classroom grants — all by high school students, with at least 80¢ of every dollar going directly to teachers.
+            In the 2025–26 school year alone, FMT delivered more than $8,500 in donations and in-kind support, served Okemos High School staff at almost every staff meeting, handed meal cards to staff at nine buildings during Teacher Appreciation Week, awarded $500+ in door decorating prizes, ran a Valentine's letter campaign, and funded classroom grants — all by high school students, with at least 80¢ of every dollar going directly to teachers.
           </p>
 
           {/* The full founding story lives on /about — hiding it behind an

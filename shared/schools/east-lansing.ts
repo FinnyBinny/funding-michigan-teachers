@@ -47,9 +47,9 @@ export const eastLansing: School = {
 
   photos: [],
 
-  // CONFIRM every East Lansing event with Finn before publishing. The
-  // smoothie delivery is referenced in the intro above; it is not listed here
-  // as a confirmed highlight until he signs off on the details.
+  // See okemos.ts — history is tagged on the events themselves. The smoothie
+  // delivery is in PAST_EVENTS with this school's location and appears here.
+  // CONFIRM any further East Lansing events with Finn before adding them.
   pastHighlights: [],
 
   initiatives: [
@@ -69,7 +69,8 @@ export const eastLansing: School = {
     },
   ],
 
-  // No sponsors have supported East Lansing specifically yet. The section
-  // hides itself rather than printing an empty "Thank you to".
-  sponsors: [],
+  sponsors: [
+    { name: 'Jamba Juice', note: 'Smoothies for the first staff meeting of the year' },
+    { name: "Auntie Anne's", note: 'Donated to an East Lansing staff appreciation event' },
+  ],
 };
