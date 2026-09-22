@@ -403,7 +403,7 @@ export const LOCATIONS: Location[] = [
 // founder paid for those personally, so the businesses donated nothing.
 export const SPONSORS: Sponsor[] = [
   { id: 1, name: "Ozzy's Kabob", tier: "Principal's Circle", amount: 2100, description: '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
-  { id: 2, name: 'Jamba Juice (Matt & Stephanie Wagemann)', tier: "Principal's Circle", amount: 1200, description: 'About 60 smoothies for Haslett on a hot back-to-school day, another 70–80 for East Lansing\'s first staff meeting of the year, plus coupons for Haslett staff.', active: true },
+  { id: 2, name: 'Jamba Juice (Matt & Stephanie Wagemann)', tier: "Principal's Circle", amount: 1200, description: '60 smoothies for Haslett on a hot back-to-school day, and 80 for East Lansing\'s first staff meeting of the year, plus coupons for Haslett staff.', active: true },
   { id: 3, name: "Dusty's Wine Cellar", tier: 'Pencil Partner', amount: 25, description: 'A $25 gift certificate for a teacher appreciation basket.', active: true },
 ];
 
@@ -416,6 +416,8 @@ export const FOOD_PARTNERS: FoodPartner[] = [
   { id: 5, month: 'May', business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — 1,000+ meal cards (500 breakfast, 500 lunch entrées), roughly $5,000 in value', image: '/images/may-chick-fil-a-cards-opt.jpg', display_order: 5 },
   { id: 6, month: 'May', business: "Dunkin' (3450 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — coffee + donuts at the OHS staff meeting where we announced Teacher of the Month winners', image: '/images/may-staff-meeting-opt.jpg', display_order: 6 },
   { id: 7, month: '2025–26', business: 'Biggby Coffee (3520 Okemos Rd. Okemos, MI)', detail: 'Donated coffee, decaf, and hot chocolate for the April and end-of-year FMT Coffee Bar events', image: '/images/coffee-bar-biggby-opt.jpg', display_order: 7 },
+  { id: 12, month: 'September', business: 'Jamba Juice (Matt & Stephanie Wagemann)', detail: "80 smoothies for East Lansing High School's first staff meeting of the year", display_order: 4 },
+  { id: 13, month: 'September', business: 'Jamba Juice (Matt & Stephanie Wagemann)', detail: '60 back-to-school smoothies for the Haslett staff, plus coupons', display_order: 4 },
   { id: 9, month: 'May', business: 'Playmakers (2299 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated two $25 Playmakers gift cards for staff appreciation', display_order: 9 },
   { id: 10, month: 'May', business: 'Cottage Inn Pizza (1743 W Grand River Ave. Okemos, MI)', detail: 'Teacher Appreciation Week — donated five $20 gift cards for staff appreciation', display_order: 10 },
   { id: 11, month: 'May', business: "Culver's (3440 Okemos Rd. Okemos, MI)", detail: 'Teacher Appreciation Week — donated 75 free scoop tokens for staff', display_order: 11 },

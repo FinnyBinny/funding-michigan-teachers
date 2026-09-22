@@ -7,18 +7,28 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
+/**
+ * Two tiers, because one row of ten links is a wall.
+ *
+ * NAV is where a visitor is trying to go. UTILITY is the smaller stuff —
+ * the ask aimed at schools, the bottle-return page whose name means nothing
+ * to a stranger, the policy — and it sits down on the legal line where that
+ * kind of link belongs. Nothing was removed; Home went because the logo
+ * beside it already goes home.
+ */
 const NAV = [
-  { label: 'Home', path: '/' },
   { label: 'About', path: '/about' },
-  { label: 'For Teachers', path: '/for-teachers' },
   { label: 'Partner Schools', path: '/schools' },
-  // Out of the top nav, kept here: this is where a school that wants FMT
-  // goes looking, and it no longer competes with the partner schools.
-  { label: 'Bring FMT to your school', path: '/for-schools' },
+  { label: 'For Teachers', path: '/for-teachers' },
   { label: 'For Businesses', path: '/sponsors' },
   { label: 'Donate', path: '/donate' },
   { label: 'Shop', path: '/shop' },
+];
+
+const UTILITY = [
+  { label: 'Bring FMT to your school', path: '/for-schools' },
   { label: 'Returnables', path: '/returnables' },
+  { label: 'Privacy', path: '/privacy' },
 ];
 
 export default function SiteFooter() {
@@ -64,9 +74,15 @@ export default function SiteFooter() {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
             <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
-            <button onClick={() => navigate('/privacy')} className="hover:text-white transition-colors uppercase tracking-widest text-[10px] font-bold">
-              Privacy Policy
-            </button>
+            {UTILITY.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className="hover:text-white transition-colors uppercase tracking-widest text-[10px] font-bold"
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors uppercase tracking-widest text-[10px] font-bold">Instagram</a>

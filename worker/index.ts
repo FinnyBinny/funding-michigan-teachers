@@ -323,6 +323,20 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
       phone_number_collection: { enabled: true },
       return_url: `${origin}/shop?stripe_session_id={CHECKOUT_SESSION_ID}`,
       metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
+      /**
+       * The packing list on the PaymentIntent, not just the session.
+       *
+       * Session metadata is only visible if you open the Checkout Session,
+       * which is two clicks off the Payments list and not where anyone
+       * actually looks. A PaymentIntent description shows in the Payments
+       * list, on the payment page, in the emailed receipt and in a CSV
+       * export — so the order can be pressed straight from Stripe instead of
+       * emailing the buyer to ask what they bought.
+       */
+      payment_intent_data: {
+        description: `${packing} — ${fulfilment === 'delivery' ? 'DELIVERY' : 'pickup'}`,
+        metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
+      },
       custom_text: {
         submit: {
           message:

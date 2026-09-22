@@ -16,8 +16,7 @@ export const eastLansing: School = {
   shortName: 'East Lansing',
   mascot: 'Trojans',
   district: 'East Lansing Public Schools',
-  // TODO: confirm the year FMT started at East Lansing.
-  partnerSince: '____',
+  partnerSince: '2026',
 
   // CONFIRM with Finn: this intro is written from the smoothie delivery and
   // should be replaced or approved before it goes live.
@@ -41,6 +40,19 @@ export const eastLansing: School = {
 
   // TODO: confirm staff count with the East Lansing front office.
   staffCount: undefined,
+
+  // From the signed School Partnership Program menu. East Lansing chose four
+  // of the seven; the three it did not choose are not listed, because listing
+  // them would read as a gap rather than a decision.
+  partnership: {
+    signed: 'August 2026',
+    programs: [
+      'Teacher of the Month',
+      'Teacher Lounge Decorating',
+      'Post Office of Love',
+      'Staff Meeting Catering',
+    ],
+  },
 
   // TODO: add the hero photo from the smoothie delivery.
   hero: undefined,

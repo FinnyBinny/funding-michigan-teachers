@@ -31,6 +31,11 @@ export const okemos: School = {
   // TODO: confirm staff count with the Okemos front office.
   staffCount: undefined,
 
+  // Okemos has no signed partnership menu: it is the home building, where
+  // everything runs. TODO: if OHS signs a menu like the other two, add it
+  // here and the section appears by itself.
+  partnership: undefined,
+
   // TODO: add the hero photo. Until one exists the page opens on the band,
   // which is a working state — it does not render an empty frame.
   hero: undefined,

@@ -548,7 +548,7 @@ update sponsors
 
 insert into sponsors (name, tier, description, amount, active)
 select 'Jamba Juice (Matt & Stephanie Wagemann)', 'Principal''s Circle',
-       'About 60 smoothies for Haslett on a hot back-to-school day, another 70–80 for East Lansing''s first staff meeting of the year, plus coupons for Haslett staff.',
+       '60 smoothies for Haslett on a hot back-to-school day, and 80 for East Lansing''s first staff meeting of the year, plus coupons for Haslett staff.',
        1200, true
 where not exists (select 1 from sponsors where name ilike 'Jamba%');
 

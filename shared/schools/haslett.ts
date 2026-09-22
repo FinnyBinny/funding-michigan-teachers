@@ -12,8 +12,7 @@ export const haslett: School = {
   shortName: 'Haslett',
   mascot: 'Vikings',
   district: 'Haslett Public Schools',
-  // TODO: confirm the year FMT started at Haslett.
-  partnerSince: '____',
+  partnerSince: '2026',
 
   intro:
     'Haslett was the first building outside Okemos to let us through the door. Staff meetings here have been fed by local restaurants more than once, and the room has never once been short.',
@@ -28,6 +27,12 @@ export const haslett: School = {
 
   // TODO: confirm staff count with the Haslett front office.
   staffCount: undefined,
+
+  // From the signed School Partnership Program menu.
+  partnership: {
+    signed: 'August 2026',
+    programs: ['End-of-Year Staff Breakfast', 'Staff Meeting Catering'],
+  },
 
   // TODO: add the hero photo from a Haslett staff meeting.
   hero: undefined,

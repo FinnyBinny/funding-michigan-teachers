@@ -118,8 +118,9 @@ export default function AboutPage() {
                 Since then FMT has hosted two door decorating competitions awarding $500–$700 in
                 prizes, delivered surprise staff meals from Chick-fil-A, Dunkin', Nothing Bundt
                 Cakes, Ozzy's Kabob and Jamba Juice, run a student-written Valentine's letter campaign,
-                and funded classroom grants — from a dissection lab at Okemos High School to
-                greenhouse equipment for a life-science teacher.
+                and funded classroom grants. Two requests are open right now — replacing
+                decade-old dissection tools at Okemos High School, and restocking a life-science
+                teacher's greenhouse — and neither is funded yet.
               </p>
               <p>
                 Every initiative is student-run, because Finn believes young people can make a real

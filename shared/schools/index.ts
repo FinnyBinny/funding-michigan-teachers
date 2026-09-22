@@ -22,7 +22,7 @@ import { okemos } from './okemos';
 import { eastLansing } from './east-lansing';
 import { haslett } from './haslett';
 
-export type { School, SchoolPhoto, SchoolHighlight, SchoolInitiative, SchoolSponsor, SchoolClub, BandStyle, SchoolColors } from './types';
+export type { School, SchoolPhoto, SchoolHighlight, SchoolInitiative, SchoolSponsor, SchoolClub, SchoolPartnership, BandStyle, SchoolColors } from './types';
 
 export const SCHOOLS: readonly School[] = [okemos, eastLansing, haslett];
 
