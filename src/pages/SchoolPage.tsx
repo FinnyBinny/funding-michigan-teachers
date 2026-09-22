@@ -27,15 +27,34 @@ function navigate(path: string) {
 /** Heading style shared by every section, so the page has one rhythm. */
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-serif font-bold text-2xl sm:text-3xl tracking-tight mb-6">
-      {children}
-    </h2>
+    <>
+      {/* Primary, not secondary: East Lansing's secondary is white, which is
+          invisible on a cream section. The secondary earns its place on the
+          band, where it sits against the dark primary. */}
+      <span
+        className="block w-12 h-[5px] rounded-full mb-4"
+        style={{ background: 'var(--school-primary)' }}
+        aria-hidden="true"
+      />
+      <h2 className="font-serif font-bold text-2xl sm:text-3xl tracking-tight mb-6">
+        {children}
+      </h2>
+    </>
   );
 }
 
-function Section({ children }: { children: React.ReactNode }) {
+/**
+ * `tint` washes the section in the school's own color at low strength.
+ * Alternating tinted and plain sections is what keeps the school present all
+ * the way down the page rather than only in the band — while the text stays
+ * FMT's chalkboard on a cream-family background, so contrast never moves.
+ */
+function Section({ children, tint = false }: { children: React.ReactNode; tint?: boolean }) {
   return (
-    <section className="px-4 sm:px-6 py-10 sm:py-12">
+    <section
+      className="px-4 sm:px-6 py-10 sm:py-12"
+      style={tint ? { background: 'color-mix(in srgb, var(--school-primary) 6%, var(--color-paper))' } : undefined}
+    >
       <div className="max-w-3xl mx-auto">{children}</div>
     </section>
   );
@@ -103,8 +122,8 @@ export default function SchoolPage({ school }: { school: School }) {
 
       <main className="flex-1">
         {/* The band. The one bold thing on the page. */}
-        <header className={`school-band school-band--${school.band} pt-28 sm:pt-32 pb-10 px-4 sm:px-6`}>
-          <div className="max-w-3xl mx-auto">
+        <header className={`school-band school-band--${school.band} pt-28 sm:pt-32 pb-10 px-4 sm:px-6 relative overflow-hidden`}>
+          <div className="max-w-3xl mx-auto relative z-10">
             <button
               onClick={() => navigate('/schools')}
               className="school-link text-sm text-white/75 hover:text-white underline underline-offset-4 mb-6 inline-block"
@@ -117,6 +136,12 @@ export default function SchoolPage({ school }: { school: School }) {
             <p className="mt-3 text-lg text-white/85 font-light">
               Home of the {school.mascot}
             </p>
+            <span
+              className="pointer-events-none select-none absolute right-0 -bottom-2 font-serif italic font-bold leading-none text-white/[0.07] text-[clamp(4rem,16vw,9rem)] pr-4"
+              aria-hidden="true"
+            >
+              {school.mascot}
+            </span>
             <p className="mt-1 text-sm text-white/70">
               Partner school since {school.partnerSince}
               {school.staffCount ? ` — ${school.staffCount} staff supported` : ''}
@@ -153,6 +178,32 @@ export default function SchoolPage({ school }: { school: School }) {
             {school.intro}
           </p>
         </Section>
+
+        {school.partnership && (
+          <Section tint>
+            <SectionHeading>What {school.shortName} signed up for</SectionHeading>
+            <p className="text-chalkboard/70 font-light leading-relaxed mb-6">
+              Every partner school picks from the same menu and picks differently. These are the
+              programs {school.shortName} chose, running at no cost to the building.
+            </p>
+            <ul className="space-y-3">
+              {school.partnership.programs.map((program) => (
+                <li key={program} className="flex items-start gap-3">
+                  <span
+                    className="mt-1.5 w-2.5 h-2.5 rounded-sm shrink-0"
+                    style={{ background: 'var(--school-primary)' }}
+                    aria-hidden="true"
+                  />
+                  <span className="font-semibold">{program}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 text-sm text-chalkboard/55">
+              Partnership agreed {school.partnership.signed}. Programs can be added any time during
+              the year.
+            </p>
+          </Section>
+        )}
 
         {upcoming.length > 0 && (
           <Section>
@@ -193,7 +244,7 @@ export default function SchoolPage({ school }: { school: School }) {
         )}
 
         {school.photos.length > 0 && (
-          <Section>
+          <Section tint>
             <SectionHeading>Photos</SectionHeading>
             <div className="grid grid-cols-2 gap-3">
               {school.photos.map((p) => (
@@ -268,7 +319,7 @@ export default function SchoolPage({ school }: { school: School }) {
         )}
 
         {school.sponsors.length > 0 && (
-          <Section>
+          <Section tint>
             <SectionHeading>Thank you to</SectionHeading>
             <p className="text-chalkboard/70 font-light leading-relaxed mb-5">
               These neighbors paid for something that happened inside {school.shortName}.

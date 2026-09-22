@@ -237,12 +237,12 @@ export default function ReturnablesPage() {
 
               <div className="relative flex items-end justify-center gap-1.5 sm:gap-3">
                 {[
-                  { C: () => <PopCan color="#E8564A" />, size: 38, delay: 0 },
-                  { C: () => <Bottle color="#5EA9DD" />, size: 42, delay: 0.1 },
-                  { C: () => <Dime />, size: 22, delay: 0.2 },
-                  { C: () => <PopCan color="#4bbfb3" />, size: 36, delay: 0.3 },
-                  { C: () => <Bottle color="#FFD54F" />, size: 40, delay: 0.4 },
-                  { C: () => <Dime />, size: 20, delay: 0.5 },
+                  { C: () => <PopCan color="#E8564A" tilt={-6} />, size: 38, delay: 0 },
+                  { C: () => <Bottle color="#5EA9DD" tilt={4} />, size: 44, delay: 0.1 },
+                  { C: () => <Dime tilt={12} />, size: 22, delay: 0.2 },
+                  { C: () => <PopCan color="#4bbfb3" tilt={7} />, size: 34, delay: 0.3 },
+                  { C: () => <Bottle color="#FFD54F" tilt={-5} />, size: 41, delay: 0.4 },
+                  { C: () => <Dime tilt={-9} />, size: 19, delay: 0.5 },
                 ].map((item, i) => (
                   <motion.div
                     key={i}
@@ -343,7 +343,7 @@ export default function ReturnablesPage() {
                       transition={{ delay: i * 0.07, duration: 0.5, ease: EASE }}
                       className="w-8 h-8 sm:w-9 sm:h-9"
                     >
-                      {i % 2 === 0 ? <PopCan color="#E8564A" /> : <Bottle color="#5EA9DD" />}
+                      {i % 2 === 0 ? <PopCan color="#E8564A" tilt={i * 5 - 7} /> : <Bottle color="#5EA9DD" tilt={6 - i * 4} />}
                     </motion.div>
                   ))}
                   <ArrowRight size={20} className="text-white/40 mx-1" />
@@ -479,8 +479,8 @@ export default function ReturnablesPage() {
             </div>
 
             <div className="flex items-end justify-center gap-2 mt-10" aria-hidden="true">
-              <div className="w-9 h-9"><PopCan color="#E8564A" /></div>
-              <div className="w-10 h-10"><Bottle color="#5EA9DD" /></div>
+              <div className="w-9 h-9"><PopCan color="#E8564A" tilt={-5} /></div>
+              <div className="w-10 h-10"><Bottle color="#5EA9DD" tilt={4} /></div>
               <div className="w-8 h-8"><PopCan color="#4bbfb3" /></div>
               <ArrowRight size={18} className="text-chalkboard/25 mb-2" />
               <div className="w-16 h-14"><SchoolHouse /></div>

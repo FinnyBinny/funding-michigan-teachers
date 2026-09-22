@@ -53,6 +53,24 @@ export interface SchoolSponsor {
   note?: string;
 }
 
+/**
+ * What this school actually selected on its School Partnership Program menu.
+ *
+ * Each building picks from the same list, and they pick differently — this is
+ * the most honest way these pages differ from one another, and the one a
+ * principal will check first. Only list what is on the signed form.
+ *
+ * The signed forms carry the administrator's name, email, phone and
+ * signature. None of that belongs on a public page, and none of it is stored
+ * here. `signed` is a month and year, nothing finer.
+ */
+export interface SchoolPartnership {
+  /** Human month and year the menu was signed: "August 2026". */
+  signed: string;
+  /** Program names exactly as they appear on the menu. */
+  programs: string[];
+}
+
 /** An FMT student club housed at this school. */
 export interface SchoolClub {
   name: string;
@@ -105,6 +123,8 @@ export interface School {
   band: BandStyle;
   /** Staff supported here. Undefined hides the line rather than guessing. */
   staffCount?: string;
+  /** What this building selected from the partnership menu, if it has one. */
+  partnership?: SchoolPartnership;
   /** Opens the page. A real photo beats a stat block. */
   hero?: SchoolPhoto;
   photos: SchoolPhoto[];
