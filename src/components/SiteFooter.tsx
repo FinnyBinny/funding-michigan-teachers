@@ -11,7 +11,10 @@ const NAV = [
   { label: 'Home', path: '/' },
   { label: 'About', path: '/about' },
   { label: 'For Teachers', path: '/for-teachers' },
-  { label: 'For Schools', path: '/for-schools' },
+  { label: 'Partner Schools', path: '/schools' },
+  // Out of the top nav, kept here: this is where a school that wants FMT
+  // goes looking, and it no longer competes with the partner schools.
+  { label: 'Bring FMT to your school', path: '/for-schools' },
   { label: 'For Businesses', path: '/sponsors' },
   { label: 'Donate', path: '/donate' },
   { label: 'Shop', path: '/shop' },

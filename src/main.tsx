@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy, useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { isKnownRoute } from '../shared/routes';
+import { findSchool, schoolSlugFromPath } from '../shared/schools';
 import { initAnalytics } from './lib/analytics';
 import './index.css';
 
@@ -17,6 +18,8 @@ const AboutPage = lazy(() => import('./pages/AboutPage.tsx'));
 const ForTeachersPage = lazy(() => import('./pages/ForTeachersPage.tsx'));
 const ShopPage = lazy(() => import('./pages/ShopPage.tsx'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage.tsx'));
+const SchoolsIndexPage = lazy(() => import('./pages/SchoolsIndexPage.tsx'));
+const SchoolPage = lazy(() => import('./pages/SchoolPage.tsx'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.tsx'));
 const RestrictedPage = lazy(() => import('./pages/RestrictedPage.tsx'));
 
@@ -34,8 +37,15 @@ function Router() {
   // path means /donate/ renders the donate page instead of the homepage.
   const path = rawPath.length > 1 ? rawPath.replace(/\/+$/, '') : rawPath;
 
+  // The site's only dynamic route. The slug is resolved from the school
+  // registry, so an invented /schools/... falls through to the 404 below and
+  // the Worker answers it with a real 404 status.
+  const schoolSlug = schoolSlugFromPath(path);
+
   let page: React.ReactNode;
-  if (path === '/sponsors') page = <SponsorsPage />;
+  if (schoolSlug) page = <SchoolPage school={findSchool(schoolSlug)!} />;
+  else if (path === '/schools') page = <SchoolsIndexPage />;
+  else if (path === '/sponsors') page = <SponsorsPage />;
   else if (path === '/for-schools') page = <ForSchoolsPage />;
   else if (path === '/donate') page = <DonatePage />;
   else if (path === '/access') page = <AccessPage />;

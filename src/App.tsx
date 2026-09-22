@@ -29,6 +29,7 @@ import { STAT } from './data/impactStats';
 import { TeeArt as ShopTee, HoodieArt as ShopHoodie } from './components/merchDoodles';
 import { MERCH_COLORS as SHOP_COLORS } from '../shared/merch';
 import Programs from './components/Programs';
+import PartnerSchools from './components/PartnerSchools';
 
 export default function App() {
   useEffect(() => {
@@ -222,6 +223,33 @@ export default function App() {
               </div>
             </div>
             <DonationTiers onDonate={handleDonate} />
+          </div>
+        </section>
+
+        {/* Partner schools, above the map on purpose: the three buildings we
+            actually work in come before the wider map of everywhere we have
+            been. Each school is a link to its own page — a small version here,
+            the full thing there. */}
+        <section id="schools" className="py-14 sm:py-16 px-4 sm:px-6 bg-paper">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-8">
+              <h2 className="font-serif font-bold text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.05] tracking-tight mb-4 text-balance">
+                Our <span className="text-apple italic font-normal">partner schools</span>.
+              </h2>
+              <p className="text-chalkboard/65 font-light leading-relaxed max-w-2xl">
+                Three high schools, each with its own page — its own events, its own sponsors, and
+                its own teachers telling us what their rooms ran out of.
+              </p>
+            </div>
+
+            <PartnerSchools compact />
+
+            <button
+              onClick={() => { window.history.pushState({}, '', '/schools'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+              className="mt-7 font-bold text-sm underline underline-offset-4 decoration-2 decoration-apple/40 hover:decoration-apple transition-colors"
+            >
+              All partner schools
+            </button>
           </div>
         </section>
 
@@ -484,7 +512,8 @@ export default function App() {
                 <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>
                 <li><a href="#leaderboard" className="hover:text-white transition-colors">Leaderboard</a></li>
                 <li><a href="/sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
-                <li><a href="/for-schools" className="hover:text-white transition-colors">For Schools</a></li>
+                <li><a href="/schools" className="hover:text-white transition-colors">Partner Schools</a></li>
+                <li><a href="/for-schools" className="hover:text-white transition-colors">Bring FMT to your school</a></li>
                 <li><a href="/shop" className="hover:text-white transition-colors inline-flex items-center gap-2">Shop Merch <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-1.5 py-0.5 rounded-full">New</span></a></li>
                 <li><a href="/returnables" className="hover:text-white transition-colors">Donate Returnables</a></li>
                 <li><a href="#donors" className="hover:text-white transition-colors">Supporter Wall</a></li>

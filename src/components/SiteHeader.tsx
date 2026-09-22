@@ -27,6 +27,12 @@ function navigate(path: string) {
  * Returnables is deliberately absent — the word means nothing to a stranger.
  * It lives inside both footers and on the donate page instead.
  *
+ * "Partner Schools" (/schools) replaced "For Schools" (/for-schools) here.
+ * The two labels sitting side by side asked every visitor to work out the
+ * difference between a school we work in and a school we would like to work
+ * in. Recruitment still has its page; it is reached from the footer and from
+ * the bottom of /schools, where someone looking for it is already standing.
+ *
  * Shop sits last on purpose. It was originally left out entirely to keep an
  * Ad Grants site from reading as commercial, but that buried it in the footer
  * where nobody found it. One store link after four mission links is not a
@@ -35,7 +41,7 @@ function navigate(path: string) {
 const PAGES = [
   { label: 'About', path: '/about' },
   { label: 'For Teachers', path: '/for-teachers' },
-  { label: 'For Schools', path: '/for-schools' },
+  { label: 'Partner Schools', path: '/schools' },
   { label: 'For Businesses', path: '/sponsors' },
   { label: 'Shop', path: '/shop' },
 ];
@@ -43,6 +49,7 @@ const PAGES = [
 /** Section anchors offered in the mobile menu on the homepage only. */
 const HOME_ANCHORS = [
   { label: 'Mission', hash: '#mission' },
+  { label: 'Schools', hash: '#schools' },
   { label: 'Impact', hash: '#impact' },
   { label: 'Projects', hash: '#projects' },
   { label: 'Programs', hash: '#programs' },
@@ -50,7 +57,14 @@ const HOME_ANCHORS = [
   { label: 'Stories', hash: '#stories' },
 ];
 
-export default function SiteHeader({ isHome = false }: { isHome?: boolean }) {
+/**
+ * `onDark` is for pages that open with a full-bleed dark band under the
+ * header — the partner school pages. The header is transparent until you
+ * scroll 50px, so its normal chalkboard text sits dark-on-navy and is
+ * effectively invisible. On those pages it starts white and hands over to the
+ * usual dark-on-white treatment once the background turns opaque.
+ */
+export default function SiteHeader({ isHome = false, onDark = false }: { isHome?: boolean; onDark?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const current = typeof window !== 'undefined' ? window.location.pathname.replace(/\/+$/, '') || '/' : '/';
@@ -61,6 +75,9 @@ export default function SiteHeader({ isHome = false }: { isHome?: boolean }) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // True only while the header is still transparent over a dark band.
+  const overDark = onDark && !scrolled;
 
   const go = (path: string) => {
     setMenuOpen(false);
@@ -84,8 +101,8 @@ export default function SiteHeader({ isHome = false }: { isHome?: boolean }) {
               </picture>
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-serif text-base sm:text-xl font-bold tracking-tight leading-none truncate">Funding Michigan Teachers</span>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted hidden sm:block">Student-Led Nonprofit</span>
+              <span className={cn('font-serif text-base sm:text-xl font-bold tracking-tight leading-none truncate', overDark && 'text-white')}>Funding Michigan Teachers</span>
+              <span className={cn('text-[10px] uppercase tracking-[0.2em] font-bold hidden sm:block', overDark ? 'text-white/70' : 'text-muted')}>Student-Led Nonprofit</span>
             </div>
           </button>
 
@@ -96,14 +113,16 @@ export default function SiteHeader({ isHome = false }: { isHome?: boolean }) {
                 key={item.path}
                 onClick={() => go(item.path)}
                 className={cn(
-                  'hover:text-apple transition-colors relative group cursor-pointer uppercase tracking-[0.15em]',
-                  current === item.path && 'text-apple',
+                  'transition-colors relative group cursor-pointer uppercase tracking-[0.15em]',
+                  overDark ? 'text-white/85 hover:text-white' : 'hover:text-apple',
+                  current === item.path && (overDark ? 'text-white' : 'text-apple'),
                 )}
               >
                 {item.label}
                 <span
                   className={cn(
-                    'absolute -bottom-1 left-0 h-[2px] bg-apple transition-all',
+                    'absolute -bottom-1 left-0 h-[2px] transition-all',
+                    overDark ? 'bg-white' : 'bg-apple',
                     current === item.path ? 'w-full' : 'w-0 group-hover:w-full',
                   )}
                 />
@@ -111,7 +130,10 @@ export default function SiteHeader({ isHome = false }: { isHome?: boolean }) {
             ))}
             <button
               onClick={() => go('/donate')}
-              className="bg-chalkboard text-white px-8 py-2.5 rounded-full hover:bg-apple transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer"
+              className={cn(
+                'px-8 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer',
+                overDark ? 'bg-white text-chalkboard hover:bg-white/90' : 'bg-chalkboard text-white hover:bg-apple',
+              )}
             >
               Donate Now
             </button>
@@ -120,7 +142,7 @@ export default function SiteHeader({ isHome = false }: { isHome?: boolean }) {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden p-2 rounded-xl hover:bg-chalkboard/5 transition-colors"
+            className={cn('lg:hidden p-2 rounded-xl transition-colors', overDark ? 'text-white hover:bg-white/10' : 'hover:bg-chalkboard/5')}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
           >

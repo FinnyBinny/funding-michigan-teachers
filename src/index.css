@@ -25,6 +25,27 @@
      brand color. */
   --color-campaign-teal: #4bbfb3;
 
+  /* ── 2026 brand refresh palette ─────────────────────────────────────────
+     Registered so the re-skin has one place to land. These are NOT yet the
+     site's working colors: the frame above (paper, apple, ruler) is what
+     ships, because it clears WCAG AA and parts of this set do not.
+
+       Coral  #e05252  3.55:1 as text on cream, 3.82:1 under white button
+                       text — fails AA for both. Fills and accents only.
+       Teal   #4bbfb3  2.07:1 on cream. Fill only.
+       Sky    #a8c5e0  1.66:1 on cream. Fill only.
+       Amber  #d7963c  2.34:1 on cream. Fill only.
+       Navy   #1b3a5c  10.79:1 on cream. Safe as text.
+
+     Dark chalkboard text on top of any of these passes comfortably, which is
+     how they earn a band rather than a word. */
+  --color-brand-cream: #fbf6ec;
+  --color-brand-coral: #e05252;
+  --color-brand-teal: #4bbfb3;
+  --color-brand-sky: #a8c5e0;
+  --color-brand-navy: #1b3a5c;
+  --color-brand-amber: #d7963c;
+
   /* Premium motion easings */
   --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-bezel: cubic-bezier(0.22, 1, 0.36, 1);
@@ -61,6 +82,42 @@
 }
 
 @layer components {
+  /* ── Partner school pages ───────────────────────────────────────────────
+     --school-primary / --school-secondary / --school-tertiary are set inline
+     on the page wrapper from that school's data file, so the school is the
+     accent and FMT stays the frame. Nothing here hardcodes a school color;
+     a fourth school needs no CSS. */
+  .school-link:focus-visible,
+  .school-btn:focus-visible {
+    outline: 3px solid var(--school-primary, var(--color-ruler));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* The band is the one bold move on a school page. Flat color, no gradient,
+     no shadow — everything else on the page stays quiet. */
+  .school-band {
+    background: var(--school-primary);
+    color: #fff;
+  }
+
+  /* Haslett: a thick gold rule under the band. */
+  .school-band--rule {
+    border-bottom: 10px solid var(--school-secondary);
+  }
+
+  /* East Lansing: an inset white keyline. Its navy is 1.05:1 against
+     Haslett's — indistinguishable — so the treatment does the telling apart. */
+  .school-band--outline {
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--school-secondary) 70%, transparent);
+    border-bottom: 4px solid var(--school-tertiary, var(--school-secondary));
+  }
+
+  /* Okemos: a solid secondary block along the bottom edge. */
+  .school-band--block {
+    border-bottom: 16px solid var(--school-secondary);
+  }
+
   .crafted-card {
     @apply bg-white border border-chalkboard/5 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300;
   }
