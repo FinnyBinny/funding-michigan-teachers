@@ -67,7 +67,10 @@ export default function SchoolPage({ school }: { school: School }) {
     window.scrollTo(0, 0);
     setPageMeta({
       title: `${school.name} | Funding Michigan Teachers`,
-      description: `What Funding Michigan Teachers does at ${school.name} — staff appreciation, classroom supplies after the budget runs out, and the local businesses who helped. ${school.intro}`.slice(0, 300),
+      // Built from the school's own fields and kept short on purpose: a
+      // search result truncates around 155 characters, and the old version
+      // appended the whole intro and ran to 300.
+      description: `What FMT does at ${school.name} — staff meals, appreciation and classroom supplies after the budget runs out, and the businesses who helped.`,
       path: schoolPath(school.slug),
     });
   }, [school]);

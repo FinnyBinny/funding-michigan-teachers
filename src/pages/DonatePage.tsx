@@ -53,7 +53,7 @@ export default function DonatePage() {
     setPageMeta({
       title: 'Donate to Michigan Teachers | Funding Michigan Teachers',
       description:
-        "Give once or monthly to fund Michigan classrooms. A student-led 501(c)(3) (EIN 93-4485967) — at least 80¢ of every dollar goes directly to teachers. Secure checkout, tax-deductible receipt.",
+        'Give to Michigan teachers directly. At least 80¢ of every dollar reaches a classroom — supplies, staff meals and thanks at three partner high schools.',
       path: '/donate',
     });
     const params = new URLSearchParams(window.location.search);

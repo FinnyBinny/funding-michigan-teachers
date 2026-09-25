@@ -21,7 +21,7 @@ export default function PrivacyPage() {
     setPageMeta({
       title: 'Privacy Policy | Funding Michigan Teachers',
       description:
-        'How Funding Michigan Teachers collects, uses, and protects your information — what we collect, why, how long we keep it, and how to request deletion.',
+        'What Funding Michigan Teachers collects, why, and how to have it removed. We do not sell data and we do not share donor details.',
       path: '/privacy',
     });
   }, []);

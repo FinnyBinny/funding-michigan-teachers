@@ -26,7 +26,7 @@ export default function SchoolsIndexPage() {
     setPageMeta({
       title: 'Partner Schools | Funding Michigan Teachers',
       description:
-        'The Michigan high schools Funding Michigan Teachers works in — Okemos, East Lansing and Haslett. Staff appreciation, classroom supplies after the budget runs out, and the local businesses behind it.',
+        'The Michigan high schools Funding Michigan Teachers works in — Okemos, East Lansing and Haslett. Each has its own page, events and local sponsors.',
       path: '/schools',
     });
   }, []);

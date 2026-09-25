@@ -24,7 +24,7 @@ export default function SponsorsPage() {
     setPageMeta({
       title: 'Corporate Sponsorship | Funding Michigan Teachers',
       description:
-        "Partner with a student-led Michigan nonprofit. Sponsorship tiers put your business in front of local educators while funding classroom supplies, staff meals, and teacher appreciation.",
+        'Partner with a student-led 501(c)(3) that feeds and thanks teachers in three mid-Michigan high schools. Local businesses back specific staff meetings.',
       path: '/sponsors',
     });
   }, []);

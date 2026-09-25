@@ -186,7 +186,7 @@ export default function ShopPage() {
     setPageMeta({
       title: 'Shop — FMT Merch | Funding Michigan Teachers',
       description:
-        'FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. Every purchase funds classroom supplies for Michigan teachers. Educator pricing available at cost.',
+        'FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. What\'s left after materials buys classroom supplies.',
       path: '/shop',
     });
     if (new URLSearchParams(window.location.search).get('stripe_session_id')) {

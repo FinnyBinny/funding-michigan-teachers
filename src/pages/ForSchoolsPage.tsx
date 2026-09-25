@@ -103,7 +103,7 @@ export default function ForSchoolsPage() {
     setPageMeta({
       title: 'Bring FMT to Your School | Funding Michigan Teachers',
       description:
-        "Teacher appreciation programs for Michigan schools — staff meals, Teacher of the Month, door decorating competitions, and classroom supply grants. Nine pilot spots for 2026–27.",
+        'Bring Funding Michigan Teachers to your building: staff meals, Teacher of the Month, door decorating and classroom supplies, at no cost to the school.',
       path: '/for-schools',
     });
   }, []);

@@ -57,6 +57,9 @@ jobs:
       - name: Check impact figures are consistent
         run: bash scripts/check-consistency.sh
 
+      - name: Check SEO titles, descriptions and sitemap coverage
+        run: node scripts/check-seo.mjs
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty
