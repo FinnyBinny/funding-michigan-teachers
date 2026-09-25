@@ -650,3 +650,24 @@ update sponsors      set description = replace(description, 'Ozzy''s Kabobs', 'O
 update locations     set impact      = replace(impact,      'Ozzy''s Kabobs', 'Ozzy''s Kabob') where impact      like '%Ozzy''s Kabobs%';
 update food_partners set business    = replace(business,    'Ozzy''s Kabobs', 'Ozzy''s Kabob') where business    like '%Ozzy''s Kabobs%';
 update food_partners set detail      = replace(detail,      'Ozzy''s Kabobs', 'Ozzy''s Kabob') where detail      like '%Ozzy''s Kabobs%';
+
+-- ── Jamba Juice: 80 East Lansing, 60 Haslett ──────────────────────────────
+-- The sponsors insert above is guarded by `where not exists`, so it does
+-- nothing once Jamba is in the table — the corrected wording would never
+-- have reached the live row without this.
+update sponsors
+   set description = '60 smoothies for Haslett on a hot back-to-school day, and 80 for East Lansing''s first staff meeting of the year, plus coupons for Haslett staff.'
+ where name ilike 'Jamba%';
+
+-- ── Jamba Juice joins the businesses who showed up ────────────────────────
+-- food_partners is read from this table too, so the code seeds alone are
+-- invisible on the live site.
+insert into food_partners (month, business, detail, display_order)
+select 'September', 'Jamba Juice (Matt & Stephanie Wagemann)',
+       '80 smoothies for East Lansing High School''s first staff meeting of the year', 4
+where not exists (select 1 from food_partners where detail ilike '%East Lansing High School''s first staff meeting%');
+
+insert into food_partners (month, business, detail, display_order)
+select 'September', 'Jamba Juice (Matt & Stephanie Wagemann)',
+       '60 back-to-school smoothies for the Haslett staff, plus coupons', 4
+where not exists (select 1 from food_partners where detail ilike '%back-to-school smoothies for the Haslett staff%');

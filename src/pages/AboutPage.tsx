@@ -44,7 +44,7 @@ export default function AboutPage() {
     setPageMeta({
       title: 'About Us | Funding Michigan Teachers',
       description:
-        'Funding Michigan Teachers is a student-led 501(c)(3) founded in 2023 by Finn Regan in Okemos, Michigan. Our mission, our values, where the money goes, and what we run across the school year.',
+        'How a ninth grader\'s donut cart became a 501(c)(3). Funding Michigan Teachers is student-run, based in Okemos, and works in three Michigan high schools.',
       path: '/about',
     });
   }, []);

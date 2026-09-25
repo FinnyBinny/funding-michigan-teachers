@@ -37,9 +37,9 @@ export default function ForTeachersPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     setPageMeta({
-      title: 'For Teachers — Request Classroom Supplies | Funding Michigan Teachers',
+      title: 'Request Classroom Supplies | Funding Michigan Teachers',
       description:
-        'Michigan teachers: tell us what your classroom needs and we work on getting it. Pencils, dry erase markers, tissues, paper, notebooks, markers — no application, no cost to you. A student-led 501(c)(3).',
+        'Teach at Okemos, East Lansing or Haslett? Tell us what your classroom ran out of and we restock it. No application, no committee, no grant cycle.',
       path: '/for-teachers',
     });
   }, []);

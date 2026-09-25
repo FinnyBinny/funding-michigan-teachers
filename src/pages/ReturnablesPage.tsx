@@ -125,7 +125,7 @@ export default function ReturnablesPage() {
     setPageMeta({
       title: 'Donate Your Returnables | Funding Michigan Teachers',
       description:
-        "Your cans, their classrooms. We pick up your Michigan bottle and can returnables for free in the Greater Lansing area and turn the deposits into classroom support for local teachers.",
+        'Your empty cans and bottles can fund a Michigan classroom. We collect your Michigan returnables and turn the 10¢ deposits into teacher support.',
       path: '/returnables',
     });
     setSource(captureSource());

@@ -34,9 +34,9 @@ import PartnerSchools from './components/PartnerSchools';
 export default function App() {
   useEffect(() => {
     setPageMeta({
-      title: 'Funding Michigan Teachers | 501(c)(3) Student-Led Nonprofit | Okemos, MI',
+      title: 'Funding Michigan Teachers | Student-Led 501(c)(3)',
       description:
-        'Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. A student-led 501(c)(3) nonprofit (EIN: 93-4485967) funding classroom supplies, staff meals, and teacher appreciation across Michigan.',
+        'A student-led 501(c)(3) funding classroom supplies, staff meals and teacher appreciation at Michigan high schools — so no teacher pays out of pocket.',
       path: '/',
     });
   }, []);
