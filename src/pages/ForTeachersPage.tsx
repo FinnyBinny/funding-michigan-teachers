@@ -6,6 +6,7 @@ import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { fileWithBloomerang } from '../lib/bloomerang';
 import { track } from '../lib/analytics';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -48,6 +49,15 @@ export default function ForTeachersPage() {
     e.preventDefault();
     setStatus('loading');
     let sent = false;
+
+    // Also file them in Bloomerang. Not awaited and never surfaced: the
+    // visitor is told it went through by the delivery below, and a CRM
+    // that is down is not their problem to see.
+    void fileWithBloomerang({
+      name: form.name,
+      email: form.email,
+      note: `Teacher supply request — ${form.school}: ${form.needs}`,
+    });
 
     sent = await submitToFormBold(FORMBOLD.supplies, {
       Form: 'Teacher supply request',

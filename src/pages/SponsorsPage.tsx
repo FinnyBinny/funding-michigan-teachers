@@ -8,6 +8,7 @@ import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { fileWithBloomerang } from '../lib/bloomerang';
 import { track } from '../lib/analytics';
 
 function navigate(path: string) {
@@ -254,6 +255,16 @@ function SponsorInterestForm() {
     e.preventDefault();
     setStatus('loading');
     let submitted = false;
+
+    // Also file them in Bloomerang. Not awaited and never surfaced: the
+    // visitor is told it went through by the delivery below, and a CRM
+    // that is down is not their problem to see.
+    void fileWithBloomerang({
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      note: `Sponsorship enquiry from ${form.business} — ${form.message}`,
+    });
 
     if (await submitToFormBold(FORMBOLD.sponsor, {
       Form: 'Corporate sponsorship inquiry',

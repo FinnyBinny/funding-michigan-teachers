@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { fileWithBloomerang } from '../lib/bloomerang';
 import { track } from '../lib/analytics';
 
 export default function Newsletter() {
@@ -13,6 +14,14 @@ export default function Newsletter() {
     e.preventDefault();
     setStatus('loading');
     let submitted = false;
+
+    // Email only, because that is all this box asks for. Bloomerang may
+    // refuse a constituent with no name — if signups are not appearing in
+    // the CRM, that is why, and the fix is one first-name field here.
+    void fileWithBloomerang({
+      email,
+      note: 'Signed up for the Impact Report on fundingmichiganteachers.org',
+    });
 
     // FormBold delivers the email notification
     if (await submitToFormBold(FORMBOLD.newsletter, {

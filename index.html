@@ -224,6 +224,22 @@
     <!-- Preload LCP hero image — desktop only: the hero photo is hidden below
          1024px, and without the media query every phone downloaded it anyway. -->
     <link rel="preload" as="image" type="image/avif" href="/images/finn-and-mrs-freeman-1280.avif" media="(min-width: 1024px)" />
+
+    <!-- Bloomerang website visit tracking.
+
+         Deferred rather than in the document head as Bloomerang's WordPress
+         instructions suggest: a blocking third-party script would delay first
+         paint on every page, and the whole site was rebuilt around loading
+         fast enough for the Google Ad Grant. A visit recorded a few hundred
+         milliseconds later is worth exactly as much.
+
+         ApiKey here is the public web key — browser-facing by design, the
+         same class as the Stripe publishable key. Not a private API key. -->
+    <script
+      src="https://api.bloomerang.co/v1/WebsiteVisit?ApiKey=pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b"
+      type="text/javascript"
+      defer
+    ></script>
   </head>
   <body>
     <div id="root"></div>
