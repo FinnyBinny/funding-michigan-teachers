@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { fileWithBloomerang } from '../lib/bloomerang';
 import { track } from '../lib/analytics';
 
 export default function ContactForm() {
@@ -13,6 +14,15 @@ export default function ContactForm() {
     e.preventDefault();
     setStatus('loading');
     let submitted = false;
+
+    // Also file them in Bloomerang. Not awaited and never surfaced: the
+    // visitor is told it went through by the delivery above, and a CRM that
+    // is down is not their problem to see.
+    void fileWithBloomerang({
+      name: form.name,
+      email: form.email,
+      note: `Contact form — ${form.message}`,
+    });
 
     // FormBold delivers the email notification
     if (await submitToFormBold(FORMBOLD.contact, {
