@@ -26,6 +26,7 @@ const NAV = [
 ];
 
 const UTILITY = [
+  { label: 'Stay in touch', path: '/stay-in-touch' },
   { label: 'Bring FMT to your school', path: '/for-schools' },
   { label: 'Returnables', path: '/returnables' },
   { label: 'Privacy', path: '/privacy' },

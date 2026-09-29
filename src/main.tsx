@@ -19,6 +19,7 @@ const ForTeachersPage = lazy(() => import('./pages/ForTeachersPage.tsx'));
 const ShopPage = lazy(() => import('./pages/ShopPage.tsx'));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage.tsx'));
 const SchoolsIndexPage = lazy(() => import('./pages/SchoolsIndexPage.tsx'));
+const StayInTouchPage = lazy(() => import('./pages/StayInTouchPage.tsx'));
 const SchoolPage = lazy(() => import('./pages/SchoolPage.tsx'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.tsx'));
 const RestrictedPage = lazy(() => import('./pages/RestrictedPage.tsx'));
@@ -53,6 +54,7 @@ function Router() {
   else if (path === '/about') page = <AboutPage />;
   else if (path === '/for-teachers') page = <ForTeachersPage />;
   else if (path === '/shop') page = <ShopPage />;
+  else if (path === '/stay-in-touch') page = <StayInTouchPage />;
   else if (path === '/privacy') page = <PrivacyPage />;
   else if (path === '/restricted') page = <RestrictedPage />;
   // Anything else is genuinely missing. The Worker pairs this with a real 404
