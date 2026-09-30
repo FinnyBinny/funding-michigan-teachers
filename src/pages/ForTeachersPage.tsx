@@ -53,7 +53,7 @@ export default function ForTeachersPage() {
     // Also file them in Bloomerang. Not awaited and never surfaced: the
     // visitor is told it went through by the delivery below, and a CRM
     // that is down is not their problem to see.
-    void fileWithBloomerang({
+    void fileWithBloomerang('supplies', {
       name: form.name,
       email: form.email,
       note: `Teacher supply request — ${form.school}: ${form.needs}`,
