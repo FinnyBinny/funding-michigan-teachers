@@ -18,7 +18,7 @@ export default function ContactForm() {
     // Also file them in Bloomerang. Not awaited and never surfaced: the
     // visitor is told it went through by the delivery above, and a CRM that
     // is down is not their problem to see.
-    void fileWithBloomerang({
+    void fileWithBloomerang('contact', {
       name: form.name,
       email: form.email,
       note: `Contact form — ${form.message}`,

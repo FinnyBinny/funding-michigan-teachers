@@ -28,10 +28,44 @@
 const PUBLIC_KEY = 'pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b';
 
 /**
- * The Constituent Information form these submissions are filed against, from
- * the embed code Bloomerang generated.
+ * One Bloomerang form per form on the site, so submissions arrive separated
+ * in the CRM instead of piling into one bucket.
+ *
+ * ⚠️ THE ORDER OF THESE IDS IS UNVERIFIED. The embed code Bloomerang
+ * generates is byte-for-byte identical across all five Constituent
+ * Information forms apart from the ID itself — 56320 and 57344 are literally
+ * the same file — so nothing in the scripts says which ID is "Teacher Supply
+ * Request" and which is "Sponsorship Enquiry". These are assigned in the
+ * order the scripts were supplied.
+ *
+ * To check or correct: Bloomerang → Settings → Website Integration, where
+ * each form is listed by name with its ID. Fixing a wrong one is a single
+ * line here.
+ *
+ * Nothing is lost if the order is wrong: every submission's interaction note
+ * begins by naming what it was ("Teacher supply request — …"), so a record
+ * filed under the wrong form still says what it is.
  */
-const INTERACTION_ID = '53248';
+export const BLOOMERANG_FORMS = {
+  contact: '55296',
+  supplies: '56320',
+  pilotSchool: '57344',
+  sponsor: '56321',
+  /** The original form, kept for anything not covered above. */
+  general: '53248',
+} as const;
+
+export type BloomerangForm = keyof typeof BLOOMERANG_FORMS;
+
+/**
+ * The mailing-list widget, which is a different Bloomerang concept from the
+ * forms above: it calls joinMailingList rather than submitInteraction, and is
+ * built to accept a signup that is only an email address. This is what the
+ * Impact Report box on the homepage needed — filing it as a constituent
+ * interaction with no name was the caveat flagged when these were first
+ * wired.
+ */
+const EMAIL_SIGNUP_ID = '25600';
 
 const SCRIPT_SRC = 'https://crm.bloomerang.co/Content/Scripts/Api/Bloomerang-v2.js';
 
@@ -51,6 +85,7 @@ interface BloomerangApi {
   _isReady?: boolean;
   useKey(key: string): void;
   useInteractionId(id: string): boolean;
+  useEmailId(id: string): boolean;
   Account: {
     individual(): BloomerangApi['Account'];
     firstName(v: string): BloomerangApi['Account'];
@@ -63,6 +98,7 @@ interface BloomerangApi {
     OnSuccess?: (r: unknown) => void;
     OnError?: (r: { Message?: string }) => void;
     submitInteraction(): void;
+    joinMailingList(): void;
   };
 }
 
@@ -126,7 +162,7 @@ function loadBloomerang(): Promise<BloomerangApi> {
  * as soon as FormBold or Supabase confirms; whether the CRM also took it is
  * not something they can act on.
  */
-export function fileWithBloomerang(fields: CrmFields): Promise<boolean> {
+export function fileWithBloomerang(form: BloomerangForm, fields: CrmFields): Promise<boolean> {
   return loadBloomerang()
     .then(
       (B) =>
@@ -134,7 +170,7 @@ export function fileWithBloomerang(fields: CrmFields): Promise<boolean> {
           const { first, last } = splitName(fields.name ?? '');
 
           B.useKey(PUBLIC_KEY);
-          B.useInteractionId(INTERACTION_ID);
+          B.useInteractionId(BLOOMERANG_FORMS[form]);
           B.Account.individual()
             .firstName(first)
             .lastName(last)
@@ -142,16 +178,47 @@ export function fileWithBloomerang(fields: CrmFields): Promise<boolean> {
             .homePhone(fields.phone ?? '');
           B.Interaction.note(fields.note ?? '');
 
-          let done = false;
-          const settle = (ok: boolean) => { if (!done) { done = true; resolve(ok); } };
-
-          B.Api.OnSuccess = () => settle(true);
-          B.Api.OnError = () => settle(false);
-          // Neither callback firing would leave this pending forever.
-          window.setTimeout(() => settle(false), TIMEOUT_MS);
-
-          B.Api.submitInteraction();
+          settleOn(B, resolve, () => B.Api.submitInteraction());
         }),
     )
     .catch(() => false);
+}
+
+/**
+ * Adds someone to the Bloomerang mailing list.
+ *
+ * Separate from the above because Bloomerang treats it separately: a
+ * different widget id, a different API call, and it accepts a signup that is
+ * only an email address — which is all the Impact Report box on the homepage
+ * asks for.
+ */
+export function joinMailingList(fields: { name?: string; email: string }): Promise<boolean> {
+  return loadBloomerang()
+    .then(
+      (B) =>
+        new Promise<boolean>((resolve) => {
+          const { first, last } = splitName(fields.name ?? '');
+
+          B.useKey(PUBLIC_KEY);
+          B.useEmailId(EMAIL_SIGNUP_ID);
+          B.Account.individual().firstName(first).lastName(last).homeEmail(fields.email);
+
+          settleOn(B, resolve, () => B.Api.joinMailingList());
+        }),
+    )
+    .catch(() => false);
+}
+
+/**
+ * Wires Bloomerang's success and error callbacks to one resolve, fires the
+ * submission, and guarantees an answer: neither callback firing would
+ * otherwise leave the promise pending forever.
+ */
+function settleOn(B: BloomerangApi, resolve: (ok: boolean) => void, fire: () => void) {
+  let done = false;
+  const settle = (ok: boolean) => { if (!done) { done = true; resolve(ok); } };
+  B.Api.OnSuccess = () => settle(true);
+  B.Api.OnError = () => settle(false);
+  window.setTimeout(() => settle(false), TIMEOUT_MS);
+  fire();
 }
