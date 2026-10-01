@@ -291,6 +291,21 @@ export default function SchoolPage({ school }: { school: School }) {
                   >
                     {i.ctaLabel}
                   </a>
+                  {i.secondaryLabel && i.secondaryHref && (
+                    <a
+                      href={i.secondaryHref}
+                      onClick={(ev) => {
+                        if (i.secondaryHref!.startsWith('/')) {
+                          ev.preventDefault();
+                          navigate(i.secondaryHref!);
+                        }
+                      }}
+                      className="school-link block mt-3 text-sm font-semibold underline underline-offset-4"
+                      style={{ color: 'var(--school-primary)' }}
+                    >
+                      {i.secondaryLabel}
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

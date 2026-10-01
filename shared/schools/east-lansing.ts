@@ -70,6 +70,8 @@ export const eastLansing: School = {
       body: 'Every January, after the classroom budget has run out and there is still half a school year to go, we restock the rooms that ask.',
       ctaLabel: 'Donate to the East Lansing refill',
       ctaHref: '/donate?fund=East%20Lansing%20Mid-Year%20Refill',
+      secondaryLabel: 'Teach here? Tell us what your room needs',
+      secondaryHref: '/for-teachers?kind=mid-year-refill&school=East%20Lansing%20High%20School',
     },
     {
       title: 'Tell us what your room ran out of',
@@ -77,7 +79,7 @@ export const eastLansing: School = {
       ctaLabel: 'Request supplies for your room',
       // TODO: replace with the dedicated teacher supply survey URL once it
       // exists. Points at the live supply request form in the meantime.
-      ctaHref: '/for-teachers',
+      ctaHref: '/for-teachers?school=East%20Lansing%20High%20School',
     },
   ],
 
