@@ -33,6 +33,22 @@ export interface Env {
    * See shared/merch.ts for the kinds and the rotation advice.
    */
   MERCH_CODES?: string;
+  /**
+   * Bloomerang API key, set in the Cloudflare dashboard as a Secret.
+   *
+   * This is a PRIVATE key and must never be prefixed VITE_, committed, or
+   * sent to the browser — it can read and write the whole CRM. The public
+   * `pub_` key that used to run in the browser is a different credential
+   * entirely, and the reason this endpoint exists: with reCAPTCHA enabled on
+   * Bloomerang's forms, a browser call carrying no captcha token is refused,
+   * and there is no way to obtain one without Bloomerang's own widget on the
+   * page. A server-to-server call is authenticated instead, so captcha —
+   * which exists to prove a human filled a form — does not apply.
+   *
+   * Absent, this endpoint answers 503 and the site carries on: every form
+   * already delivers by email, and the CRM copy is the only thing missing.
+   */
+  BLOOMERANG_API_KEY?: string;
 }
 
 /**
@@ -354,6 +370,119 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   }
 }
 
+/**
+ * Files a form submission into Bloomerang, server to server.
+ *
+ * Replaces calling Bloomerang from the visitor's browser. That worked only
+ * while their forms had no reCAPTCHA: their own embed sends a captcha token
+ * with every submit, obtained from a widget their library renders, and
+ * nothing outside that embed can produce one. With captcha enabled, a
+ * browser call is refused no matter what it contains. An authenticated
+ * server call is not subject to it at all.
+ *
+ * Two requests, deliberately. Bloomerang will happily create a second
+ * constituent for an address it already holds, so a teacher who asks for
+ * supplies twice would become two people in the CRM. This searches first and
+ * reuses the account when one exists.
+ *
+ * Never fails the caller's form: the site reports success from its own email
+ * delivery, and this answers with whether the CRM copy also landed so the
+ * browser console can say so.
+ */
+async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
+  let body: { form?: string; name?: string; email?: string; phone?: string; note?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid request body' }, 400);
+  }
+
+  const email = String(body.email ?? '').trim();
+  if (!email.includes('@')) return json({ error: 'A valid email is required' }, 400);
+
+  if (!env.BLOOMERANG_API_KEY) {
+    // Not configured yet. Not an error worth alarming anyone about — the
+    // submission reached FMT by email regardless.
+    return json({ filed: false, reason: 'BLOOMERANG_API_KEY is not set on the Worker' }, 503);
+  }
+
+  const api = async (path: string, init?: RequestInit) => {
+    const res = await fetch(`https://api.bloomerang.co/v2/${path}`, {
+      ...init,
+      headers: {
+        'X-API-KEY': env.BLOOMERANG_API_KEY!,
+        'Content-Type': 'application/json',
+        ...(init?.headers ?? {}),
+      },
+    });
+    const text = await res.text();
+    let parsed: unknown = null;
+    try { parsed = text ? JSON.parse(text) : null; } catch { /* keep the raw text */ }
+    return { ok: res.ok, status: res.status, body: parsed, raw: text.slice(0, 400) };
+  };
+
+  // Everything before the final space is the first name, which keeps middle
+  // names attached rather than dropping them.
+  const parts = String(body.name ?? '').trim().split(/\s+/).filter(Boolean);
+  const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : '';
+  const lastName = parts.length ? parts[parts.length - 1] : '';
+
+  try {
+    // 1. Is this person already in the CRM?
+    const found = await api(`constituents/search?search=${encodeURIComponent(email)}&take=1`);
+    let accountId: number | undefined =
+      (found.body as { Results?: { Id?: number }[] } | null)?.Results?.[0]?.Id;
+
+    // 2. Create them if not.
+    if (!accountId) {
+      const created = await api('constituent', {
+        method: 'POST',
+        body: JSON.stringify({
+          Type: 'Individual',
+          FirstName: firstName,
+          LastName: lastName || email,
+          PrimaryEmail: { Type: 'Home', Value: email },
+          ...(body.phone ? { PrimaryPhone: { Type: 'Home', Number: body.phone } } : {}),
+        }),
+      });
+      if (!created.ok) {
+        return json({ filed: false, stage: 'constituent', status: created.status, detail: created.raw }, 502);
+      }
+      accountId = (created.body as { Id?: number } | null)?.Id;
+    }
+
+    if (!accountId) {
+      return json({ filed: false, stage: 'constituent', detail: 'no account id returned' }, 502);
+    }
+
+    // 3. Record what they actually sent.
+    const interaction = await api('interaction', {
+      method: 'POST',
+      body: JSON.stringify({
+        AccountId: accountId,
+        Channel: 'Email',
+        Purpose: 'Other',
+        Subject: String(body.form ?? 'Website form'),
+        Note: String(body.note ?? ''),
+        Date: new Date().toISOString().slice(0, 10),
+      }),
+    });
+
+    if (!interaction.ok) {
+      // The person is in the CRM even if the note did not attach, which is
+      // worth saying rather than reporting a flat failure.
+      return json(
+        { filed: 'partial', accountId, stage: 'interaction', status: interaction.status, detail: interaction.raw },
+        502,
+      );
+    }
+
+    return json({ filed: true, accountId });
+  } catch (err) {
+    return json({ filed: false, detail: err instanceof Error ? err.message : 'unknown error' }, 502);
+  }
+}
+
 async function checkoutSessionStatus(request: Request, env: Env): Promise<Response> {
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Stripe is not configured on the server.' }, 500);
@@ -432,6 +561,9 @@ export default {
     }
     if (path === '/api/create-merch-session' && request.method === 'POST') {
       return createMerchSession(request, env);
+    }
+    if (path === '/api/crm' && request.method === 'POST') {
+      return fileInBloomerang(request, env);
     }
     if (path === '/api/checkout-session-status' && request.method === 'GET') {
       return checkoutSessionStatus(request, env);
