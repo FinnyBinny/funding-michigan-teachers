@@ -1,284 +1,107 @@
 /**
- * Bloomerang CRM — files the people who use the site's existing forms.
+ * Bloomerang CRM — files form submissions through this site's own Worker.
  *
- * This is an *additional* destination, never a replacement. Every form still
- * delivers through FormBold and still falls back to Supabase and a mailto, and
- * none of them waits on this or reports failure from it: a CRM that is slow,
- * blocked by an extension, or simply down must not make a teacher's supply
- * request look like it failed.
+ * ── Why this no longer runs in the browser ─────────────────────────────────
+ * It used to call Bloomerang's JavaScript API directly from the page. That
+ * worked only while their forms had no reCAPTCHA. Their own embed sends a
+ * captcha token with every submit, obtained from a widget their library
+ * renders, and nothing outside that embed can produce one — no site key is
+ * exposed anywhere to get a token with. Once reCAPTCHA was enabled, a browser
+ * call was refused regardless of what it contained.
  *
- * Bloomerang's copy-paste embed is deliberately not used. It injects its own
- * markup and stylesheet, needs jQuery and jQuery Validate, polls for its
- * library every 500ms with no timeout, and on success navigates the browser
- * to the apex domain — which this site's Worker then 301s to www. Their
- * JavaScript API does the part that matters without any of that.
+ * So the call moved to the Worker, where it is authenticated with a private
+ * API key instead. Captcha exists to prove a human filled in a form; it does
+ * not apply to an authenticated server-to-server call.
  *
- * jQuery still arrives with Bloomerang-v2.js, so the library is fetched only
- * when someone actually submits something. A visitor who never touches a form
- * — which is nearly all of them — downloads none of it.
+ * Three things improved on the way. Bloomerang's library brought jQuery with
+ * it and no page loads either any more. The private key never reaches the
+ * browser, unlike the public key it replaces. And the Worker can look for an
+ * existing constituent before creating one, so the same teacher asking twice
+ * does not become two people in the CRM.
  *
- * ── The key ────────────────────────────────────────────────────────────────
- * PUBLIC_KEY is Bloomerang's public web key, the same class of credential as
- * the Stripe publishable key and the Supabase anon key: designed to sit in the
- * browser, able only to create constituents and interactions. It is safe in
- * this repo. A Bloomerang *private* API key is a different thing and must
- * never appear here — that belongs in a Worker secret.
+ * Still an additional write, never a gate. Every form delivers through
+ * FormBold and falls back to Supabase and a mailto; none of them waits on
+ * this or reports its failure. A CRM that is down must not make a teacher's
+ * supply request look like it failed.
  */
-
-const PUBLIC_KEY = 'pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b';
 
 /**
- * One Bloomerang form per form on the site, so submissions arrive separated
- * in the CRM instead of piling into one bucket.
- *
- * ⚠️ THE ORDER OF THESE IDS IS UNVERIFIED. The embed code Bloomerang
- * generates is byte-for-byte identical across all five Constituent
- * Information forms apart from the ID itself — 56320 and 57344 are literally
- * the same file — so nothing in the scripts says which ID is "Teacher Supply
- * Request" and which is "Sponsorship Enquiry". These are assigned in the
- * order the scripts were supplied.
- *
- * To check or correct: Bloomerang → Communications → Forms, then the down
- * arrow beside a form → Get Code. The id appears as bloomerangFormNNNNN at
- * the top of that code. Fixing a wrong one is a single line here.
- *
- * Nothing is lost if the order is wrong: every submission's interaction note
- * begins by naming what it was ("Teacher supply request — …"), so a record
- * filed under the wrong form still says what it is.
+ * What each site form is filed as, used as the interaction subject so a
+ * record in the CRM says what it came from.
  */
 export const BLOOMERANG_FORMS = {
-  contact: '55296',
-  supplies: '56320',
-  pilotSchool: '57344',
-  sponsor: '56321',
-  /** The original form, kept for anything not covered above. */
-  general: '53248',
+  contact: 'Website — contact form',
+  supplies: 'Website — teacher supply request',
+  pilotSchool: 'Website — bring FMT to your school',
+  sponsor: 'Website — sponsorship enquiry',
+  newsletter: 'Website — Impact Report signup',
 } as const;
 
 export type BloomerangForm = keyof typeof BLOOMERANG_FORMS;
 
-/**
- * The mailing-list widget, which is a different Bloomerang concept from the
- * forms above: it calls joinMailingList rather than submitInteraction, and is
- * built to accept a signup that is only an email address. This is what the
- * Impact Report box on the homepage needed — filing it as a constituent
- * interaction with no name was the caveat flagged when these were first
- * wired.
- */
-const EMAIL_SIGNUP_ID = '25600';
-
-const SCRIPT_SRC = 'https://crm.bloomerang.co/Content/Scripts/Api/Bloomerang-v2.js';
-
-/** Give up rather than spin forever behind a blocker or a dead connection. */
-const TIMEOUT_MS = 12000;
-
 export interface CrmFields {
-  /** Whole name as typed. Split here; the forms ask for one name field. */
+  /** Whole name as typed; the Worker splits it. Absent for the newsletter. */
   name?: string;
   email: string;
   phone?: string;
-  /** Everything else worth keeping, written into the interaction note. */
+  /** Everything else worth keeping, recorded as the interaction note. */
   note?: string;
-}
-
-interface BloomerangApi {
-  _isReady?: boolean;
-  useKey(key: string): void;
-  useInteractionId(id: string): boolean;
-  useEmailId(id: string): boolean;
-  Account: {
-    individual(): BloomerangApi['Account'];
-    firstName(v: string): BloomerangApi['Account'];
-    lastName(v: string): BloomerangApi['Account'];
-    homeEmail(v: string): BloomerangApi['Account'];
-    homePhone(v: string): BloomerangApi['Account'];
-  };
-  Interaction: { note(v: string): unknown };
-  Api: {
-    OnSuccess?: (r: unknown) => void;
-    OnError?: (r: { Message?: string }) => void;
-    submitInteraction(): void;
-    joinMailingList(): void;
-  };
-}
-
-declare global {
-  interface Window { Bloomerang?: BloomerangApi }
-}
-
-/**
- * "Ms. Freeman" -> { first: 'Ms.', last: 'Freeman' }; "Cher" -> last: 'Cher'.
- *
- * Bloomerang wants the two separately and the forms ask for one field.
- * Everything before the final space is the first name, which keeps middle
- * names and initials attached to it rather than dropping them.
- */
-export function splitName(full: string): { first: string; last: string } {
-  const parts = full.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return { first: '', last: '' };
-  if (parts.length === 1) return { first: '', last: parts[0] };
-  return { first: parts.slice(0, -1).join(' '), last: parts[parts.length - 1] };
 }
 
 /**
  * Why a submission did not land, written to the console and nowhere else.
  *
- * These calls are deliberately invisible to the visitor — their message
- * already went through FormBold — but swallowing the reason entirely meant
- * "it isn't working" could not be diagnosed by anyone, including from the
- * browser that saw it happen. Open the console, submit, read the line.
+ * These calls are invisible to the visitor — their message already went
+ * through — but swallowing the reason entirely once meant "it isn't working"
+ * could not be diagnosed by anyone. Open the console, submit, read the line.
  */
-function report(stage: string, detail?: unknown) {
+function report(detail: unknown) {
   // eslint-disable-next-line no-console
   console.warn(
-    `[Bloomerang] ${stage}` + (detail ? `: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}` : ''),
-    '\n  Submissions still reach FMT by email; only the CRM copy is affected.',
+    '[Bloomerang] not filed in the CRM:',
+    detail,
+    '\nSubmissions still reach FMT by email; only the CRM copy is affected.',
   );
 }
 
-let loader: Promise<BloomerangApi> | null = null;
-
-/** Loads Bloomerang-v2.js once, with a deadline their own loader lacks. */
-function loadBloomerang(): Promise<BloomerangApi> {
-  if (loader) return loader;
-
-  loader = new Promise<BloomerangApi>((resolve, reject) => {
-    const ready = () => window.Bloomerang?._isReady === true;
-    if (ready()) return resolve(window.Bloomerang as BloomerangApi);
-
-    const started = Date.now();
-    const poll = () => {
-      if (ready()) return resolve(window.Bloomerang as BloomerangApi);
-      if (Date.now() - started > TIMEOUT_MS) {
-        loader = null; // allow a later submission to try again
-        report('library loaded but never became ready within 12s');
-        return reject(new Error('Bloomerang did not load'));
-      }
-      window.setTimeout(poll, 200);
-    };
-
-    if (!document.querySelector(`script[src^="${SCRIPT_SRC}"]`)) {
-      const s = document.createElement('script');
-      s.src = SCRIPT_SRC;
-      s.async = true;
-      s.onerror = () => {
-        loader = null;
-        report('script could not be fetched — blocked by an extension, or offline');
-        reject(new Error('Bloomerang script blocked'));
-      };
-      document.head.appendChild(s);
-    }
-    poll();
-  });
-
-  return loader;
-}
-
 /**
- * Files someone into Bloomerang. Resolves true on success, false on anything
- * else — it never throws and never rejects, because every caller is running
- * it beside a delivery that already worked.
+ * Files someone into Bloomerang. Resolves true on success, false otherwise —
+ * it never throws, because every caller runs it beside a delivery that has
+ * already worked.
  *
- * Call it without awaiting. The form should tell the visitor it went through
- * as soon as FormBold or Supabase confirms; whether the CRM also took it is
- * not something they can act on.
+ * Call it without awaiting. The form should say it went through as soon as
+ * FormBold or Supabase confirms; whether the CRM also took it is not
+ * something the visitor can act on.
  */
-export function fileWithBloomerang(form: BloomerangForm, fields: CrmFields): Promise<boolean> {
-  return loadBloomerang()
-    .then(
-      (B) =>
-        new Promise<boolean>((resolve) => {
-          const { first, last } = splitName(fields.name ?? '');
+export async function fileWithBloomerang(form: BloomerangForm, fields: CrmFields): Promise<boolean> {
+  try {
+    const res = await fetch('/api/crm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ form: BLOOMERANG_FORMS[form], ...fields }),
+    });
 
-          B.useKey(PUBLIC_KEY);
-          B.useInteractionId(BLOOMERANG_FORMS[form]);
-          B.Account.individual()
-            .firstName(first)
-            .lastName(last)
-            .homeEmail(fields.email)
-            .homePhone(fields.phone ?? '');
-          B.Interaction.note(fields.note ?? '');
+    if (res.ok) return true;
 
-          settleOn(B, resolve, () => B.Api.submitInteraction());
-        }),
-    )
-    .catch(() => false);
+    const detail = await res.json().catch(() => ({ status: res.status }));
+    // 503 means the Worker has no API key yet. That is a setup step rather
+    // than a fault, and it says so instead of reading as a breakage.
+    report(res.status === 503 ? 'BLOOMERANG_API_KEY is not set on the Worker yet' : detail);
+    return false;
+  } catch (err) {
+    report(err instanceof Error ? err.message : err);
+    return false;
+  }
 }
 
 /**
- * Adds someone to the Bloomerang mailing list.
- *
- * Separate from the above because Bloomerang treats it separately: a
- * different widget id, a different API call, and it accepts a signup that is
- * only an email address — which is all the Impact Report box on the homepage
- * asks for.
+ * The Impact Report box collects an email and nothing else, which the old
+ * browser API could not file as a constituent at all. The Worker falls back
+ * to the address as the surname, which Bloomerang accepts and staff can tidy.
  */
 export function joinMailingList(fields: { name?: string; email: string }): Promise<boolean> {
-  return loadBloomerang()
-    .then(
-      (B) =>
-        new Promise<boolean>((resolve) => {
-          const { first, last } = splitName(fields.name ?? '');
-
-          B.useKey(PUBLIC_KEY);
-          B.useEmailId(EMAIL_SIGNUP_ID);
-          B.Account.individual().firstName(first).lastName(last).homeEmail(fields.email);
-
-          settleOn(B, resolve, () => B.Api.joinMailingList());
-        }),
-    )
-    .catch(() => false);
-}
-
-/**
- * Wires Bloomerang's success and error callbacks to one resolve, fires the
- * submission, and guarantees an answer: neither callback firing would
- * otherwise leave the promise pending forever.
- */
-function settleOn(B: BloomerangApi, resolve: (ok: boolean) => void, fire: () => void) {
-  let done = false;
-  const settle = (ok: boolean) => { if (!done) { done = true; resolve(ok); } };
-
-  B.Api.OnSuccess = () => settle(true);
-  B.Api.OnError = (r) => {
-    report('rejected the submission', r?.Message ?? r);
-    /**
-     * The likeliest cause, and the one this approach cannot solve from the
-     * browser. Bloomerang's own embed calls Bloomerang.captchaResponse(token)
-     * before submitting; getting that token needs their rendered reCAPTCHA
-     * widget and the site key, neither of which exists outside their embed.
-     * If the message below mentions captcha, the fix is to post these
-     * server-side from the Worker with a private API key instead.
-     */
-    if (String(r?.Message ?? '').toLowerCase().includes('captcha')) {
-      report('this is the reCAPTCHA gate — see the note in src/lib/bloomerang.ts');
-    }
-    settle(false);
-  };
-
-  window.setTimeout(() => {
-    if (!done) {
-      /**
-       * Neither callback fired. That is what an HTTP-level refusal looks
-       * like from inside Bloomerang's library: it only calls OnError for a
-       * response it could parse, so a 403 on the request itself produces
-       * silence rather than an error.
-       *
-       * A 403 in the Network tab alongside this means the public key was
-       * rejected — almost always because the domain is not on the key's
-       * allowed list in Bloomerang, or the key has been regenerated. It is
-       * not something this code can work around; the fix is either to
-       * authorise the domain, or to post these from the Worker with a
-       * private key, server to server, where neither domain rules nor
-       * reCAPTCHA apply.
-       */
-      report(
-        'no response within 12s — if the Network tab shows a 403, the public key ' +
-        'was refused for this domain rather than the submission being rejected',
-      );
-    }
-    settle(false);
-  }, TIMEOUT_MS);
-
-  fire();
+  return fileWithBloomerang('newsletter', {
+    ...fields,
+    note: 'Signed up for the Impact Report on fundingmichiganteachers.org',
+  });
 }
