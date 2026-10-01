@@ -38,9 +38,9 @@ const PUBLIC_KEY = 'pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b';
  * Request" and which is "Sponsorship Enquiry". These are assigned in the
  * order the scripts were supplied.
  *
- * To check or correct: Bloomerang → Settings → Website Integration, where
- * each form is listed by name with its ID. Fixing a wrong one is a single
- * line here.
+ * To check or correct: Bloomerang → Communications → Forms, then the down
+ * arrow beside a form → Get Code. The id appears as bloomerangFormNNNNN at
+ * the top of that code. Fixing a wrong one is a single line here.
  *
  * Nothing is lost if the order is wrong: every submission's interaction note
  * begins by naming what it was ("Teacher supply request — …"), so a record
@@ -120,6 +120,22 @@ export function splitName(full: string): { first: string; last: string } {
   return { first: parts.slice(0, -1).join(' '), last: parts[parts.length - 1] };
 }
 
+/**
+ * Why a submission did not land, written to the console and nowhere else.
+ *
+ * These calls are deliberately invisible to the visitor — their message
+ * already went through FormBold — but swallowing the reason entirely meant
+ * "it isn't working" could not be diagnosed by anyone, including from the
+ * browser that saw it happen. Open the console, submit, read the line.
+ */
+function report(stage: string, detail?: unknown) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[Bloomerang] ${stage}` + (detail ? `: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}` : ''),
+    '\n  Submissions still reach FMT by email; only the CRM copy is affected.',
+  );
+}
+
 let loader: Promise<BloomerangApi> | null = null;
 
 /** Loads Bloomerang-v2.js once, with a deadline their own loader lacks. */
@@ -135,6 +151,7 @@ function loadBloomerang(): Promise<BloomerangApi> {
       if (ready()) return resolve(window.Bloomerang as BloomerangApi);
       if (Date.now() - started > TIMEOUT_MS) {
         loader = null; // allow a later submission to try again
+        report('library loaded but never became ready within 12s');
         return reject(new Error('Bloomerang did not load'));
       }
       window.setTimeout(poll, 200);
@@ -144,7 +161,11 @@ function loadBloomerang(): Promise<BloomerangApi> {
       const s = document.createElement('script');
       s.src = SCRIPT_SRC;
       s.async = true;
-      s.onerror = () => { loader = null; reject(new Error('Bloomerang script blocked')); };
+      s.onerror = () => {
+        loader = null;
+        report('script could not be fetched — blocked by an extension, or offline');
+        reject(new Error('Bloomerang script blocked'));
+      };
       document.head.appendChild(s);
     }
     poll();
@@ -217,8 +238,28 @@ export function joinMailingList(fields: { name?: string; email: string }): Promi
 function settleOn(B: BloomerangApi, resolve: (ok: boolean) => void, fire: () => void) {
   let done = false;
   const settle = (ok: boolean) => { if (!done) { done = true; resolve(ok); } };
+
   B.Api.OnSuccess = () => settle(true);
-  B.Api.OnError = () => settle(false);
-  window.setTimeout(() => settle(false), TIMEOUT_MS);
+  B.Api.OnError = (r) => {
+    report('rejected the submission', r?.Message ?? r);
+    /**
+     * The likeliest cause, and the one this approach cannot solve from the
+     * browser. Bloomerang's own embed calls Bloomerang.captchaResponse(token)
+     * before submitting; getting that token needs their rendered reCAPTCHA
+     * widget and the site key, neither of which exists outside their embed.
+     * If the message below mentions captcha, the fix is to post these
+     * server-side from the Worker with a private API key instead.
+     */
+    if (String(r?.Message ?? '').toLowerCase().includes('captcha')) {
+      report('this is the reCAPTCHA gate — see the note in src/lib/bloomerang.ts');
+    }
+    settle(false);
+  };
+
+  window.setTimeout(() => {
+    if (!done) report('no response within 12s');
+    settle(false);
+  }, TIMEOUT_MS);
+
   fire();
 }
