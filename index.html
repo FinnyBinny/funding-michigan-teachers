@@ -239,6 +239,7 @@
       src="https://api.bloomerang.co/v1/WebsiteVisit?ApiKey=pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b"
       type="text/javascript"
       defer
+      onerror="console.warn('[Bloomerang] visit tracking was refused (a 403 here means the public key is not authorised for this domain, or is disabled). Nothing else on the page is affected.')"
     ></script>
   </head>
   <body>

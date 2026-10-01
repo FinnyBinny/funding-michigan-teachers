@@ -257,7 +257,26 @@ function settleOn(B: BloomerangApi, resolve: (ok: boolean) => void, fire: () => 
   };
 
   window.setTimeout(() => {
-    if (!done) report('no response within 12s');
+    if (!done) {
+      /**
+       * Neither callback fired. That is what an HTTP-level refusal looks
+       * like from inside Bloomerang's library: it only calls OnError for a
+       * response it could parse, so a 403 on the request itself produces
+       * silence rather than an error.
+       *
+       * A 403 in the Network tab alongside this means the public key was
+       * rejected — almost always because the domain is not on the key's
+       * allowed list in Bloomerang, or the key has been regenerated. It is
+       * not something this code can work around; the fix is either to
+       * authorise the domain, or to post these from the Worker with a
+       * private key, server to server, where neither domain rules nor
+       * reCAPTCHA apply.
+       */
+      report(
+        'no response within 12s — if the Network tab shows a 403, the public key ' +
+        'was refused for this domain rather than the submission being rejected',
+      );
+    }
     settle(false);
   }, TIMEOUT_MS);
 
