@@ -73,6 +73,7 @@ export const okemos: School = {
   // they helped.
   sponsors: [
     { name: "Ozzy's Kabob", note: '70 individually wrapped meals for a September staff meeting' },
+    { name: 'Home Depot', note: 'A dump cart and a 5-shelf storage unit for the greenhouse' },
   ],
 
   club: {
