@@ -253,7 +253,7 @@ export const PROJECTS: Project[] = [
     teacher_name: 'Christina Abbott',
     school_name: 'Okemos High School',
     title: 'Greenhouse & Life Science Lab Restock',
-    description: "Home Depot donated the first half: a Gorilla quick-release dump cart to replace the broken seed carts, and a 5-shelf chrome storage unit on casters — both already standing in Miss Abbott's greenhouse. Still needed: a second shelving unit for greenhouse storage and three bags of Pro-Mix HP Biofungicide with Mycorrhizae to keep student-grown plants healthy. Every item goes straight into her hands-on, research-driven classroom.",
+    description: "Miss Abbott has built her botany garden on under $2,500 across two and a half years. Home Depot covered two of the three pieces we asked for: a Gorilla 4 cu. ft. dumping garden cart to replace the broken seed carts, and a 5-tier chrome shelving unit on casters — both already standing in the greenhouse. Still needed: the second garden cart, plus soil and growing supplies as the garden expands. Every item goes straight into her hands-on, research-driven classroom.",
     goal: 500,
     raised: 308,
     votes: 0,
@@ -404,9 +404,7 @@ export const LOCATIONS: Location[] = [
 export const SPONSORS: Sponsor[] = [
   { id: 1, name: "Ozzy's Kabob", tier: "Principal's Circle", amount: 2100, description: '130 individually wrapped meals across two staff meetings — 60 for Haslett High School and 70 for Okemos High School the next day. Roughly $2,100 in donated food.', active: true },
   { id: 2, name: 'Jamba Juice (Matt & Stephanie Wagemann)', tier: "Principal's Circle", amount: 1200, description: '60 smoothies for Haslett on a hot back-to-school day, and 80 for East Lansing\'s first staff meeting of the year, plus coupons for Haslett staff.', active: true },
-  // TODO: confirm which Home Depot store so the thank-you reaches the right
-  // one — the gift was arranged in person, so there is no email on file.
-  { id: 4, name: 'Home Depot', tier: 'Pencil Partner', amount: 308, description: 'A Gorilla quick-release dump cart and a 5-shelf HDX chrome storage unit on casters for the Okemos High School greenhouse — $308 in donated equipment.', active: true },
+  { id: 4, name: 'Home Depot (1749 Newman Rd. Okemos, MI)', tier: 'Pencil Partner', amount: 308, description: "A Gorilla 4 cu. ft. dumping garden cart and a 5-tier HDX chrome shelving unit on casters for Miss Abbott's botany garden at Okemos High School — $308 in donated equipment.", active: true },
   { id: 3, name: "Dusty's Wine Cellar", tier: 'Pencil Partner', amount: 25, description: 'A $25 gift certificate for a teacher appreciation basket.', active: true },
 ];
 

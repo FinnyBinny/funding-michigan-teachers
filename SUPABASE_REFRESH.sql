@@ -672,31 +672,37 @@ select 'September', 'Jamba Juice (Matt & Stephanie Wagemann)',
        '60 back-to-school smoothies for the Haslett staff, plus coupons', 4
 where not exists (select 1 from food_partners where detail ilike '%back-to-school smoothies for the Haslett staff%');
 
--- ── Home Depot's greenhouse equipment (October 2026) ──────────────────────
--- Home Depot donated a Gorilla quick-release dump cart and a 5-shelf HDX
--- chrome storage unit on casters for Miss Abbott's greenhouse at Okemos
--- High School: $308 in equipment, already delivered.
+-- ── Home Depot's garden equipment (October 2026) ──────────────────────────
+-- The Home Depot store at 1749 Newman Rd, Okemos donated two of the three
+-- items on our September 23 request letter for Miss Abbott's botany garden
+-- at Okemos High School: a Gorilla 4 cu. ft. dumping garden cart ($149) and
+-- a 5-tier HDX chrome shelving unit on casters ($159). $308 of the $457
+-- asked. The second garden cart is still outstanding.
 --
 -- projects is read from this table, so the code seed alone leaves the live
 -- progress bar at $0. This is an explicit update, not a guarded insert —
 -- the row already exists, and `where not exists` would silently skip it.
 update projects
    set raised      = 308,
-       description = 'Home Depot donated the first half: a Gorilla quick-release dump cart to replace the broken seed carts, and a 5-shelf chrome storage unit on casters — both already standing in Miss Abbott''s greenhouse. Still needed: a second shelving unit for greenhouse storage and three bags of Pro-Mix HP Biofungicide with Mycorrhizae to keep student-grown plants healthy. Every item goes straight into her hands-on, research-driven classroom.'
+       description = 'Miss Abbott has built her botany garden on under $2,500 across two and a half years. Home Depot covered two of the three pieces we asked for: a Gorilla 4 cu. ft. dumping garden cart to replace the broken seed carts, and a 5-tier chrome shelving unit on casters — both already standing in the greenhouse. Still needed: the second garden cart, plus soil and growing supplies as the garden expands. Every item goes straight into her hands-on, research-driven classroom.'
  where teacher_name ilike '%Abbott%';
 
 -- Home Depot joins the current-year sponsors. In-kind gifts count toward
--- tier at fair market value, so $308 lands in Pencil Partner ($250+).
+-- tier at fair market value, so $308 lands in Pencil Partner ($250+). The
+-- street address rides in the name, as it does in food_partners: Home Depot
+-- has several stores locally and the thank-you belongs to the one that gave.
 insert into sponsors (name, tier, amount, description, active)
-select 'Home Depot', 'Pencil Partner', 308,
-       'A Gorilla quick-release dump cart and a 5-shelf HDX chrome storage unit on casters for the Okemos High School greenhouse — $308 in donated equipment.',
+select 'Home Depot (1749 Newman Rd. Okemos, MI)', 'Pencil Partner', 308,
+       'A Gorilla 4 cu. ft. dumping garden cart and a 5-tier HDX chrome shelving unit on casters for Miss Abbott''s botany garden at Okemos High School — $308 in donated equipment.',
        true
 where not exists (select 1 from sponsors where name ilike 'Home Depot%');
 
--- And if the row is already there from an earlier run, correct it in place.
+-- And if the row is already there from an earlier run, correct it in place —
+-- including the bare 'Home Depot' name an earlier version of this file wrote.
 update sponsors
-   set tier        = 'Pencil Partner',
+   set name        = 'Home Depot (1749 Newman Rd. Okemos, MI)',
+       tier        = 'Pencil Partner',
        amount      = 308,
-       description = 'A Gorilla quick-release dump cart and a 5-shelf HDX chrome storage unit on casters for the Okemos High School greenhouse — $308 in donated equipment.',
+       description = 'A Gorilla 4 cu. ft. dumping garden cart and a 5-tier HDX chrome shelving unit on casters for Miss Abbott''s botany garden at Okemos High School — $308 in donated equipment.',
        active      = true
  where name ilike 'Home Depot%';
