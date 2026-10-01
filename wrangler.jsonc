@@ -4,6 +4,23 @@
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "main": "worker/index.ts",
+
+  // ── There is deliberately no "vars" block ─────────────────────────────────
+  //
+  // This file is committed, so anything in "vars" is published to GitHub.
+  // Every credential this Worker uses — STRIPE_SECRET_KEY, MERCH_CODES,
+  // BLOCKED_IPS, BLOOMERANG_API_KEY — is set in the Cloudflare dashboard as a
+  // Secret instead: encrypted at rest, never readable back, and never synced
+  // into this file.
+  //
+  // Cloudflare offers to "keep deployments in sync" by pasting a value here
+  // when something is added as a plain Variable rather than a Secret. Do not
+  // accept it. The fix is to delete the Variable and re-add it under Secrets;
+  // env.NAME reads identically either way, so no code changes.
+  //
+  // BLOOMERANG_API_KEY in particular can read and write the whole CRM —
+  // donor names, addresses, giving history. It is not a publishable key like
+  // the Stripe or Supabase ones that do live in this repo.
   // Bind the real domain to this Worker on deploy. If a deploy fails with
   // "hostname already associated" (or similar), the domain is still held by
   // the old static Pages project — remove it there and redeploy.
