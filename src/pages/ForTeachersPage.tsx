@@ -31,8 +31,37 @@ const REASSURANCE = [
  * supply request, deliberately short: a teacher filling this in at 7pm
  * after a long day should be done in under a minute.
  */
+/**
+ * What a request is for.
+ *
+ * The Mid-Year Refill is the January restock, after the classroom budget has
+ * run out and there is still half a school year left. It was the one program
+ * with a donate button and no way for a teacher to say what they needed —
+ * the ask existed only on the giving side.
+ *
+ * It is a field on this form rather than a form of its own: a teacher who
+ * needs tissues in October and a cart in January is filling in the same four
+ * boxes, and a second page would be the same questions twice.
+ */
+const REQUEST_KINDS = [
+  { id: 'anytime', label: 'Something we ran out of (any time)' },
+  { id: 'mid-year-refill', label: 'Mid-Year Refill — the January restock' },
+] as const;
+
 export default function ForTeachersPage() {
-  const [form, setForm] = useState({ name: '', email: '', school: '', needs: '' });
+  /**
+   * Deep links carry context so a teacher arriving from their own school's
+   * page does not retype what that page already knew: /for-teachers?school=
+   * Haslett%20High%20School&kind=mid-year-refill.
+   */
+  const params = new URLSearchParams(window.location.search);
+  const initialKind = REQUEST_KINDS.some((k) => k.id === params.get('kind'))
+    ? (params.get('kind') as string)
+    : 'anytime';
+
+  const [form, setForm] = useState({
+    name: '', email: '', school: params.get('school') ?? '', needs: '', kind: initialKind,
+  });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'mailto'>('idle');
 
   useEffect(() => {
@@ -49,6 +78,7 @@ export default function ForTeachersPage() {
     e.preventDefault();
     setStatus('loading');
     let sent = false;
+    const kindLabel = REQUEST_KINDS.find((k) => k.id === form.kind)?.label ?? 'Supply request';
 
     // Also file them in Bloomerang. Not awaited and never surfaced: the
     // visitor is told it went through by the delivery below, and a CRM
@@ -56,15 +86,19 @@ export default function ForTeachersPage() {
     void fileWithBloomerang('supplies', {
       name: form.name,
       email: form.email,
-      note: `Teacher supply request — ${form.school}: ${form.needs}`,
+      note: `${kindLabel} — ${form.school}: ${form.needs}`,
     });
 
     sent = await submitToFormBold(FORMBOLD.supplies, {
-      Form: 'Teacher supply request',
-      subject: `Supply request — ${form.name} (${form.school})`,
+      Form: form.kind === 'mid-year-refill' ? 'Mid-Year Refill request' : 'Teacher supply request',
+      // The subject is what gets scanned in an inbox, so it leads with which
+      // programme this is — a January refill is planned and budgeted
+      // differently from a one-off restock.
+      subject: `${kindLabel} — ${form.name} (${form.school})`,
       name: form.name,
       email: form.email,
       school: form.school,
+      requestFor: kindLabel,
       needs: form.needs,
     });
 
@@ -74,15 +108,15 @@ export default function ForTeachersPage() {
         email: form.email,
         message: form.needs,
         type: 'supply-request',
-        extra: { school: form.school },
+        extra: { school: form.school, kind: form.kind },
       });
       if (!error) sent = true;
     }
 
     if (sent) {
-      track('supply_request_submitted', { school: form.school });
+      track('supply_request_submitted', { school: form.school, kind: form.kind });
       setStatus('success');
-      setForm({ name: '', email: '', school: '', needs: '' });
+      setForm({ name: '', email: '', school: '', needs: '', kind: form.kind });
       return;
     }
 
@@ -166,7 +200,7 @@ export default function ForTeachersPage() {
           <div className="max-w-xl mx-auto">
             <h2 className="font-serif font-bold text-2xl sm:text-3xl mb-2">What does your classroom need?</h2>
             <p className="text-chalkboard/60 font-light mb-8 text-sm">
-              Four fields. Under a minute.
+              Five fields. Under a minute.
             </p>
 
             {status === 'success' || status === 'mailto' ? (
@@ -196,7 +230,24 @@ export default function ForTeachersPage() {
             ) : (
               <form onSubmit={handleSubmit} className="bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-8 space-y-5">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
+                  <div className="mb-5">
+                  <label htmlFor="teacher-kind" className={label}>What is this for?</label>
+                  <select
+                    id="teacher-kind" name="kind" value={form.kind}
+                    onChange={(e) => setForm({ ...form, kind: e.target.value })}
+                    className={field}
+                  >
+                    {REQUEST_KINDS.map((k) => (
+                      <option key={k.id} value={k.id}>{k.label}</option>
+                    ))}
+                  </select>
+                  {form.kind === 'mid-year-refill' && (
+                    <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                      Refills go out in January, so anything you send before then is in time.
+                    </p>
+                  )}
+                </div>
+                <div>
                     <label htmlFor="teacher-name" className={label}>Your name</label>
                     <input
                       id="teacher-name" name="name" required autoComplete="name"

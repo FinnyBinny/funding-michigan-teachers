@@ -53,6 +53,8 @@ export const okemos: School = {
       body: 'Every January, after the classroom budget has run out and there is still half a school year to go, we restock the rooms that ask. Pencils, markers, tissues, paper — the things that quietly disappear by February.',
       ctaLabel: 'Donate to the Okemos refill',
       ctaHref: '/donate?fund=Okemos%20Mid-Year%20Refill',
+      secondaryLabel: 'Teach here? Tell us what your room needs',
+      secondaryHref: '/for-teachers?kind=mid-year-refill&school=Okemos%20High%20School',
     },
     {
       title: 'Tell us what your room ran out of',
@@ -61,7 +63,7 @@ export const okemos: School = {
       // TODO: replace with the dedicated teacher supply survey URL once it
       // exists. Points at the live supply request form in the meantime, which
       // works today rather than being a placeholder link that goes nowhere.
-      ctaHref: '/for-teachers',
+      ctaHref: '/for-teachers?school=Okemos%20High%20School',
     },
   ],
 

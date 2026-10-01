@@ -44,6 +44,16 @@ export interface SchoolInitiative {
   /** Says exactly what happens. Never "Learn more" or "Submit". */
   ctaLabel: string;
   ctaHref: string;
+  /**
+   * A second, quieter action for the other side of the same programme.
+   *
+   * The Mid-Year Refill had a donate button and no way for a teacher to say
+   * what they needed — the ask existed only for the people giving. This is
+   * where the teacher's half goes, rendered as a link rather than a second
+   * button so it does not compete with the first.
+   */
+  secondaryLabel?: string;
+  secondaryHref?: string;
 }
 
 /** A local business or family that supported THIS school specifically. */
