@@ -155,6 +155,15 @@ export default function ForTeachersPage() {
   /** The school as it should appear everywhere downstream. */
   const schoolName = form.school === OTHER_SCHOOL ? form.schoolOther.trim() : form.school;
 
+  /**
+   * The Mid-Year Refill has one delivery window for everybody, so the timing
+   * question is hidden for it and the known date is recorded instead. A
+   * teacher who picks a timeframe and then switches to the refill would
+   * otherwise leave a stale answer behind in the note.
+   */
+  const isRefill = form.kind === 'mid-year-refill';
+  const REFILL_DELIVERY = 'Week of January 12th (Mid-Year Refill delivery)';
+
   const togglePermission = (id: string) =>
     setForm((f) => ({
       ...f,
@@ -195,7 +204,8 @@ export default function ForTeachersPage() {
     const noteLines = [
       `${kindLabel} — ${schoolName}${form.room ? `, room ${form.room}` : ''}`,
       form.subject && `Teaches: ${form.subject}`,
-      form.neededBy && `Needed by: ${form.neededBy}`,
+      (isRefill ? REFILL_DELIVERY : form.neededBy) &&
+        `Needed by: ${isRefill ? REFILL_DELIVERY : form.neededBy}`,
       form.budget && `Rough cost: ${form.budget}`,
       form.students && `Students reached: ${form.students}`,
       form.ownSpend && `Buying it themselves: ${form.ownSpend}`,
@@ -237,7 +247,7 @@ export default function ForTeachersPage() {
       // visibly a blank rather than a field someone forgot to wire up.
       link: form.link,
       roughCost: form.budget,
-      neededBy: form.neededBy,
+      neededBy: isRefill ? REFILL_DELIVERY : form.neededBy,
       teaches: form.subject,
       studentsReached: form.students,
       goingWithout: form.doingWithout,
@@ -260,7 +270,7 @@ export default function ForTeachersPage() {
           room: form.room,
           link: form.link,
           budget: form.budget,
-          neededBy: form.neededBy,
+          neededBy: isRefill ? REFILL_DELIVERY : form.neededBy,
           subject: form.subject,
           students: form.students,
           doingWithout: form.doingWithout,
@@ -407,7 +417,8 @@ export default function ForTeachersPage() {
                   </select>
                   {form.kind === 'mid-year-refill' && (
                     <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
-                      Refills go out in January, so anything you send before then is in time.
+                      Refills are all delivered the week of January 12th, so anything you send
+                      before then is in time.
                     </p>
                   )}
                 </div>
@@ -501,7 +512,10 @@ export default function ForTeachersPage() {
                   </p>
                 </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                {/* "When do you need it?" is only a question for an any-time
+                    request. Every Mid-Year Refill is delivered the same week,
+                    so asking would invite an answer FMT cannot act on. */}
+                <div className={isRefill ? '' : 'grid sm:grid-cols-2 gap-4'}>
                   <div>
                     <label htmlFor="teacher-budget" className={label}>
                       Roughly what would this cost?
@@ -515,17 +529,19 @@ export default function ForTeachersPage() {
                       {BUDGET_BANDS.map((b) => <option key={b} value={b}>{b}</option>)}
                     </select>
                   </div>
-                  <div>
-                    <label htmlFor="teacher-when" className={label}>When do you need it?</label>
-                    <select
-                      id="teacher-when" name="neededBy" value={form.neededBy}
-                      onChange={(e) => setForm({ ...form, neededBy: e.target.value })}
-                      className={field}
-                    >
-                      <option value="">Optional</option>
-                      {TIMEFRAMES.map((t) => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
+                  {!isRefill && (
+                    <div>
+                      <label htmlFor="teacher-when" className={label}>When do you need it?</label>
+                      <select
+                        id="teacher-when" name="neededBy" value={form.neededBy}
+                        onChange={(e) => setForm({ ...form, neededBy: e.target.value })}
+                        className={field}
+                      >
+                        <option value="">Optional</option>
+                        {TIMEFRAMES.map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">

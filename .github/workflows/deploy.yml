@@ -60,6 +60,12 @@ jobs:
       - name: Check SEO titles, descriptions and sitemap coverage
         run: node scripts/check-seo.mjs
 
+      # A school page is built almost entirely out of that school's two colors,
+      # so a fourth school with a pale primary would ship a hero nobody can
+      # read — and it would look like a design choice rather than a bug.
+      - name: Check school colors clear WCAG AA
+        run: node scripts/check-school-contrast.mjs
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty
