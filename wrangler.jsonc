@@ -31,7 +31,18 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
+    // A miss is a miss. Under "single-page-application" the asset service
+    // answered EVERY unmatched path with index.html at HTTP 200 — including
+    // /assets/SomePage-<hash>.js from a build that no longer exists, which a
+    // browser then refuses as a module ("Expected a JavaScript-or-Wasm module
+    // script but the server responded with a MIME type of text/html"). The
+    // lazy import rejected and the page sat on its blank Suspense fallback.
+    //
+    // The Worker serves the shell for real pages instead (see the tail of
+    // worker/index.ts); the asset service now only ever serves files that are
+    // actually there. These two must deploy together — "none" on its own
+    // would 404 every page.
+    "not_found_handling": "none",
     // Pages and API calls run the Worker first (IP blocking, real 404s,
     // canonical redirects). Hashed bundles and photos skip it — negative rules
     // route them straight to Cloudflare's asset service and edge cache, which

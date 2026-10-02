@@ -18,6 +18,31 @@ import {
   CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
 
+/**
+ * A Secrets Store binding, as the dashboard's Bindings → "Add a binding" →
+ * "Secrets Store" flow creates it. Cloudflare hands the Worker an object with
+ * one async method rather than the value itself, which is why that panel's
+ * example reads `await env.MY_SECRET.get()`.
+ *
+ * Spelled out here rather than imported so this file compiles whichever kind
+ * of binding is actually attached.
+ */
+interface SecretsStoreBinding {
+  /** Resolves the secret's value, or throws if the secret no longer exists. */
+  get(): Promise<string>;
+}
+
+/**
+ * A credential that may arrive in either shape.
+ *
+ * "Settings → Variables and Secrets → Secret" (and `wrangler secret put`)
+ * injects a plain string. "Settings → Bindings → Secrets Store" injects the
+ * object above. Both are legitimate, and the person wiring one up is in a
+ * dashboard rather than in this file — so accept either and resolve it
+ * through readSecret().
+ */
+type SecretValue = string | SecretsStoreBinding;
+
 export interface Env {
   ASSETS: Fetcher;
   STRIPE_SECRET_KEY?: string;
@@ -47,8 +72,16 @@ export interface Env {
    *
    * Absent, this endpoint answers 503 and the site carries on: every form
    * already delivers by email, and the CRM copy is the only thing missing.
+   *
+   * Either a plain secret string or a Secrets Store binding — see SecretValue.
+   * Always read it through readSecret(), never directly: a Secrets Store
+   * binding is a truthy OBJECT, so a bare `if (!env.BLOOMERANG_API_KEY)` check
+   * passes and the object then stringifies into the X-API-KEY header as the
+   * literal text "[object Object]". Bloomerang answers 401, which reads like a
+   * revoked key rather than a mis-typed binding and costs an afternoon
+   * regenerating a key that was never the problem.
    */
-  BLOOMERANG_API_KEY?: string;
+  BLOOMERANG_API_KEY?: SecretValue;
 }
 
 /**
@@ -89,9 +122,59 @@ function isAssetPath(pathname: string): boolean {
  * (404 for a path that doesn't exist, 403 for a blocked visitor).
  */
 async function shellWithStatus(request: Request, env: Env, status: number): Promise<Response> {
-  const shellUrl = new URL('/index.html', request.url);
-  const res = await env.ASSETS.fetch(new Request(shellUrl.toString(), { method: 'GET' }));
-  return new Response(res.body, { status, headers: res.headers });
+  // '/' rather than '/index.html': with html_handling at its default the asset
+  // service answers '/index.html' with a 307 to '/', and leaning on the binding
+  // to follow its own redirect is a dependency worth not having.
+  const shellUrl = new URL('/', request.url).toString();
+
+  // A real page forwards the caller's headers so If-None-Match still earns a
+  // 304. The shell is ~15KB and every page view fetches it; dropping the
+  // validator here would make all of them unconditional.
+  const headers = new Headers(request.headers);
+  if (status !== 200) {
+    // A 304 must never come back under a 404 or 403, so don't let the asset
+    // service answer conditionally on those paths.
+    headers.delete('If-None-Match');
+    headers.delete('If-Modified-Since');
+  }
+
+  const res = await env.ASSETS.fetch(
+    new Request(shellUrl, { method: request.method === 'HEAD' ? 'HEAD' : 'GET', headers }),
+  );
+  if (status === 200) return res;
+
+  const out = new Headers(res.headers);
+  // The shell's ETag belongs to its 200 response. Carried onto a 404 or 403 it
+  // lets a later conditional request be answered 304 for the wrong status.
+  out.delete('ETag');
+  out.set('Cache-Control', 'no-store');
+  return new Response(res.body, { status, headers: out });
+}
+
+/**
+ * Resolves a credential that may be a plain string or a Secrets Store binding.
+ *
+ * Returns undefined when it is absent or unreadable, which every caller already
+ * handles by answering 503: a missing CRM key is a setup step, not an outage,
+ * and the forms deliver by email regardless.
+ *
+ * Deliberately returns rather than throws, and deliberately logs nothing. A
+ * Secrets Store failure message is safe to print today, but code that prints
+ * near a credential eventually prints the credential.
+ */
+async function readSecret(value: SecretValue | undefined): Promise<string | undefined> {
+  if (typeof value === 'string') return value.trim() || undefined;
+  if (value && typeof value.get === 'function') {
+    try {
+      const resolved = await value.get();
+      return typeof resolved === 'string' && resolved.trim() ? resolved.trim() : undefined;
+    } catch {
+      // Secrets Store throws when the binding points at a secret that was
+      // deleted or renamed. Same outcome for us as never having been set.
+      return undefined;
+    }
+  }
+  return undefined;
 }
 
 function json(data: unknown, status = 200): Response {
@@ -400,7 +483,11 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
   const email = String(body.email ?? '').trim();
   if (!email.includes('@')) return json({ error: 'A valid email is required' }, 400);
 
-  if (!env.BLOOMERANG_API_KEY) {
+  // Resolved once per request, not once per call: this handler makes up to
+  // three Bloomerang requests, and under Secrets Store each .get() is a real
+  // binding call.
+  const apiKey = await readSecret(env.BLOOMERANG_API_KEY);
+  if (!apiKey) {
     // Not configured yet. Not an error worth alarming anyone about — the
     // submission reached FMT by email regardless.
     return json({ filed: false, reason: 'BLOOMERANG_API_KEY is not set on the Worker' }, 503);
@@ -410,7 +497,7 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
     const res = await fetch(`https://api.bloomerang.co/v2/${path}`, {
       ...init,
       headers: {
-        'X-API-KEY': env.BLOOMERANG_API_KEY!,
+        'X-API-KEY': apiKey,
         'Content-Type': 'application/json',
         ...(init?.headers ?? {}),
       },
@@ -572,11 +659,24 @@ export default {
       return json({ error: 'Not found' }, 404);
     }
 
-    // Real pages and static files are served as-is; anything else gets the SPA
-    // shell under a genuine 404 so typos and dead links stop reporting success.
-    if (isAssetPath(path) || isKnownRoute(path)) {
-      return env.ASSETS.fetch(request);
+    // Static files come from the asset store, and now genuinely 404 when the
+    // file isn't there. A hashed bundle from a previous build must never come
+    // back as the HTML shell: the browser refuses it as a module script, the
+    // lazy import rejects, and the visitor is left on a blank page.
+    if (isAssetPath(path)) {
+      const res = await env.ASSETS.fetch(request);
+      // Someone who typed a missing file into the address bar still gets the
+      // branded 404. A subresource fetch keeps the bare one so the browser —
+      // and src/main.tsx's recovery — can see the failure honestly.
+      if (res.status === 404 && request.headers.get('Sec-Fetch-Mode') === 'navigate') {
+        return shellWithStatus(request, env, 404);
+      }
+      return res;
     }
-    return shellWithStatus(request, env, 404);
+
+    // Pages are the Worker's job now that the asset service no longer falls
+    // back to the shell. Real routes get it at 200, anything else under a
+    // genuine 404 so typos and dead links stop reporting success.
+    return shellWithStatus(request, env, isKnownRoute(path) ? 200 : 404);
   },
 };
