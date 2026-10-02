@@ -1,4 +1,7 @@
-import { useEffect, useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+  motion, useScroll, useTransform, useReducedMotion, useInView, animate,
+} from 'motion/react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
@@ -22,6 +25,37 @@ import { schoolPath, type School } from '../../shared/schools';
 function navigate(path: string) {
   window.history.pushState({}, '', path);
   window.dispatchEvent(new PopStateEvent('popstate'));
+}
+
+/** The page's one easing curve, so every move feels like the same hand. */
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+/**
+ * A scoreboard number that counts up the first time it is scrolled to.
+ *
+ * Years are shown outright — watching "2026" spin up from zero reads as a
+ * loading bug, not a flourish — and anyone who has asked for reduced motion
+ * gets the final number immediately.
+ */
+function Tally({ value, count }: { value: string; count: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const reduce = useReducedMotion();
+  const target = Number(value);
+  const animatable = count && !reduce && Number.isFinite(target);
+  const [shown, setShown] = useState(animatable ? 0 : target);
+
+  useEffect(() => {
+    if (!animatable || !inView) return;
+    const controls = animate(0, target, {
+      duration: Math.min(0.5 + target * 0.12, 1.4),
+      ease: 'easeOut',
+      onUpdate: (v) => setShown(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [animatable, inView, target]);
+
+  return <span ref={ref}>{animatable ? shown : value}</span>;
 }
 
 /** Heading style shared by every section, so the page has one rhythm. */
@@ -115,30 +149,54 @@ export default function SchoolPage({ school }: { school: School }) {
    * describe, and "0 events" is worse than no tile at all.
    */
   const scoreboard = useMemo(() => {
-    const tiles: { value: string; label: string }[] = [];
+    const tiles: { value: string; label: string; count: boolean }[] = [];
     if (school.partnership?.programs.length) {
       tiles.push({
         value: String(school.partnership.programs.length),
         label: school.partnership.programs.length === 1 ? 'Program running' : 'Programs running',
+        count: true,
       });
     }
     if (history.length) {
       tiles.push({
         value: String(history.length),
         label: history.length === 1 ? 'Event here' : 'Events here',
+        count: true,
       });
     }
     if (school.sponsors.length) {
       tiles.push({
         value: String(school.sponsors.length),
         label: school.sponsors.length === 1 ? 'Local business' : 'Local businesses',
+        count: true,
       });
     }
     if (/^\d{4}$/.test(school.partnerSince)) {
-      tiles.push({ value: school.partnerSince, label: 'Partners since' });
+      // A year is shown outright: counting it up from zero reads as a bug.
+      tiles.push({ value: school.partnerSince, label: 'Partners since', count: false });
     }
     return tiles;
   }, [school, history]);
+
+  const reduce = useReducedMotion();
+
+  /**
+   * The mascot drifts slower than the page, so the hero gains depth on the
+   * first scroll — the one moment a visitor is most likely to notice it.
+   * Pinned to 0 when reduced motion is asked for.
+   */
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const mascotY = useTransform(scrollYProgress, [0, 1], ['0%', reduce ? '0%' : '-32%']);
+
+  /** One line rising into place. Shared by every line in the hero. */
+  const rise = {
+    hidden: { opacity: 0, y: 26 },
+    shown: { opacity: 1, y: 0, transition: { duration: 0.75, ease: EASE } },
+  };
 
   // The school's palette, handed to CSS. Nothing below reads a hex directly.
   const palette = {
@@ -161,18 +219,25 @@ export default function SchoolPage({ school }: { school: School }) {
             tall: a school page should feel like walking into the building, not
             like a row in a directory. */}
         <header
+          ref={heroRef}
           className={`school-hero school-band--${school.band} min-h-[74svh] flex flex-col pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6`}
         >
           {/* The mascot, painted across the back wall and running off the
               bottom edge — cropped on purpose, the way lettering on a gym wall
               meets the floor. aria-hidden because the name is already in the
               h1; a screen reader should not hear "Wolves" twice. */}
-          <span
-            className="school-mascot-ghost pointer-events-none select-none absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-[22%] font-serif font-bold uppercase leading-[0.75] text-[clamp(5rem,26vw,20rem)] whitespace-nowrap"
+          <motion.div
+            className="pointer-events-none absolute inset-x-0 bottom-0"
+            style={{ y: mascotY }}
+            initial={reduce ? false : { opacity: 0, scale: 1.06 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.1, ease: EASE }}
             aria-hidden="true"
           >
-            {school.mascot}
-          </span>
+            <span className="school-mascot-ghost block select-none translate-y-[22%] text-center font-serif font-bold uppercase leading-[0.75] text-[clamp(5rem,26vw,20rem)] whitespace-nowrap">
+              {school.mascot}
+            </span>
+          </motion.div>
 
           {/* Pinned to the top so it sits under the site header rather than
               floating in the middle of the mascot. */}
@@ -185,22 +250,35 @@ export default function SchoolPage({ school }: { school: School }) {
             </button>
           </div>
 
-          <div className="max-w-5xl mx-auto w-full relative z-10 mt-auto pt-16">
-            <p className="text-[11px] uppercase tracking-[0.3em] font-bold text-white/60 mb-5">
+          {/* The arrival. Each line comes in just behind the one above it, so
+              the name lands last and reads as the point of the page. */}
+          <motion.div
+            className="max-w-5xl mx-auto w-full relative z-10 mt-auto pt-16"
+            initial={reduce ? false : 'hidden'}
+            animate="shown"
+            variants={{ hidden: {}, shown: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } } }}
+          >
+            <motion.p
+              variants={rise}
+              className="text-[11px] uppercase tracking-[0.3em] font-bold text-white/60 mb-5"
+            >
               {school.district}
-            </p>
+            </motion.p>
 
             {/* Set to break on its own words rather than wrap arbitrarily:
                 "Okemos / High School" reads as a sign on a building. */}
-            <h1 className="font-serif font-bold text-[clamp(2.75rem,11vw,7rem)] leading-[0.92] tracking-[-0.03em] text-balance">
+            <motion.h1
+              variants={rise}
+              className="font-serif font-bold text-[clamp(2.75rem,11vw,7rem)] leading-[0.92] tracking-[-0.03em] text-balance"
+            >
               {school.name}
-            </h1>
+            </motion.h1>
 
-            <p className="mt-6 text-xl sm:text-2xl text-white/85 font-light">
+            <motion.p variants={rise} className="mt-6 text-xl sm:text-2xl text-white/85 font-light">
               Home of the <span className="font-serif italic">{school.mascot}</span>
-            </p>
+            </motion.p>
 
-            <p className="mt-8 text-sm text-white/65">
+            <motion.p variants={rise} className="mt-8 text-sm text-white/65">
               {/* The placeholder year is still a placeholder on one school, and
                   "Partner school since ____" on a page an administrator reads
                   is worse than not saying it. */}
@@ -208,8 +286,8 @@ export default function SchoolPage({ school }: { school: School }) {
                 ? `Partner school since ${school.partnerSince}`
                 : 'A partner school of Funding Michigan Teachers'}
               {school.staffCount ? ` · ${school.staffCount} staff supported` : ''}
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </header>
 
         {/* The scoreboard. Only tiles with a real number render, so a thinner
@@ -225,13 +303,21 @@ export default function SchoolPage({ school }: { school: School }) {
                 maxWidth: `${Math.min(scoreboard.length, 4) * 15}rem`,
               }}
             >
-              {scoreboard.map((tile) => (
-                <div key={tile.label}>
-                  <dd className="text-[clamp(2rem,6vw,3.5rem)] font-bold">{tile.value}</dd>
+              {scoreboard.map((tile, i) => (
+                <motion.div
+                  key={tile.label}
+                  initial={reduce ? false : { opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
+                >
+                  <dd className="text-[clamp(2rem,6vw,3.5rem)] font-bold">
+                    <Tally value={tile.value} count={tile.count} />
+                  </dd>
                   <dt className="mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/55 font-bold">
                     {tile.label}
                   </dt>
-                </div>
+                </motion.div>
               ))}
             </dl>
           </div>
@@ -286,13 +372,17 @@ export default function SchoolPage({ school }: { school: School }) {
                 aria-hidden="true"
               />
               <ul className="flex flex-col items-start gap-2.5">
-                {school.partnership.programs.map((program) => (
-                  <li
+                {school.partnership.programs.map((program, i) => (
+                  <motion.li
                     key={program}
-                    className="school-pennant pl-5 py-3 pr-9 font-bold text-sm sm:text-base max-w-full"
+                    className="school-pennant pl-5 py-3 pr-9 font-bold text-sm sm:text-base max-w-full origin-left"
+                    initial={reduce ? false : { opacity: 0, x: -18, rotate: -2.5 }}
+                    whileInView={{ opacity: 1, x: 0, rotate: 0 }}
+                    viewport={{ once: true, margin: '-40px' }}
+                    transition={{ duration: 0.5, ease: EASE, delay: i * 0.09 }}
                   >
                     {program}
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             </div>
