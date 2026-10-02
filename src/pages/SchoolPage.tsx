@@ -32,11 +32,11 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
           invisible on a cream section. The secondary earns its place on the
           band, where it sits against the dark primary. */}
       <span
-        className="block w-12 h-[5px] rounded-full mb-4"
+        className="block w-16 h-[6px] rounded-full mb-5"
         style={{ background: 'var(--school-primary)' }}
         aria-hidden="true"
       />
-      <h2 className="font-serif font-bold text-2xl sm:text-3xl tracking-tight mb-6">
+      <h2 className="font-serif font-bold text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.05] tracking-[-0.02em] mb-7 text-balance">
         {children}
       </h2>
     </>
@@ -108,6 +108,38 @@ export default function SchoolPage({ school }: { school: School }) {
     return [...school.pastHighlights, ...tagged];
   }, [school]);
 
+  /**
+   * The scoreboard tiles, built only from things that are actually true of
+   * this school. A tile with nothing behind it is left out rather than shown
+   * as a zero: these pages are read by the administrators of the building they
+   * describe, and "0 events" is worse than no tile at all.
+   */
+  const scoreboard = useMemo(() => {
+    const tiles: { value: string; label: string }[] = [];
+    if (school.partnership?.programs.length) {
+      tiles.push({
+        value: String(school.partnership.programs.length),
+        label: school.partnership.programs.length === 1 ? 'Program running' : 'Programs running',
+      });
+    }
+    if (history.length) {
+      tiles.push({
+        value: String(history.length),
+        label: history.length === 1 ? 'Event here' : 'Events here',
+      });
+    }
+    if (school.sponsors.length) {
+      tiles.push({
+        value: String(school.sponsors.length),
+        label: school.sponsors.length === 1 ? 'Local business' : 'Local businesses',
+      });
+    }
+    if (/^\d{4}$/.test(school.partnerSince)) {
+      tiles.push({ value: school.partnerSince, label: 'Partners since' });
+    }
+    return tiles;
+  }, [school, history]);
+
   // The school's palette, handed to CSS. Nothing below reads a hex directly.
   const palette = {
     '--school-primary': school.colors.primary,
@@ -124,33 +156,86 @@ export default function SchoolPage({ school }: { school: School }) {
       <SiteHeader onDark />
 
       <main className="flex-1">
-        {/* The band. The one bold thing on the page. */}
-        <header className={`school-band school-band--${school.band} pt-28 sm:pt-32 pb-10 px-4 sm:px-6 relative overflow-hidden`}>
-          <div className="max-w-3xl mx-auto relative z-10">
+        {/* The hero. These pages have no photography, so scale, color and the
+            school's own mascot do the work a photo would. It is deliberately
+            tall: a school page should feel like walking into the building, not
+            like a row in a directory. */}
+        <header
+          className={`school-hero school-band--${school.band} min-h-[74svh] flex flex-col pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6`}
+        >
+          {/* The mascot, painted across the back wall and running off the
+              bottom edge — cropped on purpose, the way lettering on a gym wall
+              meets the floor. aria-hidden because the name is already in the
+              h1; a screen reader should not hear "Wolves" twice. */}
+          <span
+            className="school-mascot-ghost pointer-events-none select-none absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-[22%] font-serif font-bold uppercase leading-[0.75] text-[clamp(5rem,26vw,20rem)] whitespace-nowrap"
+            aria-hidden="true"
+          >
+            {school.mascot}
+          </span>
+
+          {/* Pinned to the top so it sits under the site header rather than
+              floating in the middle of the mascot. */}
+          <div className="max-w-5xl mx-auto w-full relative z-10">
             <button
               onClick={() => navigate('/schools')}
-              className="school-link text-sm text-white/75 hover:text-white underline underline-offset-4 mb-6 inline-block"
+              className="school-link text-sm text-white/70 hover:text-white underline underline-offset-4 inline-flex items-center gap-2"
             >
-              All partner schools
+              <span aria-hidden="true">←</span> All partner schools
             </button>
-            <h1 className="font-serif font-bold text-[clamp(2rem,6vw,3.25rem)] leading-[1.05] tracking-tight text-balance">
+          </div>
+
+          <div className="max-w-5xl mx-auto w-full relative z-10 mt-auto pt-16">
+            <p className="text-[11px] uppercase tracking-[0.3em] font-bold text-white/60 mb-5">
+              {school.district}
+            </p>
+
+            {/* Set to break on its own words rather than wrap arbitrarily:
+                "Okemos / High School" reads as a sign on a building. */}
+            <h1 className="font-serif font-bold text-[clamp(2.75rem,11vw,7rem)] leading-[0.92] tracking-[-0.03em] text-balance">
               {school.name}
             </h1>
-            <p className="mt-3 text-lg text-white/85 font-light">
-              Home of the {school.mascot}
+
+            <p className="mt-6 text-xl sm:text-2xl text-white/85 font-light">
+              Home of the <span className="font-serif italic">{school.mascot}</span>
             </p>
-            <span
-              className="pointer-events-none select-none absolute right-0 -bottom-2 font-serif italic font-bold leading-none text-white/[0.07] text-[clamp(4rem,16vw,9rem)] pr-4"
-              aria-hidden="true"
-            >
-              {school.mascot}
-            </span>
-            <p className="mt-1 text-sm text-white/70">
-              Partner school since {school.partnerSince}
-              {school.staffCount ? ` — ${school.staffCount} staff supported` : ''}
+
+            <p className="mt-8 text-sm text-white/65">
+              {/* The placeholder year is still a placeholder on one school, and
+                  "Partner school since ____" on a page an administrator reads
+                  is worse than not saying it. */}
+              {/^\d{4}$/.test(school.partnerSince)
+                ? `Partner school since ${school.partnerSince}`
+                : 'A partner school of Funding Michigan Teachers'}
+              {school.staffCount ? ` · ${school.staffCount} staff supported` : ''}
             </p>
           </div>
         </header>
+
+        {/* The scoreboard. Only tiles with a real number render, so a thinner
+            school shows three and not five padded with zeroes. */}
+        {scoreboard.length > 0 && (
+          <div className="school-scoreboard px-4 sm:px-6 py-10 sm:py-12">
+            {/* Width follows the tile count, so two tiles sit together rather
+                than marooned at opposite ends of a wide row. */}
+            <dl
+              className="mx-auto grid gap-y-8 gap-x-10 sm:gap-x-16 text-center"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(scoreboard.length, 4)}, minmax(0, 1fr))`,
+                maxWidth: `${Math.min(scoreboard.length, 4) * 15}rem`,
+              }}
+            >
+              {scoreboard.map((tile) => (
+                <div key={tile.label}>
+                  <dd className="text-[clamp(2rem,6vw,3.5rem)] font-bold">{tile.value}</dd>
+                  <dt className="mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/55 font-bold">
+                    {tile.label}
+                  </dt>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
 
         {/* Opens on the most characteristic thing about this school: a real
             photo from an FMT event here. No photo yet means the intro carries
@@ -176,8 +261,10 @@ export default function SchoolPage({ school }: { school: School }) {
           </div>
         )}
 
+        {/* The intro is the page's voice, so it is set like a statement rather
+            than body copy — it is the first thing read after the name. */}
         <Section>
-          <p className="text-xl leading-relaxed text-chalkboard/80 font-light text-pretty">
+          <p className="font-serif text-[clamp(1.375rem,3.2vw,2rem)] leading-[1.35] tracking-[-0.01em] text-chalkboard/90 text-pretty">
             {school.intro}
           </p>
         </Section>
@@ -189,18 +276,26 @@ export default function SchoolPage({ school }: { school: School }) {
               Every partner school picks from the same menu and picks differently. These are the
               programs {school.shortName} chose, running at no cost to the building.
             </p>
-            <ul className="space-y-3">
-              {school.partnership.programs.map((program) => (
-                <li key={program} className="flex items-start gap-3">
-                  <span
-                    className="mt-1.5 w-2.5 h-2.5 rounded-sm shrink-0"
-                    style={{ background: 'var(--school-primary)' }}
-                    aria-hidden="true"
-                  />
-                  <span className="font-semibold">{program}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Pennants on a line. The fill is the school's secondary with
+                dark type on top — the one place a fill-only color carries
+                text and still clears AA. */}
+            <div className="relative pl-5">
+              {/* The cord they hang from, down the left edge. */}
+              <span
+                className="school-pennant-cord absolute left-0 top-1 bottom-1 w-[3px] rounded-full"
+                aria-hidden="true"
+              />
+              <ul className="flex flex-col items-start gap-2.5">
+                {school.partnership.programs.map((program) => (
+                  <li
+                    key={program}
+                    className="school-pennant pl-5 py-3 pr-9 font-bold text-sm sm:text-base max-w-full"
+                  >
+                    {program}
+                  </li>
+                ))}
+              </ul>
+            </div>
             <p className="mt-6 text-sm text-chalkboard/55">
               Partnership agreed {school.partnership.signed}. Programs can be added any time during
               the year.
