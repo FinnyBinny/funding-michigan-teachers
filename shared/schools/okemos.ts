@@ -60,9 +60,10 @@ export const okemos: School = {
       title: 'Tell us what your room ran out of',
       body: 'If you teach or work at Okemos, this is the whole process. No application, no committee, no grant cycle.',
       ctaLabel: 'Request supplies for your room',
-      // TODO: replace with the dedicated teacher supply survey URL once it
-      // exists. Points at the live supply request form in the meantime, which
-      // works today rather than being a placeholder link that goes nowhere.
+      // This IS the teacher supply survey — it asks for the room, quantities,
+      // a link, timing and permission to name the teacher when we ask a
+      // business. It was never going to be a separate page: the same teacher
+      // fills it in October and again in January.
       ctaHref: '/for-teachers?school=Okemos%20High%20School',
     },
   ],
