@@ -226,6 +226,8 @@ export default function SchoolPage({ school }: { school: School }) {
               bottom edge — cropped on purpose, the way lettering on a gym wall
               meets the floor. aria-hidden because the name is already in the
               h1; a screen reader should not hear "Wolves" twice. */}
+          <span className="school-grain" aria-hidden="true" />
+
           <motion.div
             className="pointer-events-none absolute inset-x-0 bottom-0"
             style={{ y: mascotY }}
@@ -269,7 +271,7 @@ export default function SchoolPage({ school }: { school: School }) {
                 "Okemos / High School" reads as a sign on a building. */}
             <motion.h1
               variants={rise}
-              className="font-serif font-bold text-[clamp(2.75rem,11vw,7rem)] leading-[0.92] tracking-[-0.03em] text-balance"
+              className="font-serif font-bold text-[clamp(2.75rem,11.5vw,7.5rem)] leading-[0.9] tracking-[-0.035em] text-balance"
             >
               {school.name}
             </motion.h1>
@@ -287,41 +289,31 @@ export default function SchoolPage({ school }: { school: School }) {
                 : 'A partner school of Funding Michigan Teachers'}
               {school.staffCount ? ` · ${school.staffCount} staff supported` : ''}
             </motion.p>
+            {/* The scoreboard, inside the color field rather than in a black
+                bar beneath it. A separate band cut the hero in half; this way
+                the whole first screen is one panel of the school's own color.
+                Only tiles with a real number render, so a thinner school shows
+                two rather than five padded with zeroes. */}
+            {scoreboard.length > 0 && (
+              <motion.dl
+                variants={rise}
+                className="mt-12 sm:mt-14 flex flex-wrap gap-x-10 sm:gap-x-14 gap-y-7 border-t pt-7"
+                style={{ borderColor: 'color-mix(in srgb, var(--school-secondary) 45%, transparent)' }}
+              >
+                {scoreboard.map((tile) => (
+                  <div key={tile.label}>
+                    <dd className="font-mono tabular-nums leading-none text-[clamp(1.75rem,4.5vw,2.75rem)] font-bold">
+                      <Tally value={tile.value} count={tile.count} />
+                    </dd>
+                    <dt className="mt-2.5 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/70 font-bold">
+                      {tile.label}
+                    </dt>
+                  </div>
+                ))}
+              </motion.dl>
+            )}
           </motion.div>
         </header>
-
-        {/* The scoreboard. Only tiles with a real number render, so a thinner
-            school shows three and not five padded with zeroes. */}
-        {scoreboard.length > 0 && (
-          <div className="school-scoreboard px-4 sm:px-6 py-10 sm:py-12">
-            {/* Width follows the tile count, so two tiles sit together rather
-                than marooned at opposite ends of a wide row. */}
-            <dl
-              className="mx-auto grid gap-y-8 gap-x-10 sm:gap-x-16 text-center"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(scoreboard.length, 4)}, minmax(0, 1fr))`,
-                maxWidth: `${Math.min(scoreboard.length, 4) * 15}rem`,
-              }}
-            >
-              {scoreboard.map((tile, i) => (
-                <motion.div
-                  key={tile.label}
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
-                >
-                  <dd className="text-[clamp(2rem,6vw,3.5rem)] font-bold">
-                    <Tally value={tile.value} count={tile.count} />
-                  </dd>
-                  <dt className="mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/55 font-bold">
-                    {tile.label}
-                  </dt>
-                </motion.div>
-              ))}
-            </dl>
-          </div>
-        )}
 
         {/* Opens on the most characteristic thing about this school: a real
             photo from an FMT event here. No photo yet means the intro carries
