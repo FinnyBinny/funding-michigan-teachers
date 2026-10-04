@@ -18,10 +18,9 @@ export const eastLansing: School = {
   district: 'East Lansing Public Schools',
   partnerSince: '2026',
 
-  // CONFIRM with Finn: this intro is written from the smoothie delivery and
-  // should be replaced or approved before it goes live.
+  // Every claim here is in src/data/initialData.ts (the Jamba Juice entry).
   intro:
-    'We showed up at East Lansing on one of the first hot days of the school year with cold smoothies for the staff meeting. It is the newest of the three buildings we work in, and the one with the most still to come.',
+    'East Lansing High School is our newest partner school. Jamba Juice donated 80 smoothies for the first staff meeting of the 2026–27 school year.',
 
   colors: {
     // TODO: verify against East Lansing Public Schools style guide. No
@@ -67,15 +66,15 @@ export const eastLansing: School = {
   initiatives: [
     {
       title: 'Mid-Year Refill',
-      body: 'Every January, after the classroom budget has run out and there is still half a school year to go, we restock the rooms that ask.',
+      body: 'Classroom supply budgets usually run out by winter. In January we restock the classrooms that ask, and every refill is delivered the week of January 12th.',
       ctaLabel: 'Donate to the East Lansing refill',
       ctaHref: '/donate?fund=East%20Lansing%20Mid-Year%20Refill',
       secondaryLabel: 'Teach here? Tell us what your room needs',
       secondaryHref: '/for-teachers?kind=mid-year-refill&school=East%20Lansing%20High%20School',
     },
     {
-      title: 'Tell us what your room ran out of',
-      body: 'If you teach or work at East Lansing, this is the whole process. No application, no committee, no grant cycle.',
+      title: 'Request classroom supplies',
+      body: 'Teachers and staff at East Lansing can ask for supplies with one short form.',
       ctaLabel: 'Request supplies for your room',
       // This IS the teacher supply survey — it asks for the room, quantities,
       // a link, timing and permission to name the teacher when we ask a

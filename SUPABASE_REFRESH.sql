@@ -706,3 +706,12 @@ update sponsors
        description = 'A Gorilla 4 cu. ft. dumping garden cart and a 5-tier HDX chrome shelving unit on casters for Miss Abbott''s botany garden at Okemos High School — $308 in donated equipment.',
        active      = true
  where name ilike 'Home Depot%';
+
+-- ── Plainer event copy (October 2026) ─────────────────────────────────────
+-- The school pages read upcoming events from this table, and "classrooms go
+-- all out" was the kind of line that made them read as generated. Matches
+-- the seed in src/data/initialData.ts.
+update events
+   set description = 'The door decorating competition returns, with prizes for the winning classrooms.'
+ where title ilike 'Door Decorating Competition%'
+   and description ilike '%go all out%';
