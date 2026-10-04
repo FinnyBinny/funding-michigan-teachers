@@ -112,7 +112,7 @@ export default function OurMission() {
           </div>
         </motion.div>
 
-        <div className="space-y-8">
+        <div className="rail-sm md:block md:space-y-8" role="region" tabIndex={0} aria-label="What we do">
           {MISSION_POINTS.map((point, index) => (
             <motion.div
               key={point.title}

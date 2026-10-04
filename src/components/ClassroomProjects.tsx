@@ -188,7 +188,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
           <p className="text-sm text-chalkboard/80 leading-snug">{voteError}</p>
         </div>
       )}
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="rail-sm md:grid md:grid-cols-2 gap-4 md:gap-6" role="region" tabIndex={0} aria-label="Classroom projects">
         {projects.map((project, index) => {
           const isSubmitCard = project.teacher_name === 'Submit a Project';
           const voteCount = getVoteCount(project);

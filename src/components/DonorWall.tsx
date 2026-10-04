@@ -39,7 +39,7 @@ export default function DonorWall() {
         <p className="text-center text-[10px] uppercase tracking-[0.25em] font-bold text-white/50 mb-10">
           Individual &amp; Community Supporters
         </p>
-        <div className="flex flex-wrap justify-center gap-5">
+        <div className="rail-sm rail-auto md:flex md:flex-wrap md:justify-center gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Individual and community supporters">
           {donors.map((donor, index) => (
             <motion.div
               key={donor.id}
@@ -100,7 +100,7 @@ export default function DonorWall() {
         <p className="text-center text-sm text-white/50 mb-10 font-light max-w-lg mx-auto">
           Businesses that put real dollars behind Michigan teachers — publicly, proudly, year after year.
         </p>
-        <div className="flex flex-wrap justify-center gap-5">
+        <div className="rail-sm rail-auto md:flex md:flex-wrap md:justify-center gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Corporate sponsors">
           {sponsors.map((sponsor, index) => (
             <motion.div
               key={sponsor.id ?? sponsor.name}
@@ -148,7 +148,7 @@ export default function DonorWall() {
           Every month during the school year, local Okemos businesses donate food for OHS teacher staff meetings.
           This is what community support actually looks like.
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="rail-sm md:grid md:grid-cols-4 gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Food partners">
           {FOOD_PARTNERS.map((partner, index) => (
             <motion.div
               key={partner.business}

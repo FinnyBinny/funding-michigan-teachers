@@ -94,6 +94,59 @@
     border-radius: 4px;
   }
 
+  /* ── Swipeable rows on phones ──────────────────────────────────────────────
+     The homepage ran to 25,000px on a 390px phone, about 28 screens, almost
+     entirely because card grids collapse to one column and every card
+     stacks. Below 768px a .rail-sm grid becomes a horizontal row you swipe,
+     with the next card peeking in from the right — the cue that there is
+     more. At 768px and up this does nothing and the grid classes beside it
+     take over, so desktop is unchanged.
+
+     Pair it with the grid classes it replaces:
+       className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+     Add .rail-auto when the cards set their own width (small logo tiles). */
+  @media (max-width: 767.98px) {
+    .rail-sm {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      gap: 1rem;
+      /* Bleed to the screen edge so cards slide off it rather than being
+         clipped at the section's padding, then pad back so the first card
+         still lines up with the heading above it. */
+      margin-inline: -1rem;
+      padding-inline: 1rem;
+      scroll-padding-inline: 1rem;
+      /* Room for the cards' shadows and for a keyboard focus ring. */
+      padding-block: 0.25rem 1rem;
+      scrollbar-width: none;
+    }
+    .rail-sm::-webkit-scrollbar {
+      display: none;
+    }
+    .rail-sm > * {
+      flex: 0 0 84%;
+      scroll-snap-align: start;
+      min-width: 0;
+    }
+    .rail-sm.rail-auto > * {
+      flex-basis: auto;
+    }
+    .rail-sm:focus-visible {
+      outline: 2px solid var(--color-ruler);
+      outline-offset: -2px;
+      border-radius: 1rem;
+    }
+  }
+
+  @media (max-width: 767.98px) and (prefers-reduced-motion: reduce) {
+    .rail-sm {
+      scroll-behavior: auto;
+    }
+  }
+
   .crafted-card {
     @apply bg-white border border-chalkboard/5 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300;
   }

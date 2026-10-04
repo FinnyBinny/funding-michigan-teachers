@@ -147,7 +147,7 @@ export default function PastEvents() {
       </motion.div>
 
       <AnimatePresence mode="popLayout">
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+        <div className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-start" role="region" tabIndex={0} aria-label="Past events">
           {events.map((event, i) => (
             <EventCard key={event.id} event={event} index={i} />
           ))}
