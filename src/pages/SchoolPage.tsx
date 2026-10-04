@@ -8,7 +8,7 @@ import {
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { Button, ButtonTrailing } from '../components/ui/button';
-import { setPageMeta } from '../lib/seo';
+import { breadcrumbs, setPageMeta, setPageStructuredData } from '../lib/seo';
 import { useEvents } from '../hooks/useLocalData';
 import { PAST_EVENTS } from '../data/initialData';
 import { schoolPath, type School } from '../../shared/schools';
@@ -176,6 +176,21 @@ export default function SchoolPage({ school }: { school: School }) {
       description: `What Funding Michigan Teachers does at ${school.name}: staff meals, teacher appreciation, and classroom supplies, with thanks to the local businesses who helped.`,
       path: schoolPath(school.slug),
     });
+    // Breadcrumbs show in the search result in place of the bare URL, and
+    // tell Google this page sits under the Partner Schools section.
+    setPageStructuredData([
+      breadcrumbs([['Partner Schools', '/schools'], [school.name, schoolPath(school.slug)]]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'HighSchool',
+        name: school.name,
+        // The page is about FMT's work at this school, so the relationship
+        // is stated rather than implying FMT is the school.
+        sponsor: { '@type': 'NGO', name: 'Funding Michigan Teachers', url: 'https://www.fundingmichiganteachers.org/' },
+        address: { '@type': 'PostalAddress', addressRegion: 'MI', addressCountry: 'US' },
+      },
+    ]);
+    return () => setPageStructuredData(null);
   }, [school]);
 
   /**

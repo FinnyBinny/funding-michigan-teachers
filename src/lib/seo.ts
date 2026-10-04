@@ -57,3 +57,38 @@ export function setPageMeta({ title, description, path, noindex = false }: PageM
   upsertMeta('property', 'og:description', description);
   trackPageView(path, title);
 }
+
+/**
+ * Page-specific structured data, beside the organisation-wide graph that
+ * index.html ships. Each call replaces the previous page's block, so moving
+ * between pages in the app never leaves one page's data on another.
+ *
+ * Only mark up what is literally on the page. Google treats structured data
+ * that describes something the visitor cannot see as spam, which is why the
+ * staff-appreciation events are deliberately not marked up as Events: Event
+ * markup is for things the public can attend.
+ */
+export function setPageStructuredData(data: object | null): void {
+  const id = 'page-structured-data';
+  document.getElementById(id)?.remove();
+  if (!data) return;
+  const el = document.createElement('script');
+  el.type = 'application/ld+json';
+  el.id = id;
+  el.textContent = JSON.stringify(data);
+  document.head.appendChild(el);
+}
+
+/** A BreadcrumbList for a page: [['Partner Schools', '/schools'], …]. */
+export function breadcrumbs(trail: Array<[name: string, path: string]>): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [['Home', '/'] as [string, string], ...trail].map(([name, path], i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name,
+      item: path === '/' ? `${ORIGIN}/` : `${ORIGIN}${path}`,
+    })),
+  };
+}
