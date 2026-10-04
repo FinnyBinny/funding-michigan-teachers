@@ -15,7 +15,7 @@ export const haslett: School = {
   partnerSince: '2026',
 
   intro:
-    'Haslett was the first building outside Okemos to let us through the door. Staff meetings here have been fed by local restaurants more than once, and the room has never once been short.',
+    "Haslett High School was the first school outside Okemos to partner with us. Local restaurants have donated food for Haslett staff meetings, including 60 meals from Ozzy's Kabob and 60 smoothies from Jamba Juice.",
 
   colors: {
     // Official values from the Haslett Public Schools style guide.
@@ -45,15 +45,15 @@ export const haslett: School = {
   initiatives: [
     {
       title: 'Mid-Year Refill',
-      body: 'Every January, after the classroom budget has run out and there is still half a school year to go, we restock the rooms that ask. Pencils, markers, tissues, paper — the things that quietly disappear by February.',
+      body: 'Classroom supply budgets usually run out by winter. In January we restock the classrooms that ask, and every refill is delivered the week of January 12th.',
       ctaLabel: 'Donate to the Haslett refill',
       ctaHref: '/donate?fund=Haslett%20Mid-Year%20Refill',
       secondaryLabel: 'Teach here? Tell us what your room needs',
       secondaryHref: '/for-teachers?kind=mid-year-refill&school=Haslett%20High%20School',
     },
     {
-      title: 'Tell us what your room ran out of',
-      body: 'If you teach or work at Haslett, this is the whole process. No application, no committee, no grant cycle.',
+      title: 'Request classroom supplies',
+      body: 'Teachers and staff at Haslett can ask for supplies with one short form.',
       ctaLabel: 'Request supplies for your room',
       // This IS the teacher supply survey — it asks for the room, quantities,
       // a link, timing and permission to name the teacher when we ask a

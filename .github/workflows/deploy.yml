@@ -34,7 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Full history, not the default single commit: the sitemap dates each
+      # page by the last commit to its source files, and a shallow clone
+      # would stamp every page with today's date on every deploy.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -46,6 +51,15 @@ jobs:
 
       - name: Typecheck
         run: npm run lint
+
+      # Before the build, so vite copies the fresh file into dist/.
+      - name: Generate sitemap from routes and git history
+        run: node scripts/generate-sitemap.mjs
+
+      # Regenerated rather than trusted, so a token edited in
+      # src/theme/tokens.mjs without re-running the script still ships right.
+      - name: Generate theme CSS from tokens
+        run: node scripts/build-theme.mjs
 
       - name: Build
         run: npm run build
@@ -65,6 +79,11 @@ jobs:
       # read — and it would look like a design choice rather than a bug.
       - name: Check school colors clear WCAG AA
         run: node scripts/check-school-contrast.mjs
+
+      # Every foreground/background pair, in every theme. A theme added to
+      # src/theme/tokens.mjs is checked here without touching this file.
+      - name: Check theme colors clear WCAG AA in every theme
+        run: node scripts/check-theme-contrast.mjs
 
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken

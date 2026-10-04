@@ -53,7 +53,7 @@ export default function EventCalendar() {
   }
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8" role="region" tabIndex={0} aria-label="Upcoming events">
       {events.map((event, index) => (
         <motion.div
           key={event.id}

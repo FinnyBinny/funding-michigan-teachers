@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { motion, useReducedMotion, useInView, animate } from 'motion/react';
 import {
-  motion, useScroll, useTransform, useReducedMotion, useInView, animate,
-} from 'motion/react';
+  ArrowLeft, ArrowRight, Award, Calendar, Check, Coffee, Heart, Mail,
+  Package, Sparkles, Star, Store, Trophy, Users, UtensilsCrossed,
+  type LucideIcon,
+} from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
-import { setPageMeta } from '../lib/seo';
+import { Button, ButtonTrailing } from '../components/ui/button';
+import { breadcrumbs, setPageMeta, setPageStructuredData } from '../lib/seo';
 import { useEvents } from '../hooks/useLocalData';
 import { PAST_EVENTS } from '../data/initialData';
 import { schoolPath, type School } from '../../shared/schools';
@@ -12,14 +16,19 @@ import { schoolPath, type School } from '../../shared/schools';
 /**
  * One template, every partner school.
  *
- * The school's colors ride in as CSS custom properties on the wrapper, so
- * nothing here knows a hex value and a fourth school needs no code. FMT stays
- * the frame — cream background, FMT header and footer, FMT text colors — and
- * the school is the accent: the band, its name, its rules, its buttons.
+ * Built from the same parts as the homepage, on purpose: the hero grid, the
+ * pill eyebrow, the serif headline with one italic accent, the white feature
+ * cards with a tinted icon tile, the dark call-to-action card. Earlier
+ * versions invented a visual language of their own and read as a different
+ * site bolted on. The school's own color stands in wherever the homepage uses
+ * FMT's red, so each page is unmistakably that school and unmistakably ours.
  *
- * Every section below renders only when it has something in it. An empty
- * "Photos" heading or a "coming soon" block reads worse than a shorter page,
- * and these pages are read by the administrators of the school they describe.
+ * The colors ride in as CSS custom properties on the wrapper, so nothing here
+ * knows a hex value and a fourth school needs no code.
+ *
+ * Every section renders only when it has something real in it. These pages are
+ * read by the administrators of the building they describe, and an empty
+ * heading reads worse than a shorter page.
  */
 
 function navigate(path: string) {
@@ -27,19 +36,50 @@ function navigate(path: string) {
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
-/** The page's one easing curve, so every move feels like the same hand. */
-const EASE = [0.22, 1, 0.36, 1] as const;
+/** The homepage's easing curve, so motion here feels like the same hand. */
+const EASE = [0.32, 0.72, 0, 1] as const;
 
 /**
- * A scoreboard number that counts up the first time it is scrolled to.
- *
- * Years are shown outright — watching "2026" spin up from zero reads as a
- * loading bug, not a flourish — and anyone who has asked for reduced motion
- * gets the final number immediately.
+ * What each program on the partnership menu actually is, in one plain line.
+ * Taken from how the For Schools page already describes them, so the two
+ * pages never disagree about what a principal signed.
+ */
+const PROGRAMS: Record<string, { icon: LucideIcon; line: string }> = {
+  'Teacher of the Month': {
+    icon: Award,
+    line: 'One teacher each month, recognized at the staff meeting and featured on our website.',
+  },
+  'Teacher Lounge Decorating': {
+    icon: Sparkles,
+    line: 'We decorate the staff lounge for holidays and the change of seasons.',
+  },
+  'Post Office of Love': {
+    icon: Mail,
+    line: 'Students write letters to staff who matter to them. We deliver them in February.',
+  },
+  'Staff Meeting Catering': {
+    icon: UtensilsCrossed,
+    line: 'Meals from local restaurants at staff meetings.',
+  },
+  'End-of-Year Staff Breakfast': {
+    icon: Coffee,
+    line: 'Breakfast for the whole staff during the last week of school.',
+  },
+  'Door Decorating Competition': {
+    icon: Trophy,
+    line: 'A building-wide door decorating contest with prizes for the winners.',
+  },
+};
+
+/**
+ * A count that runs up the first time it is scrolled to. Years are shown
+ * outright, and reduced motion gets the final number immediately.
  */
 function Tally({ value, count }: { value: string; count: boolean }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
+  // Bottom inset only. A bare '-40px' shrinks every side, and a number sitting
+  // 16px from the left edge of a phone never counts as visible at all.
+  const inView = useInView(ref, { once: true, margin: '0px 0px -40px 0px' });
   const reduce = useReducedMotion();
   const target = Number(value);
   const animatable = count && !reduce && Number.isFinite(target);
@@ -58,62 +98,105 @@ function Tally({ value, count }: { value: string; count: boolean }) {
   return <span ref={ref}>{animatable ? shown : value}</span>;
 }
 
-/** Heading style shared by every section, so the page has one rhythm. */
-function SectionHeading({ children }: { children: React.ReactNode }) {
+/**
+ * The homepage's section header: a tinted pill, a serif headline with one
+ * italic accent, and a muted line under it. Centered, like "Choose Your
+ * Impact".
+ */
+function SectionHead({
+  icon: Icon, eyebrow, lead, accent, sub,
+}: { icon: LucideIcon; eyebrow: string; lead: string; accent: string; sub?: ReactNode }) {
   return (
-    <>
-      {/* Primary, not secondary: East Lansing's secondary is white, which is
-          invisible on a cream section. The secondary earns its place on the
-          band, where it sits against the dark primary. */}
-      <span
-        className="block w-16 h-[6px] rounded-full mb-5"
-        style={{ background: 'var(--school-primary)' }}
-        aria-hidden="true"
-      />
-      <h2 className="font-serif font-bold text-[clamp(1.75rem,4.5vw,2.75rem)] leading-[1.05] tracking-[-0.02em] mb-7 text-balance">
-        {children}
+    <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
+      <div
+        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 uppercase tracking-widest"
+        style={{
+          background: 'color-mix(in srgb, var(--school-primary) 10%, transparent)',
+          color: 'var(--school-primary)',
+        }}
+      >
+        <Icon size={14} />
+        {eyebrow}
+      </div>
+      <h2 className="text-4xl md:text-5xl font-serif font-bold leading-[1.1] text-balance">
+        {lead}{' '}
+        <span className="italic font-normal" style={{ color: 'var(--school-primary)' }}>{accent}</span>
       </h2>
-    </>
+      {sub && (
+        <p className="mt-5 text-lg text-chalkboard/60 font-light leading-relaxed text-pretty">{sub}</p>
+      )}
+    </div>
   );
 }
 
-/**
- * `tint` washes the section in the school's own color at low strength.
- * Alternating tinted and plain sections is what keeps the school present all
- * the way down the page rather than only in the band — while the text stays
- * FMT's chalkboard on a cream-family background, so contrast never moves.
- */
-function Section({ children, tint = false }: { children: React.ReactNode; tint?: boolean }) {
+/** The homepage's feature card: white, soft shadow, tinted icon tile. */
+function FeatureCard({
+  icon: Icon, title, children, delay = 0,
+}: { icon: LucideIcon; title: string; children: ReactNode; delay?: number }) {
+  const reduce = useReducedMotion();
   return (
-    <section
-      className="px-4 sm:px-6 py-10 sm:py-12"
-      style={tint ? { background: 'color-mix(in srgb, var(--school-primary) 6%, var(--color-paper))' } : undefined}
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+      transition={{ duration: 0.6, delay, ease: EASE }}
+      className="group p-7 sm:p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-shadow duration-500 flex gap-5 items-start"
     >
-      <div className="max-w-3xl mx-auto">{children}</div>
-    </section>
+      <div
+        className="w-14 h-14 shrink-0 rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform duration-500 shadow-sm"
+        style={{
+          background: 'color-mix(in srgb, var(--school-primary) 10%, white)',
+          color: 'var(--school-primary)',
+        }}
+      >
+        <Icon size={22} />
+      </div>
+      <div className="min-w-0">
+        <h3 className="text-xl font-serif font-bold mb-2">{title}</h3>
+        <div className="text-chalkboard/60 leading-relaxed font-light text-base">{children}</div>
+      </div>
+    </motion.div>
   );
 }
+
+/** The site's primary pill button, in the school's color instead of FMT red. */
+const schoolButton =
+  'bg-[var(--school-primary)] hover:bg-[var(--school-primary)] hover:brightness-110 ' +
+  'shadow-[0_12px_30px_color-mix(in_srgb,var(--school-primary)_30%,transparent)] ' +
+  'hover:shadow-[0_18px_40px_color-mix(in_srgb,var(--school-primary)_40%,transparent)]';
 
 export default function SchoolPage({ school }: { school: School }) {
   const events = useEvents();
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     window.scrollTo(0, 0);
     setPageMeta({
       title: `${school.name} | Funding Michigan Teachers`,
-      // Built from the school's own fields and kept short on purpose: a
-      // search result truncates around 155 characters, and the old version
-      // appended the whole intro and ran to 300.
-      description: `What FMT does at ${school.name} — staff meals, appreciation and classroom supplies after the budget runs out, and the businesses who helped.`,
+      description: `What Funding Michigan Teachers does at ${school.name}: staff meals, teacher appreciation, and classroom supplies, with thanks to the local businesses who helped.`,
       path: schoolPath(school.slug),
     });
+    // Breadcrumbs show in the search result in place of the bare URL, and
+    // tell Google this page sits under the Partner Schools section.
+    setPageStructuredData([
+      breadcrumbs([['Partner Schools', '/schools'], [school.name, schoolPath(school.slug)]]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'HighSchool',
+        name: school.name,
+        // The page is about FMT's work at this school, so the relationship
+        // is stated rather than implying FMT is the school.
+        sponsor: { '@type': 'NGO', name: 'Funding Michigan Teachers', url: 'https://www.fundingmichiganteachers.org/' },
+        address: { '@type': 'PostalAddress', addressRegion: 'MI', addressCountry: 'US' },
+      },
+    ]);
+    return () => setPageStructuredData(null);
   }, [school]);
 
   /**
-   * Happening now, read from the live events feed rather than copied into the
-   * school file. Events already carry the school's name in `location`, so an
-   * event added once in the admin panel shows up here and on the homepage
-   * calendar without being written twice and drifting apart.
+   * Coming up, read from the live events feed. Events carry the school's name
+   * in `location`, so one added in the admin panel appears here and on the
+   * homepage calendar without being written twice.
    */
   const upcoming = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -121,20 +204,10 @@ export default function SchoolPage({ school }: { school: School }) {
       .filter((e) => !e.date || String(e.date).slice(0, 10) >= today)
       .filter((e) => e.location === school.name || e.location === 'All partner schools')
       .sort((a, b) => String(a.date).localeCompare(String(b.date)))
-      .slice(0, 4);
+      .slice(0, 3);
   }, [events, school.name]);
 
-  /**
-   * What we've done here, from the same history the homepage renders.
-   *
-   * A finished event used to live in exactly one place: it aged out of the
-   * upcoming calendar and, having no location, could never appear on the page
-   * of the school it happened in. Tagging the event is now the whole job —
-   * it shows up in both, written once, and cannot drift.
-   *
-   * A school file may still add its own entries for something with no dated
-   * event behind it; those come first.
-   */
+  /** What we have done here: the school file's own notes, then tagged events. */
   const history = useMemo(() => {
     const tagged = PAST_EVENTS
       .filter((e) => e.location === school.name)
@@ -143,60 +216,38 @@ export default function SchoolPage({ school }: { school: School }) {
   }, [school]);
 
   /**
-   * The scoreboard tiles, built only from things that are actually true of
-   * this school. A tile with nothing behind it is left out rather than shown
-   * as a zero: these pages are read by the administrators of the building they
-   * describe, and "0 events" is worse than no tile at all.
+   * The hero's numbers, built only from what is actually true of this school.
+   * A number with nothing behind it is left out rather than shown as zero.
    */
-  const scoreboard = useMemo(() => {
-    const tiles: { value: string; label: string; count: boolean }[] = [];
+  const stats = useMemo(() => {
+    const out: { value: string; label: string; count: boolean }[] = [];
     if (school.partnership?.programs.length) {
-      tiles.push({
-        value: String(school.partnership.programs.length),
-        label: school.partnership.programs.length === 1 ? 'Program running' : 'Programs running',
-        count: true,
-      });
+      const n = school.partnership.programs.length;
+      out.push({ value: String(n), label: n === 1 ? 'Program' : 'Programs', count: true });
     }
     if (history.length) {
-      tiles.push({
-        value: String(history.length),
-        label: history.length === 1 ? 'Event here' : 'Events here',
-        count: true,
-      });
+      out.push({ value: String(history.length), label: history.length === 1 ? 'Event' : 'Events', count: true });
     }
     if (school.sponsors.length) {
-      tiles.push({
-        value: String(school.sponsors.length),
-        label: school.sponsors.length === 1 ? 'Local business' : 'Local businesses',
-        count: true,
-      });
+      const n = school.sponsors.length;
+      out.push({ value: String(n), label: n === 1 ? 'Local sponsor' : 'Local sponsors', count: true });
     }
-    if (/^\d{4}$/.test(school.partnerSince)) {
-      // A year is shown outright: counting it up from zero reads as a bug.
-      tiles.push({ value: school.partnerSince, label: 'Partners since', count: false });
-    }
-    return tiles;
+    return out;
   }, [school, history]);
 
-  const reduce = useReducedMotion();
+  const partnerYear = /^\d{4}$/.test(school.partnerSince) ? school.partnerSince : null;
 
   /**
-   * The mascot drifts slower than the page, so the hero gains depth on the
-   * first scroll — the one moment a visitor is most likely to notice it.
-   * Pinned to 0 when reduced motion is asked for.
+   * The hero's right-hand card. A real photo when the school has one, exactly
+   * like the homepage. Otherwise the same card in the school's color, carrying
+   * the most recent thing that happened here as its caption.
    */
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-  const mascotY = useTransform(scrollYProgress, [0, 1], ['0%', reduce ? '0%' : '-32%']);
+  const feature = history[0] ?? (school.sponsors[0]
+    ? { when: 'Thank you', title: `${school.sponsors[0].name}: ${school.sponsors[0].note ?? ''}`.replace(/: $/, ''), body: '' }
+    : null);
 
-  /** One line rising into place. Shared by every line in the hero. */
-  const rise = {
-    hidden: { opacity: 0, y: 26 },
-    shown: { opacity: 1, y: 0, transition: { duration: 0.75, ease: EASE } },
-  };
+  const donateInitiative = school.initiatives.find((i) => i.ctaHref.startsWith('/donate'));
+  const requestHref = `/for-teachers?school=${encodeURIComponent(school.name)}`;
 
   // The school's palette, handed to CSS. Nothing below reads a hex directly.
   const palette = {
@@ -206,370 +257,441 @@ export default function SchoolPage({ school }: { school: School }) {
   } as CSSProperties;
 
   const fmtDate = (d: string) =>
-    new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
-    <div className="min-h-[100dvh] bg-paper flex flex-col" style={palette}>
-      {/* The band runs under the fixed header, so the header starts white. */}
-      <SiteHeader onDark />
+    <div className="min-h-[100dvh] bg-paper flex flex-col overflow-x-clip" style={palette}>
+      <SiteHeader />
 
       <main className="flex-1">
-        {/* The hero. These pages have no photography, so scale, color and the
-            school's own mascot do the work a photo would. It is deliberately
-            tall: a school page should feel like walking into the building, not
-            like a row in a directory. */}
-        <header
-          ref={heroRef}
-          className={`school-hero school-band--${school.band} min-h-[74svh] flex flex-col pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6`}
-        >
-          {/* The mascot, painted across the back wall and running off the
-              bottom edge — cropped on purpose, the way lettering on a gym wall
-              meets the floor. aria-hidden because the name is already in the
-              h1; a screen reader should not hear "Wolves" twice. */}
-          <motion.div
-            className="pointer-events-none absolute inset-x-0 bottom-0"
-            style={{ y: mascotY }}
-            initial={reduce ? false : { opacity: 0, scale: 1.06 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.1, ease: EASE }}
-            aria-hidden="true"
-          >
-            <span className="school-mascot-ghost block select-none translate-y-[22%] text-center font-serif font-bold uppercase leading-[0.75] text-[clamp(5rem,26vw,20rem)] whitespace-nowrap">
-              {school.mascot}
-            </span>
-          </motion.div>
+        {/* ── Hero: the homepage's grid, the school's color ─────────────── */}
+        <section className="relative px-4 sm:px-6 pt-28 sm:pt-32 pb-16 sm:pb-24">
+          <div
+            className="pointer-events-none absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full blur-[140px]"
+            style={{ background: 'color-mix(in srgb, var(--school-primary) 6%, transparent)' }}
+          />
+          <div
+            className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] rounded-full blur-[120px]"
+            style={{ background: 'color-mix(in srgb, var(--school-tertiary) 14%, transparent)' }}
+          />
 
-          {/* Pinned to the top so it sits under the site header rather than
-              floating in the middle of the mascot. */}
-          <div className="max-w-5xl mx-auto w-full relative z-10">
-            <button
-              onClick={() => navigate('/schools')}
-              className="school-link text-sm text-white/70 hover:text-white underline underline-offset-4 inline-flex items-center gap-2"
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative">
+            <motion.div
+              initial={reduce ? false : { opacity: 0, y: 32, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.9, ease: EASE }}
+              className="lg:col-span-7"
             >
-              <span aria-hidden="true">←</span> All partner schools
-            </button>
-          </div>
+              <button
+                onClick={() => navigate('/schools')}
+                className="school-link inline-flex items-center gap-1.5 text-sm text-chalkboard/50 hover:text-chalkboard transition-colors mb-6"
+              >
+                <ArrowLeft size={14} /> All partner schools
+              </button>
 
-          {/* The arrival. Each line comes in just behind the one above it, so
-              the name lands last and reads as the point of the page. */}
-          <motion.div
-            className="max-w-5xl mx-auto w-full relative z-10 mt-auto pt-16"
-            initial={reduce ? false : 'hidden'}
-            animate="shown"
-            variants={{ hidden: {}, shown: { transition: { staggerChildren: 0.09, delayChildren: 0.15 } } }}
-          >
-            <motion.p
-              variants={rise}
-              className="text-[11px] uppercase tracking-[0.3em] font-bold text-white/60 mb-5"
-            >
-              {school.district}
-            </motion.p>
+              <div className="flex">
+                <div className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--school-primary)' }} />
+                  Partner school · {school.district}
+                </div>
+              </div>
 
-            {/* Set to break on its own words rather than wrap arbitrarily:
-                "Okemos / High School" reads as a sign on a building. */}
-            <motion.h1
-              variants={rise}
-              className="font-serif font-bold text-[clamp(2.75rem,11vw,7rem)] leading-[0.92] tracking-[-0.03em] text-balance"
-            >
-              {school.name}
-            </motion.h1>
+              <h1 className="font-serif font-bold leading-[0.95] tracking-[-0.025em] text-[clamp(2.5rem,5.4vw,4.75rem)] text-balance">
+                {school.name}
+              </h1>
+              <p
+                className="font-serif italic text-[clamp(1.6rem,3vw,2.5rem)] leading-tight mt-3 mb-7"
+                style={{ color: 'var(--school-primary)' }}
+              >
+                Home of the {school.mascot}
+              </p>
 
-            <motion.p variants={rise} className="mt-6 text-xl sm:text-2xl text-white/85 font-light">
-              Home of the <span className="font-serif italic">{school.mascot}</span>
-            </motion.p>
+              <p className="text-lg text-chalkboard/65 max-w-xl mb-10 leading-relaxed font-light text-pretty">
+                {school.intro}
+              </p>
 
-            <motion.p variants={rise} className="mt-8 text-sm text-white/65">
-              {/* The placeholder year is still a placeholder on one school, and
-                  "Partner school since ____" on a page an administrator reads
-                  is worse than not saying it. */}
-              {/^\d{4}$/.test(school.partnerSince)
-                ? `Partner school since ${school.partnerSince}`
-                : 'A partner school of Funding Michigan Teachers'}
-              {school.staffCount ? ` · ${school.staffCount} staff supported` : ''}
-            </motion.p>
-          </motion.div>
-        </header>
-
-        {/* The scoreboard. Only tiles with a real number render, so a thinner
-            school shows three and not five padded with zeroes. */}
-        {scoreboard.length > 0 && (
-          <div className="school-scoreboard px-4 sm:px-6 py-10 sm:py-12">
-            {/* Width follows the tile count, so two tiles sit together rather
-                than marooned at opposite ends of a wide row. */}
-            <dl
-              className="mx-auto grid gap-y-8 gap-x-10 sm:gap-x-16 text-center"
-              style={{
-                gridTemplateColumns: `repeat(${Math.min(scoreboard.length, 4)}, minmax(0, 1fr))`,
-                maxWidth: `${Math.min(scoreboard.length, 4) * 15}rem`,
-              }}
-            >
-              {scoreboard.map((tile, i) => (
-                <motion.div
-                  key={tile.label}
-                  initial={reduce ? false : { opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
-                >
-                  <dd className="text-[clamp(2rem,6vw,3.5rem)] font-bold">
-                    <Tally value={tile.value} count={tile.count} />
-                  </dd>
-                  <dt className="mt-3 text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-white/55 font-bold">
-                    {tile.label}
-                  </dt>
-                </motion.div>
-              ))}
-            </dl>
-          </div>
-        )}
-
-        {/* Opens on the most characteristic thing about this school: a real
-            photo from an FMT event here. No photo yet means the intro carries
-            it, rather than a placeholder frame. */}
-        {school.hero && (
-          <div className="px-4 sm:px-6 pt-8">
-            <figure className="max-w-3xl mx-auto">
-              <img
-                src={school.hero.src}
-                alt={school.hero.alt}
-                width={school.hero.width}
-                height={school.hero.height}
-                className="w-full rounded-2xl"
-                loading="eager"
-                decoding="async"
-              />
-              {school.hero.caption && (
-                <figcaption className="mt-2 text-sm text-chalkboard/60 font-light">
-                  {school.hero.caption}
-                </figcaption>
-              )}
-            </figure>
-          </div>
-        )}
-
-        {/* The intro is the page's voice, so it is set like a statement rather
-            than body copy — it is the first thing read after the name. */}
-        <Section>
-          <p className="font-serif text-[clamp(1.375rem,3.2vw,2rem)] leading-[1.35] tracking-[-0.01em] text-chalkboard/90 text-pretty">
-            {school.intro}
-          </p>
-        </Section>
-
-        {school.partnership && (
-          <Section tint>
-            <SectionHeading>What {school.shortName} signed up for</SectionHeading>
-            <p className="text-chalkboard/70 font-light leading-relaxed mb-6">
-              Every partner school picks from the same menu and picks differently. These are the
-              programs {school.shortName} chose, running at no cost to the building.
-            </p>
-            {/* Pennants on a line. The fill is the school's secondary with
-                dark type on top — the one place a fill-only color carries
-                text and still clears AA. */}
-            <div className="relative pl-5">
-              {/* The cord they hang from, down the left edge. */}
-              <span
-                className="school-pennant-cord absolute left-0 top-1 bottom-1 w-[3px] rounded-full"
-                aria-hidden="true"
-              />
-              <ul className="flex flex-col items-start gap-2.5">
-                {school.partnership.programs.map((program, i) => (
-                  <motion.li
-                    key={program}
-                    className="school-pennant pl-5 py-3 pr-9 font-bold text-sm sm:text-base max-w-full origin-left"
-                    initial={reduce ? false : { opacity: 0, x: -18, rotate: -2.5 }}
-                    whileInView={{ opacity: 1, x: 0, rotate: 0 }}
-                    viewport={{ once: true, margin: '-40px' }}
-                    transition={{ duration: 0.5, ease: EASE, delay: i * 0.09 }}
-                  >
-                    {program}
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-            <p className="mt-6 text-sm text-chalkboard/55">
-              Partnership agreed {school.partnership.signed}. Programs can be added any time during
-              the year.
-            </p>
-          </Section>
-        )}
-
-        {upcoming.length > 0 && (
-          <Section>
-            <SectionHeading>Happening now</SectionHeading>
-            <ul className="space-y-5">
-              {upcoming.map((e) => (
-                <li
-                  key={e.id}
-                  className="pl-4 border-l-[3px]"
-                  style={{ borderColor: 'var(--school-primary)' }}
-                >
-                  <p className="font-bold text-base leading-snug">{e.title}</p>
-                  {e.date && (
-                    <p className="text-sm text-chalkboard/55 mt-0.5">{fmtDate(String(e.date))}</p>
-                  )}
-                  <p className="text-chalkboard/75 font-light leading-relaxed mt-1.5">
-                    {e.description}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
-
-        {history.length > 0 && (
-          <Section>
-            <SectionHeading>What we've done here</SectionHeading>
-            <ul className="space-y-7">
-              {history.map((h) => (
-                <li key={h.title}>
-                  <p className="text-sm text-chalkboard/55">{h.when}</p>
-                  <p className="font-serif font-bold text-lg mt-0.5">{h.title}</p>
-                  <p className="text-chalkboard/75 font-light leading-relaxed mt-1.5">{h.body}</p>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
-
-        {school.photos.length > 0 && (
-          <Section tint>
-            <SectionHeading>Photos</SectionHeading>
-            <div className="grid grid-cols-2 gap-3">
-              {school.photos.map((p) => (
-                <figure key={p.src}>
-                  <img
-                    src={p.src}
-                    alt={p.alt}
-                    width={p.width}
-                    height={p.height}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-full rounded-xl"
-                  />
-                  {p.caption && (
-                    <figcaption className="mt-1.5 text-xs text-chalkboard/60">{p.caption}</figcaption>
-                  )}
-                </figure>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {school.initiatives.length > 0 && (
-          <Section>
-            <SectionHeading>Local initiatives</SectionHeading>
-            <div className="space-y-8">
-              {school.initiatives.map((i) => (
-                <div key={i.title}>
-                  <p className="font-serif font-bold text-lg">{i.title}</p>
-                  <p className="text-chalkboard/75 font-light leading-relaxed mt-1.5 mb-4">{i.body}</p>
-                  <a
-                    href={i.ctaHref}
-                    onClick={(ev) => {
-                      if (i.ctaHref.startsWith('/')) {
-                        ev.preventDefault();
-                        navigate(i.ctaHref);
-                      }
-                    }}
-                    className="school-btn inline-block text-white font-bold px-6 py-3 rounded-xl"
-                    style={{ background: 'var(--school-primary)' }}
-                  >
-                    {i.ctaLabel}
-                  </a>
-                  {i.secondaryLabel && i.secondaryHref && (
-                    <a
-                      href={i.secondaryHref}
-                      onClick={(ev) => {
-                        if (i.secondaryHref!.startsWith('/')) {
-                          ev.preventDefault();
-                          navigate(i.secondaryHref!);
-                        }
-                      }}
-                      className="school-link block mt-3 text-sm font-semibold underline underline-offset-4"
-                      style={{ color: 'var(--school-primary)' }}
-                    >
-                      {i.secondaryLabel}
+              <div className="flex flex-wrap gap-3 items-center">
+                {donateInitiative && (
+                  <Button asChild variant="primary" size="lg" className={`group ${schoolButton}`}>
+                    <a href={donateInitiative.ctaHref}>
+                      Donate to {school.shortName}
+                      <ButtonTrailing dark>
+                        <ArrowRight size={14} />
+                      </ButtonTrailing>
                     </a>
+                  </Button>
+                )}
+                <Button asChild variant="outline" size="md">
+                  <a href={requestHref}>Request supplies</a>
+                </Button>
+              </div>
+
+              <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
+                <span className="inline-block w-4 h-px bg-chalkboard/20" />
+                {partnerYear ? `Partner since ${partnerYear}` : 'Where FMT started'} · No cost to the school
+                <span className="inline-block w-4 h-px bg-chalkboard/20" />
+              </p>
+
+              {stats.length > 0 && (
+                <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
+                  {stats.map((s, i) => (
+                    <div key={s.label} className="flex items-center gap-6">
+                      {i > 0 && <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />}
+                      <div className="flex flex-col">
+                        <span className="font-bold text-2xl leading-none" style={{ color: 'var(--school-primary)' }}>
+                          <Tally value={s.value} count={s.count} />
+                        </span>
+                        <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted mt-1">
+                          {s.label}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* The homepage puts a real photo here. A school with one gets the
+                same card; one without gets it in the school's own color. */}
+            <motion.div
+              initial={reduce ? false : { opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
+              className="relative lg:col-span-5"
+            >
+              {school.hero ? (
+                <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
+                  <img
+                    src={school.hero.src}
+                    alt={school.hero.alt}
+                    width={school.hero.width}
+                    height={school.hero.height}
+                    className="w-full h-[420px] sm:h-[480px] lg:h-[540px] xl:h-[600px] object-cover"
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/80 via-chalkboard/10 to-transparent" />
+                  {school.hero.caption && (
+                    <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-8">
+                      <p className="text-white/65 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">
+                        {school.shortName} · Funding Michigan Teachers
+                      </p>
+                      <p className="text-white font-serif text-xl sm:text-2xl font-bold leading-tight">
+                        {school.hero.caption}
+                      </p>
+                    </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {school.club && (
-          <Section>
-            <div
-              className="rounded-2xl p-6 sm:p-8"
-              style={{ background: 'color-mix(in srgb, var(--school-secondary) 35%, #fff)' }}
-            >
-              <SectionHeading>{school.club.name}</SectionHeading>
-              <p className="text-chalkboard/80 font-light leading-relaxed">{school.club.body}</p>
-              {school.club.advisor && (
-                <p className="text-sm text-chalkboard/65 mt-3">
-                  Faculty advisor: {school.club.advisor}
-                </p>
-              )}
-              <a
-                href={school.club.ctaHref}
-                className="school-btn inline-block mt-5 text-white font-bold px-6 py-3 rounded-xl"
-                style={{ background: 'var(--school-primary)' }}
-              >
-                {school.club.ctaLabel}
-              </a>
-            </div>
-          </Section>
-        )}
-
-        {school.sponsors.length > 0 && (
-          <Section tint>
-            <SectionHeading>Thank you to</SectionHeading>
-            <p className="text-chalkboard/70 font-light leading-relaxed mb-5">
-              These neighbors paid for something that happened inside {school.shortName}.
-            </p>
-            <ul className="space-y-3">
-              {school.sponsors.map((s) => (
-                <li
-                  key={s.name}
-                  className="pl-4 border-l-[3px]"
-                  style={{ borderColor: 'var(--school-secondary)' }}
+              ) : (
+                <div
+                  className="relative rounded-[2.5rem] overflow-hidden shadow-2xl h-[360px] sm:h-[420px] lg:h-[540px] xl:h-[600px]"
+                  style={{ background: 'var(--school-primary)' }}
                 >
-                  <p className="font-bold">{s.name}</p>
-                  {s.note && <p className="text-sm text-chalkboard/70 font-light">{s.note}</p>}
-                </li>
-              ))}
-            </ul>
-          </Section>
+                  <div
+                    className="absolute -right-24 -top-24 w-96 h-96 rounded-full blur-[100px]"
+                    style={{ background: 'color-mix(in srgb, var(--school-secondary) 22%, transparent)' }}
+                  />
+                  <div
+                    className="absolute -left-20 bottom-0 w-72 h-72 rounded-full blur-[90px]"
+                    style={{ background: 'color-mix(in srgb, var(--school-tertiary) 14%, transparent)' }}
+                  />
+                  {/* The mascot as a large mark, the way the photo fills the
+                      homepage card. aria-hidden: the h1 already names it. */}
+                  <p
+                    className="absolute inset-x-0 top-[18%] text-center font-serif italic font-bold leading-none text-white/[0.13] text-[clamp(4.5rem,11vw,9rem)] select-none"
+                    aria-hidden="true"
+                  >
+                    {school.mascot}
+                  </p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+                  {feature && (
+                    <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-8">
+                      <p className="text-white/65 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">
+                        {feature.when} · {school.shortName}
+                      </p>
+                      <p className="text-white font-serif text-xl sm:text-2xl font-bold leading-tight">
+                        {feature.title}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+              <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full blur-[100px] -z-10"
+                style={{ background: 'color-mix(in srgb, var(--school-primary) 5%, transparent)' }}
+              />
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── What the school signed up for ─────────────────────────────── */}
+        {school.partnership && (
+          <section className="bg-white px-4 sm:px-6 py-20 sm:py-24">
+            <div className="max-w-6xl mx-auto">
+              <SectionHead
+                icon={Star}
+                eyebrow="Partnership"
+                lead={`What ${school.shortName}`}
+                accent="signed up for."
+                sub={`Each partner school picks its own programs from the same list. ${school.shortName} chose ${school.partnership.programs.length}, agreed in ${school.partnership.signed}.`}
+              />
+              <div className="grid md:grid-cols-2 gap-5">
+                {school.partnership.programs.map((name, i) => {
+                  const p = PROGRAMS[name] ?? { icon: Star, line: '' };
+                  return (
+                    <FeatureCard key={name} icon={p.icon} title={name} delay={i * 0.08}>
+                      {p.line}
+                    </FeatureCard>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
         )}
 
-        <Section>
-          <SectionHeading>Get involved</SectionHeading>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => navigate(`/donate?fund=${encodeURIComponent(school.name)}`)}
-              className="school-btn text-white font-bold px-6 py-3 rounded-xl"
-              style={{ background: 'var(--school-primary)' }}
-            >
-              Donate to {school.shortName}
-            </button>
-            <a
-              href={`mailto:hello@fundingmichiganteachers.org?subject=${encodeURIComponent(`Volunteering at ${school.name}`)}`}
-              className="school-btn font-bold px-6 py-3 rounded-xl border-2 border-chalkboard/15 hover:bg-chalkboard/5 transition-colors"
-            >
-              Volunteer at {school.shortName}
-            </a>
+        {/* ── What happened here, and what's next ───────────────────────── */}
+        {(history.length > 0 || upcoming.length > 0) && (
+          <section className="px-4 sm:px-6 py-20 sm:py-24">
+            <div className="max-w-6xl mx-auto">
+              <SectionHead
+                icon={Calendar}
+                eyebrow={`At ${school.shortName}`}
+                lead="What we've"
+                accent="done here."
+              />
+              <div className="grid lg:grid-cols-12 gap-10">
+                {history.length > 0 && (
+                  <ol className={`${upcoming.length ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-5`}>
+                    {history.map((h, i) => (
+                      <motion.li
+                        key={`${h.when}-${h.title}`}
+                        initial={reduce ? false : { opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+                        transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
+                        className="p-7 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5"
+                      >
+                        <p
+                          className="text-[11px] uppercase tracking-widest font-bold mb-2"
+                          style={{ color: 'var(--school-primary)' }}
+                        >
+                          {h.when}
+                        </p>
+                        <h3 className="text-xl font-serif font-bold mb-2">{h.title}</h3>
+                        <p className="text-chalkboard/60 leading-relaxed font-light">{h.body}</p>
+                      </motion.li>
+                    ))}
+                  </ol>
+                )}
+
+                {upcoming.length > 0 && (
+                  <div className={history.length ? 'lg:col-span-5' : 'lg:col-span-12'}>
+                    <div className="p-7 sm:p-8 bg-chalkboard text-white rounded-3xl shadow-2xl relative overflow-hidden lg:sticky lg:top-28">
+                      <div
+                        className="absolute -right-20 -bottom-20 w-72 h-72 rounded-full blur-[100px]"
+                        style={{ background: 'color-mix(in srgb, var(--school-primary) 35%, transparent)' }}
+                      />
+                      <div className="relative">
+                        <h3 className="text-2xl font-serif font-bold mb-6 flex items-center gap-3">
+                          <Calendar size={22} className="text-white/70" />
+                          Coming up
+                        </h3>
+                        <ul className="space-y-5">
+                          {upcoming.map((e) => (
+                            <li key={e.id} className="flex gap-4">
+                              {e.date && (
+                                <span className="shrink-0 w-14 text-center rounded-xl bg-white/10 py-2">
+                                  <span className="block text-[10px] uppercase tracking-widest text-white/60 font-bold">
+                                    {fmtDate(String(e.date)).split(' ')[0]}
+                                  </span>
+                                  <span className="block text-xl font-bold leading-none mt-0.5">
+                                    {fmtDate(String(e.date)).split(' ')[1]}
+                                  </span>
+                                </span>
+                              )}
+                              <span>
+                                <span className="block font-bold leading-snug">{e.title}</span>
+                                <span className="block text-sm text-white/60 font-light leading-relaxed mt-1">
+                                  {e.description}
+                                </span>
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Photos ────────────────────────────────────────────────────── */}
+        {school.photos.length > 0 && (
+          <section className="bg-white px-4 sm:px-6 py-20 sm:py-24">
+            <div className="max-w-6xl mx-auto">
+              <SectionHead icon={Heart} eyebrow="Photos" lead="From" accent={`${school.shortName}.`} />
+              <div className={`grid gap-5 ${school.photos.length > 1 ? 'sm:grid-cols-2' : 'max-w-3xl mx-auto'}`}>
+                {school.photos.map((p) => (
+                  <figure key={p.src} className="rounded-3xl overflow-hidden bg-white shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-chalkboard/5">
+                    <img
+                      src={p.src}
+                      alt={p.alt}
+                      width={p.width}
+                      height={p.height}
+                      className="w-full h-auto"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    {p.caption && (
+                      <figcaption className="px-6 py-4 text-sm text-chalkboard/60 font-light">{p.caption}</figcaption>
+                    )}
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Ways to help: the initiatives and the club ────────────────── */}
+        <section className={`${school.photos.length ? '' : 'bg-white'} px-4 sm:px-6 py-20 sm:py-24`}>
+          <div className="max-w-6xl mx-auto">
+            <SectionHead icon={Package} eyebrow="Get involved" lead="Ways to" accent="help." />
+            <div className="grid md:grid-cols-2 gap-5">
+              {school.initiatives.map((it, i) => (
+                <FeatureCard
+                  key={it.title}
+                  icon={it.ctaHref.startsWith('/donate') ? Heart : Package}
+                  title={it.title}
+                  delay={i * 0.08}
+                >
+                  <p>{it.body}</p>
+                  <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+                    <a
+                      href={it.ctaHref}
+                      className="school-btn inline-flex items-center gap-2 font-bold text-sm text-white px-5 py-2.5 rounded-full transition-all hover:brightness-110"
+                      style={{ background: 'var(--school-primary)' }}
+                    >
+                      {it.ctaLabel} <ArrowRight size={14} />
+                    </a>
+                    {it.secondaryLabel && it.secondaryHref && (
+                      <a
+                        href={it.secondaryHref}
+                        className="school-link text-sm font-bold underline underline-offset-4"
+                        style={{ color: 'var(--school-primary)' }}
+                      >
+                        {it.secondaryLabel}
+                      </a>
+                    )}
+                  </div>
+                </FeatureCard>
+              ))}
+
+              {school.club && (
+                <motion.div
+                  initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+                  transition={{ duration: 0.6, ease: EASE }}
+                  className="md:col-span-2 p-8 sm:p-10 text-white rounded-3xl shadow-2xl relative overflow-hidden"
+                  style={{ background: 'var(--school-primary)' }}
+                >
+                  <div
+                    className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full blur-[100px]"
+                    style={{ background: 'color-mix(in srgb, var(--school-secondary) 25%, transparent)' }}
+                  />
+                  <div className="relative sm:flex sm:items-center sm:justify-between gap-8">
+                    <div>
+                      <h3 className="text-2xl sm:text-3xl font-serif font-bold mb-3 flex items-center gap-3">
+                        <Users size={24} className="text-white/80" />
+                        {school.club.name}
+                      </h3>
+                      <p className="text-white/75 font-light leading-relaxed max-w-xl">{school.club.body}</p>
+                      {school.club.advisor && (
+                        <p className="text-white/60 text-sm mt-3">Faculty advisor: {school.club.advisor}</p>
+                      )}
+                    </div>
+                    <a
+                      href={school.club.ctaHref}
+                      className="school-btn mt-6 sm:mt-0 shrink-0 inline-flex items-center gap-2 bg-white px-8 py-4 rounded-2xl font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-transform"
+                      style={{ color: 'var(--school-primary)' }}
+                    >
+                      {school.club.ctaLabel} <ArrowRight size={14} />
+                    </a>
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
-          <p className="mt-6 text-chalkboard/70 font-light leading-relaxed">
-            Questions about what we do here?{' '}
-            <a href="mailto:hello@fundingmichiganteachers.org" className="school-link underline underline-offset-4 font-semibold">
-              hello@fundingmichiganteachers.org
-            </a>
-            <br />
-            <a href="tel:+15179276909" className="school-link underline underline-offset-4 font-semibold">
-              (517) 927-6909
-            </a>
-          </p>
-        </Section>
+        </section>
+
+        {/* ── Thank you ─────────────────────────────────────────────────── */}
+        {school.sponsors.length > 0 && (
+          <section className={`${school.photos.length ? 'bg-white' : ''} px-4 sm:px-6 py-20 sm:py-24`}>
+            <div className="max-w-6xl mx-auto">
+              <SectionHead
+                icon={Heart}
+                eyebrow="Thank you"
+                lead="Local businesses"
+                accent="who gave."
+                sub={`These businesses donated to ${school.shortName} staff. Please support them.`}
+              />
+              <div
+                className={`grid gap-5 mx-auto ${
+                  school.sponsors.length === 1 ? 'max-w-md'
+                    : school.sponsors.length === 2 ? 'sm:grid-cols-2 max-w-4xl'
+                      : 'sm:grid-cols-2 lg:grid-cols-3'
+                }`}
+              >
+                {school.sponsors.map((s, i) => (
+                  <FeatureCard key={s.name} icon={Store} title={s.name} delay={i * 0.06}>
+                    {s.note}
+                  </FeatureCard>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Close: the homepage's dark call-to-action card ─────────────── */}
+        <section className="px-4 sm:px-6 pb-20 sm:pb-24 pt-4">
+          <div className="max-w-6xl mx-auto p-10 sm:p-14 bg-chalkboard text-white rounded-[2.5rem] shadow-2xl relative overflow-hidden text-center">
+            <div
+              className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full blur-[110px]"
+              style={{ background: 'color-mix(in srgb, var(--school-primary) 45%, transparent)' }}
+            />
+            <div
+              className="absolute -left-20 -top-20 w-72 h-72 rounded-full blur-[90px]"
+              style={{ background: 'color-mix(in srgb, var(--school-tertiary) 18%, transparent)' }}
+            />
+            <div className="relative">
+              <h2 className="text-3xl sm:text-5xl font-serif font-bold leading-tight text-balance">
+                Help {school.shortName} teachers{' '}
+                <span className="italic font-normal text-white/80">this year.</span>
+              </h2>
+              <p className="mt-5 text-white/65 font-light text-lg max-w-xl mx-auto">
+                At least 80¢ of every dollar goes to teachers. Funding Michigan Teachers is a 501(c)(3)
+                nonprofit, EIN 93-4485967.
+              </p>
+              <div className="mt-9 flex flex-wrap justify-center gap-3">
+                <a
+                  href={donateInitiative?.ctaHref ?? '/donate'}
+                  className="school-btn inline-flex items-center gap-2 bg-white text-chalkboard px-8 py-4 rounded-full font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-transform"
+                >
+                  Donate to {school.shortName} <ArrowRight size={14} />
+                </a>
+                <a
+                  href="mailto:hello@fundingmichiganteachers.org"
+                  className="school-btn inline-flex items-center gap-2 ring-1 ring-white/25 text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-white/10 transition-colors"
+                >
+                  <Check size={14} /> Ask us a question
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <SiteFooter />

@@ -17,7 +17,7 @@ export const okemos: School = {
   partnerSince: '____',
 
   intro:
-    'Okemos is where FMT was built. Finn started buying donuts and coffee for his teachers back in elementary school, wheeling a cart down the hallways so nobody got missed; by ninth grade that had become this. Okemos High School is our home building, and most of what we try anywhere else gets tried here first.',
+    'Okemos High School is where Funding Michigan Teachers started. Finn began bringing donuts and coffee to his teachers in elementary school, and in ninth grade it became a registered nonprofit. Most of what we run at other schools, we try here first.',
 
   colors: {
     // TODO: verify against Okemos Public Schools style guide. No official hex
@@ -38,9 +38,29 @@ export const okemos: School = {
 
   // TODO: add the hero photo. Until one exists the page opens on the band,
   // which is a working state — it does not render an empty frame.
-  hero: undefined,
+  // Already published on the For Schools page. No people in frame: a hallway
+  // decorated for the Post Office of Love, which only ran at Okemos before
+  // the other two schools signed on in August 2026.
+  hero: {
+    src: '/images/IMG_6113-opt.jpg',
+    alt: "A school hallway decorated for Valentine's Day, with a balloon arch, paper hearts and a Funding Michigan Teachers Post Office sign",
+    width: 900,
+    height: 1200,
+    caption: "The Post Office of Love, set up for Valentine's Day.",
+  },
 
-  photos: [],
+  // The May 2026 OHS staff meeting, already published on the For Schools
+  // page. No faces; the certificate names are this year's Teacher of the
+  // Month honorees, which that program publishes by design.
+  photos: [
+    {
+      src: '/images/may-staff-meeting-opt.jpg',
+      alt: 'A whiteboard reading Happy Teacher Appreciation Week, signed Funding Michigan Teachers, with three Teacher of the Month certificates',
+      width: 900,
+      height: 675,
+      caption: 'Teacher Appreciation Week at the May 2026 staff meeting.',
+    },
+  ],
 
   // "What we've done here" reads PAST_EVENTS tagged with this school, so an
   // event is written once and shows up in the site history and on this page.
@@ -50,15 +70,15 @@ export const okemos: School = {
   initiatives: [
     {
       title: 'Mid-Year Refill',
-      body: 'Every January, after the classroom budget has run out and there is still half a school year to go, we restock the rooms that ask. Pencils, markers, tissues, paper — the things that quietly disappear by February.',
+      body: 'Classroom supply budgets usually run out by winter. In January we restock the classrooms that ask, and every refill is delivered the week of January 12th.',
       ctaLabel: 'Donate to the Okemos refill',
       ctaHref: '/donate?fund=Okemos%20Mid-Year%20Refill',
       secondaryLabel: 'Teach here? Tell us what your room needs',
       secondaryHref: '/for-teachers?kind=mid-year-refill&school=Okemos%20High%20School',
     },
     {
-      title: 'Tell us what your room ran out of',
-      body: 'If you teach or work at Okemos, this is the whole process. No application, no committee, no grant cycle.',
+      title: 'Request classroom supplies',
+      body: 'Teachers and staff at Okemos can ask for supplies with one short form.',
       ctaLabel: 'Request supplies for your room',
       // This IS the teacher supply survey — it asks for the room, quantities,
       // a link, timing and permission to name the teacher when we ask a
@@ -79,7 +99,7 @@ export const okemos: School = {
 
   club: {
     name: 'Wolves for Teachers',
-    body: 'FMT now has an official student club at Okemos. Members plan the appreciation events here, write for the Post Office of Love, and carry supplies to the rooms that asked for them.',
+    body: "Wolves for Teachers is FMT's student club at Okemos. Members plan appreciation events, write letters for the Post Office of Love, and deliver supply requests.",
     // CONFIRM: faculty advisor's name. Never publish a teacher's name until
     // they have said yes to appearing on a public website.
     advisor: undefined,

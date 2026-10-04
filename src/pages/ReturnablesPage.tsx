@@ -8,7 +8,7 @@ import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { track, captureSource } from '../lib/analytics';
-import { PopCan, Bottle, Dime, SchoolHouse } from '../components/campaignDoodles';
+import { MetalCan, PlasticBottle, ReturnablesStillLife } from '../components/campaignDoodles';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
@@ -215,50 +215,15 @@ export default function ReturnablesPage() {
               </button>
             </motion.div>
 
-            {/* Marching cans → schoolhouse */}
+            {/* A still life rather than a parade: the objects grouped the way
+                they would be photographed, arriving once and then staying put. */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="relative mt-12 sm:mt-14"
-              aria-hidden="true"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
+              className="mt-12 sm:mt-14 flex justify-center text-[14px] sm:text-[17px]"
             >
-              {/* crayon path */}
-              <svg viewBox="0 0 400 40" preserveAspectRatio="none" className="absolute inset-x-0 bottom-2 w-full h-10">
-                <path
-                  d="M10 30c60-14 120 8 180-2s130-12 200 4"
-                  fill="none"
-                  stroke="var(--color-pencil)"
-                  strokeWidth="7"
-                  strokeLinecap="round"
-                  opacity="0.5"
-                />
-              </svg>
-
-              <div className="relative flex items-end justify-center gap-1.5 sm:gap-3">
-                {[
-                  { C: () => <PopCan color="#E8564A" tilt={-6} />, size: 38, delay: 0 },
-                  { C: () => <Bottle color="#5EA9DD" tilt={4} />, size: 44, delay: 0.1 },
-                  { C: () => <Dime tilt={12} />, size: 22, delay: 0.2 },
-                  { C: () => <PopCan color="#4bbfb3" tilt={7} />, size: 34, delay: 0.3 },
-                  { C: () => <Bottle color="#FFD54F" tilt={-5} />, size: 41, delay: 0.4 },
-                  { C: () => <Dime tilt={-9} />, size: 19, delay: 0.5 },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    style={{ width: item.size, height: item.size }}
-                    initial={{ y: 0 }}
-                    animate={{ y: [0, -5, 0] }}
-                    transition={{ duration: 1.6, repeat: Infinity, delay: item.delay, ease: 'easeInOut' }}
-                    className="drop-shadow-[0_3px_4px_rgba(60,40,10,0.15)] shrink-0"
-                  >
-                    <item.C />
-                  </motion.div>
-                ))}
-                <div className="w-16 h-14 sm:w-20 sm:h-18 shrink-0 ml-1 drop-shadow-[0_4px_6px_rgba(60,40,10,0.18)]">
-                  <SchoolHouse />
-                </div>
-              </div>
+              <ReturnablesStillLife />
             </motion.div>
           </section>
 
@@ -333,23 +298,22 @@ export default function ReturnablesPage() {
                   container adds to the campaign.
                 </p>
 
-                <div className="flex items-center justify-center gap-2 mt-8 flex-wrap" aria-hidden="true">
-                  {[0, 1, 2, 3, 4].map((i) => (
+                <div className="flex items-end justify-center gap-3 sm:gap-4 mt-9" aria-hidden="true">
+                  {[
+                    <MetalCan key="a" color="#D9483B" className="h-14 sm:h-16 w-auto" />,
+                    <PlasticBottle key="b" className="h-[4.4rem] sm:h-20 w-auto" />,
+                    <MetalCan key="c" color="#2E9E93" className="h-14 sm:h-16 w-auto" />,
+                  ].map((item, i) => (
                     <motion.div
                       key={i}
-                      initial={{ opacity: 0, y: 14 }}
+                      initial={{ opacity: 0, y: 12 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.07, duration: 0.5, ease: EASE }}
-                      className="w-8 h-8 sm:w-9 sm:h-9"
+                      transition={{ delay: i * 0.08, duration: 0.5, ease: EASE }}
                     >
-                      {i % 2 === 0 ? <PopCan color="#E8564A" tilt={i * 5 - 7} /> : <Bottle color="#5EA9DD" tilt={6 - i * 4} />}
+                      {item}
                     </motion.div>
                   ))}
-                  <ArrowRight size={20} className="text-white/40 mx-1" />
-                  <div className="w-9 h-9 sm:w-10 sm:h-10">
-                    <SchoolHouse />
-                  </div>
                 </div>
               </div>
               <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 bg-[var(--color-campaign-teal)]/10 rounded-full blur-[100px]" />
@@ -478,13 +442,6 @@ export default function ReturnablesPage() {
               </button>
             </div>
 
-            <div className="flex items-end justify-center gap-2 mt-10" aria-hidden="true">
-              <div className="w-9 h-9"><PopCan color="#E8564A" tilt={-5} /></div>
-              <div className="w-10 h-10"><Bottle color="#5EA9DD" tilt={4} /></div>
-              <div className="w-8 h-8"><PopCan color="#4bbfb3" /></div>
-              <ArrowRight size={18} className="text-chalkboard/25 mb-2" />
-              <div className="w-16 h-14"><SchoolHouse /></div>
-            </div>
           </section>
         </div>
       </main>
