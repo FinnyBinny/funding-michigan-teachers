@@ -1,41 +1,33 @@
 # Funding Michigan Teachers — fundingmichiganteachers.org
 
+# Every crawler we welcome shares ONE group, so they all get the same rules.
+#
+# A crawler obeys only the group that names it most specifically and ignores
+# the `*` group entirely (RFC 9309). This file used to give Bingbot, GPTBot,
+# ClaudeBot and the rest their own groups containing only "Allow: /", so they
+# never saw the Disallow lines below — Bing could crawl the admin login page.
+# Listing them in the same group as `*` closes that.
 User-agent: *
-Allow: /
-# Internal pages — nothing useful to index here
+User-agent: Googlebot
+User-agent: Bingbot
+# AI search and citation bots — allowed so FMT can be cited in answers.
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: PerplexityBot
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: anthropic-ai
+User-agent: Google-Extended
+# Everything is crawlable except these two internal pages: the admin login
+# and the page blocked visitors see. There is deliberately no "Allow: /".
+# Google and Bing pick the longest matching rule, but older first-match
+# parsers would let "Allow: /" win and open /access; with only Disallow
+# lines, every parser reads this the same way.
 Disallow: /access
 Disallow: /restricted
 
-# ——— AI Search & Citation Bots (explicitly allowed) ———
-
-# OpenAI / ChatGPT
-User-agent: GPTBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-# Perplexity
-User-agent: PerplexityBot
-Allow: /
-
-# Anthropic / Claude
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-# Google Gemini & AI Overviews
-User-agent: Google-Extended
-Allow: /
-
-# Microsoft Copilot (via Bing)
-User-agent: Bingbot
-Allow: /
-
-# ——— Block training-only scrapers (does not affect search citations) ———
-
+# Training-only scraper. Does not affect search results or citations.
 User-agent: CCBot
 Disallow: /
 

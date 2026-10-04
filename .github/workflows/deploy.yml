@@ -34,7 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Full history, not the default single commit: the sitemap dates each
+      # page by the last commit to its source files, and a shallow clone
+      # would stamp every page with today's date on every deploy.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -46,6 +51,10 @@ jobs:
 
       - name: Typecheck
         run: npm run lint
+
+      # Before the build, so vite copies the fresh file into dist/.
+      - name: Generate sitemap from routes and git history
+        run: node scripts/generate-sitemap.mjs
 
       - name: Build
         run: npm run build
