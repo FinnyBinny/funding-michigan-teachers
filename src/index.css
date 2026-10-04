@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Semantic, themeable color tokens. Generated from src/theme/tokens.mjs —
+   see that file for the names and how to add a theme. */
+@import "./theme/theme.css";
 
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
@@ -17,7 +20,11 @@
      comfortably (7.63:1 and 7.96:1) and reads as pen ink, not template. */
   --color-ruler: #1f5673;
   --color-ink: #141414;
-  --color-muted: #8e9299;
+  /* Was #8e9299, which is 3.00:1 on cream and 3.12:1 on white — under the
+     4.5:1 WCAG AA floor for the captions it is used for. This is the theme's
+     fg-subtle (src/theme/tokens.mjs): 6.18:1 on cream. New code should use
+     text-fg-subtle, which also follows the theme. */
+  --color-muted: #5b5f65;
 
   /* Campaign accent — matches the teal marker on the printed "Your Cans.
      Their Classrooms." door hanger. Scoped to /returnables so the page a

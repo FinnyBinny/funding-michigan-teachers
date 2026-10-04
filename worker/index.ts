@@ -43,6 +43,26 @@ interface SecretsStoreBinding {
  */
 type SecretValue = string | SecretsStoreBinding;
 
+import { THEMES } from '../src/theme/tokens.mjs';
+
+/**
+ * The themes a visitor can save, from the same file the CSS is generated from.
+ * The class on <html> is the whole theme switch (scripts/build-theme.mjs), so
+ * a saved choice reaches the first paint by being written onto <html> here —
+ * no inline script in the head and no flash of the wrong theme.
+ */
+const THEME_CHOICES = new Set([...Object.keys(THEMES), 'auto']);
+
+/**
+ * The visitor's saved theme, or null. Checked against THEME_CHOICES, so a
+ * forged cookie can only ever select a real theme: nothing from the cookie is
+ * written into the page except a name from that list.
+ */
+function themeFromCookie(request: Request): string | null {
+  const m = /(?:^|;\s*)fmt-theme=([a-z-]{1,24})(?:;|$)/.exec(request.headers.get('Cookie') ?? '');
+  return m && THEME_CHOICES.has(m[1]) ? m[1] : null;
+}
+
 export interface Env {
   ASSETS: Fetcher;
   STRIPE_SECRET_KEY?: string;
@@ -130,10 +150,11 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
   // A real page forwards the caller's headers so If-None-Match still earns a
   // 304. The shell is ~15KB and every page view fetches it; dropping the
   // validator here would make all of them unconditional.
+  const theme = themeFromCookie(request);
   const headers = new Headers(request.headers);
-  if (status !== 200) {
-    // A 304 must never come back under a 404 or 403, so don't let the asset
-    // service answer conditionally on those paths.
+  if (status !== 200 || theme) {
+    // A 304 must never come back under a 404 or 403, and a page we are about
+    // to rewrite needs its full body — a 304 has none to put a class on.
     headers.delete('If-None-Match');
     headers.delete('If-Modified-Since');
   }
@@ -141,14 +162,33 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
   const res = await env.ASSETS.fetch(
     new Request(shellUrl, { method: request.method === 'HEAD' ? 'HEAD' : 'GET', headers }),
   );
-  if (status === 200) return res;
+  // The default visitor, with no saved theme, gets the asset untouched, so
+  // its ETag and the 304s that come with it keep working.
+  if (status === 200 && !theme) return res;
 
   const out = new Headers(res.headers);
-  // The shell's ETag belongs to its 200 response. Carried onto a 404 or 403 it
-  // lets a later conditional request be answered 304 for the wrong status.
+  // The shell's ETag belongs to the untouched 200. Carried onto a 404, a 403
+  // or a rewritten page it would let a later conditional request be answered
+  // 304 for a body it does not describe.
   out.delete('ETag');
-  out.set('Cache-Control', 'no-store');
-  return new Response(res.body, { status, headers: out });
+  if (status !== 200) {
+    out.set('Cache-Control', 'no-store');
+  } else {
+    // Rewritten per visitor: never shared, always revalidated.
+    out.set('Cache-Control', 'private, no-cache');
+  }
+  if (theme) out.append('Vary', 'Cookie');
+
+  const response = new Response(res.body, { status, headers: out });
+  if (!theme) return response;
+  return new HTMLRewriter()
+    .on('html', {
+      element(el) {
+        const existing = el.getAttribute('class');
+        el.setAttribute('class', existing ? `${existing} theme-${theme}` : `theme-${theme}`);
+      },
+    })
+    .transform(response);
 }
 
 /**

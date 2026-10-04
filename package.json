@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "theme": "node scripts/build-theme.mjs && node scripts/check-theme-contrast.mjs",
+    "sitemap": "node scripts/generate-sitemap.mjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
