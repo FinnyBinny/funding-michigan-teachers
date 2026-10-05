@@ -4,6 +4,7 @@ import { Check, ArrowRight, Mail, Heart } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { STAT } from '../data/impactStats';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -41,12 +42,7 @@ const YEAR = [
 export default function AboutPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'About Us | Funding Michigan Teachers',
-      description:
-        'How a ninth grader\'s donut cart became a 501(c)(3). Funding Michigan Teachers is student-run, based in Okemos, and works in three Michigan high schools.',
-      path: '/about',
-    });
+    setPageMeta(metaForPath('/about'));
   }, []);
 
   return (
@@ -130,6 +126,21 @@ export default function AboutPage() {
                 difference in their own communities.
               </p>
             </div>
+            {/* This photo's one featured slot on the site. */}
+            <figure className="mt-9">
+              <img
+                src="/images/coffee-bar-biggby-opt.jpg"
+                alt="A coffee bar on two tables, with drink dispensers and syrups, in front of a whiteboard reading You guys rock!"
+                width={900}
+                height={675}
+                loading="lazy"
+                decoding="async"
+                className="w-full rounded-[1.5rem] ring-1 ring-chalkboard/10 object-cover aspect-[4/3]"
+              />
+              <figcaption className="mt-3 text-sm text-chalkboard/70">
+                An FMT Coffee Bar for staff, set up by the student team, with coffee donated by Biggby.
+              </figcaption>
+            </figure>
 
             {/* Founder */}
             <div className="mt-10 flex flex-col sm:flex-row items-start gap-6 bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-7">

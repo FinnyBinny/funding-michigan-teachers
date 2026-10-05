@@ -22,6 +22,7 @@ export const KNOWN_ROUTES = [
   '/sponsors',
   '/returnables',
   '/privacy',
+  '/accessibility',
   '/access',
   '/restricted',
 ] as const;

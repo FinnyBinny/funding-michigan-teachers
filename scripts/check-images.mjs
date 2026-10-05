@@ -9,6 +9,7 @@
  * upright JPEG or the upright AVIF depending on the page.
  *
  * Checks every image in public/images:
+ *   - no file may carry GPS location data;
  *   - no file may still carry a rotate-me note (orientation other than 1);
  *     bake it in with sharp(...).rotate() (scripts/optimize-images.mjs does);
  *   - an AVIF twin must have the same shape as its JPEG (X.avif vs X-opt.jpg).
@@ -28,6 +29,12 @@ for (const [f, m] of meta) {
   if (m.orientation && m.orientation !== 1) {
     problems.push(`${f}: EXIF orientation ${m.orientation} — its pixels are not upright`);
   }
+  // Phone photos carry where they were taken. A school photo published with
+  // its GPS position is exactly what a parent or principal would object to;
+  // one did ship that way. Re-save through sharp, which drops metadata.
+  if (m.exif && /GPS/i.test(m.exif.toString('latin1'))) {
+    problems.push(`${f}: still carries camera metadata with a GPS location — re-save it without metadata`);
+  }
 }
 for (const [f, m] of meta) {
   if (!f.endsWith('.avif')) continue;
@@ -43,7 +50,7 @@ for (const [f, m] of meta) {
 }
 
 if (problems.length) {
-  console.error('Images that would ship sideways:\n  ' + problems.join('\n  '));
+  console.error('Images that should not ship:\n  ' + problems.join('\n  '));
   process.exit(1);
 }
-console.log(`Checked ${files.length} images: all upright, every AVIF matches its JPEG.`);
+console.log(`Checked ${files.length} images: all upright, no GPS data, every AVIF matches its JPEG.`);

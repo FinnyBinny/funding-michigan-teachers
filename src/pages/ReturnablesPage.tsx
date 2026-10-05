@@ -13,6 +13,7 @@ import { track, captureSource } from '../lib/analytics';
 import { ReturnableCansRow, ReturnableCansTrio } from '../components/ReturnableCans';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import SiteFooter from '../components/SiteFooter';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -69,12 +70,6 @@ const CAMPAIGN = {
       a: 'Of course — and it helps just as much. There\'s a donate button on this page.',
     },
   ],
-  /** Swap in bottle-drive photos when there are some. */
-  photos: [
-    { src: '/images/IMG_5568-opt.jpg', alt: "Finn Regan and Mrs. Freeman smiling in an Okemos High School hallway", caption: 'Special delivery', rotate: -3, y: 0 },
-    { src: '/images/coffee-bar-biggby-opt.jpg', alt: "A coffee bar on two tables, with drink dispensers and syrups, in front of a whiteboard reading You guys rock!", caption: 'Coffee bar, staffed by students', rotate: 2.5, y: 16 },
-    { src: '/images/may-staff-meeting-opt.jpg', alt: "A whiteboard reading Happy Teacher Appreciation Week, signed Funding Michigan Teachers, beside three Teacher of the Month certificates", caption: 'Teacher of the Month, announced live', rotate: -1.5, y: 6 },
-  ],
 } as const;
 
 const STEPS = [
@@ -124,12 +119,7 @@ export default function ReturnablesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Donate Your Returnables | Funding Michigan Teachers',
-      description:
-        'Your empty cans and bottles can fund a Michigan classroom. We collect your Michigan returnables and turn the 10¢ deposits into teacher support.',
-      path: '/returnables',
-    });
+    setPageMeta(metaForPath('/returnables'));
     setSource(captureSource());
     track('returnables_page_view', { source: captureSource() });
   }, []);
@@ -300,42 +290,10 @@ export default function ReturnablesPage() {
             </div>
           </section>
 
-          {/* ═══ 5. SCRAPBOOK ═══ */}
-          <section className="mt-20 sm:mt-24">
-            <h2 className="text-center font-serif font-bold text-3xl sm:text-4xl leading-tight tracking-[-0.01em] mb-2">
-              This is who you're <span className="text-apple italic font-normal">helping</span>.
-            </h2>
-            <p className="text-center font-hand text-lg text-chalkboard/70 -rotate-1 mb-10">
-              real teachers, real classrooms, right here
-            </p>
-
-            <div className="flex flex-wrap justify-center items-start gap-5 md:gap-3">
-              {CAMPAIGN.photos.map((photo, i) => (
-                <motion.figure
-                  key={photo.src}
-                  initial={{ opacity: 0, y: 36, rotate: 0 }}
-                  whileInView={{ opacity: 1, y: photo.y, rotate: photo.rotate }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.8, delay: i * 0.09, ease: EASE }}
-                  className="polaroid w-[46%] sm:w-52 md:w-56 shrink-0"
-                  style={{ rotate: `${photo.rotate}deg` }}
-                >
-                  <div className="aspect-square overflow-hidden rounded-[2px] bg-chalkboard/5">
-                    <img
-                      src={photo.src}
-                      alt={photo.alt}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <figcaption className="font-hand text-sm text-chalkboard/70 text-center py-3 px-1 leading-tight">
-                    {photo.caption}
-                  </figcaption>
-                </motion.figure>
-              ))}
-            </div>
-          </section>
+          {/* A photo scrapbook sat here, filled with other events' photos —
+              none of them showed a returnables pickup. It comes back when
+              there are real ones (the next pickup: bags in a trunk, the
+              return machine, the receipt). The painted cans carry the page. */}
 
           {/* ═══ 6. SECONDARY DONATION ═══ */}
           <section className="mt-20 sm:mt-24 max-w-2xl mx-auto">

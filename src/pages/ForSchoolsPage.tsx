@@ -6,7 +6,9 @@ import {
   Calendar, CheckCircle2, Building2, Send, Loader2,
 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
+import { splitBusinessName } from '../lib/utils';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import SiteFooter from '../components/SiteFooter';
 import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
@@ -55,8 +57,13 @@ const PROGRAMS = [
     summary: 'Every February, students across the school write Valentine\'s-style appreciation letters to teachers who shaped them. FMT runs the campaign, collects every letter, and personally delivers them to each teacher\'s mailbox.',
     bullet: ['Student-written letters of appreciation', 'Hand-delivered to every teacher', 'Annual Valentine\'s week tradition'],
     accent: 'apple',
+    // Its only appearance on the site: each photo gets one featured slot.
+    photo: {
+      src: '/images/IMG_6116-opt.jpg',
+      alt: 'A Share the Love sign taped to a hallway wall, asking students to write a letter to a staff member, above a table set with cards and markers',
+    },
   },
-];
+] as const;
 
 const ACCENT_MAP = {
   apple:  { text: 'text-apple',  bg: 'bg-apple/10',  ring: 'ring-apple/20',  dot: 'bg-apple' },
@@ -102,12 +109,7 @@ export default function ForSchoolsPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Bring FMT to Your School | Funding Michigan Teachers',
-      description:
-        'Bring Funding Michigan Teachers to your building: staff meals, Teacher of the Month, door decorating and classroom supplies, at no cost to the school.',
-      path: '/for-schools',
-    });
+    setPageMeta(metaForPath('/for-schools'));
   }, []);
 
   return (
@@ -315,6 +317,17 @@ export default function ForSchoolsPage() {
                         {program.summary}
                       </p>
 
+                      {'photo' in program && (
+                        <img
+                          src={program.photo.src}
+                          alt={program.photo.alt}
+                          width={900}
+                          height={1200}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-full aspect-[16/10] object-cover object-[50%_25%] rounded-2xl mb-7"
+                        />
+                      )}
                       <ul className="space-y-2.5 mt-auto">
                         {program.bullet.map((b) => (
                           <li key={b} className="flex items-start gap-2.5 text-sm text-chalkboard/75 leading-snug">
@@ -370,35 +383,39 @@ export default function ForSchoolsPage() {
             </motion.div>
           </div>
 
-          {/* Featured ceremony image */}
-          <motion.div
+          {/* Featured ceremony image. Shown at most 768px wide: the file is
+              900px, and at full width it was stretched to 1264px and went
+              soft. 4:3 so the certificates are not cropped, and the caption
+              sits under the photo, where on a phone it used to overflow the
+              frame and get cut off mid-sentence. */}
+          <motion.figure
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
+            viewport={{ once: true, margin: '0px 0px -80px 0px' }}
             transition={{ duration: 1, ease: EASE }}
-            className="mb-12"
+            className="mb-12 max-w-3xl mx-auto"
           >
             <div className="bg-white/[0.04] ring-1 ring-white/10 rounded-[2.25rem] p-2">
-              <div className="relative rounded-[calc(2.25rem-0.5rem)] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-                <img
-                  src="/images/may-staff-meeting-opt.jpg"
-                  alt="May 2026 OHS staff meeting — Teacher of the Month certificates for Mrs. Turner, Miss Richter, and Miss Abbott"
-                  className="w-full aspect-[16/9] object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-chalkboard via-chalkboard/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                  <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil ring-1 ring-pencil/30 px-3 py-1.5 rounded-full text-[0.625rem] font-bold mb-4 uppercase tracking-[0.22em]">
-                    <Calendar size={11} />
-                    Caught in the act
-                  </div>
-                  <p className="font-serif font-bold text-2xl md:text-3xl text-white leading-tight max-w-3xl">
-                    May 2026 — the Okemos High School staff meeting where we announced our three Teachers of the Month and surprised the entire staff with appreciation gifts.
-                  </p>
-                </div>
-              </div>
+              <img
+                src="/images/may-staff-meeting-opt.jpg"
+                alt="A whiteboard reading Happy Teacher Appreciation Week, signed Funding Michigan Teachers, beside three Teacher of the Month certificates"
+                width={900}
+                height={675}
+                className="w-full aspect-[4/3] object-cover rounded-[calc(2.25rem-0.5rem)]"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-          </motion.div>
+            <figcaption className="mt-5 text-center">
+              <span className="inline-flex items-center gap-2 bg-pencil/20 text-pencil ring-1 ring-pencil/30 px-3 py-1.5 rounded-full text-[0.625rem] font-bold mb-3 uppercase tracking-[0.22em]">
+                <Calendar size={11} aria-hidden="true" />
+                May 2026, Okemos High School
+              </span>
+              <span className="block font-serif font-bold text-xl md:text-2xl text-white leading-snug text-balance">
+                The staff meeting where we announced our three Teachers of the Month.
+              </span>
+            </figcaption>
+          </motion.figure>
 
           {/* Honoree cards */}
           <div className="grid md:grid-cols-3 gap-6">
@@ -425,20 +442,18 @@ export default function ForSchoolsPage() {
                       <span className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-white/70">#{String(i + 1).padStart(2, '0')}</span>
                     </div>
 
-                    {/* Avatar — outer/inner concentric */}
-                    <div className="mb-6 w-fit">
-                      <div className="bg-white/5 ring-1 ring-white/10 rounded-3xl p-1.5">
-                        {teacher.image ? (
+                    {/* A photo when the teacher has given one. No stand-in icon
+                        otherwise: three identical placeholder tiles in a row
+                        read as a template. */}
+                    {teacher.image && (
+                      <div className="mb-6 w-fit">
+                        <div className="bg-white/5 ring-1 ring-white/10 rounded-3xl p-1.5">
                           <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-                            <img src={teacher.image} alt={teacher.teacher_name} className="w-full h-full object-cover" loading="lazy" />
+                            <img src={teacher.image} alt="" className="w-full h-full object-cover" loading="lazy" />
                           </div>
-                        ) : (
-                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-pencil/30 to-apple/20 flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-                            <GraduationCap size={28} className="text-pencil" />
-                          </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Name */}
                     <h3 className="font-serif font-bold text-2xl text-white leading-tight mb-1">
@@ -546,85 +561,34 @@ export default function ForSchoolsPage() {
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {foodPartners.slice(0, 4).map((partner, i) => (
-              <motion.div
-                key={partner.id ?? partner.business}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
-                className="group"
-              >
-                <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[1.75rem] p-1.5 group-hover:ring-chalkboard/15 transition-all"
-                     style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}>
-                  <div className="relative aspect-[3/4] rounded-[calc(1.75rem-0.375rem)] overflow-hidden bg-chalkboard">
-                    {partner.image ? (
-                      <picture>
-                        {partner.avif && <source srcSet={partner.avif} type="image/avif" />}
-                        <img
-                          src={partner.image}
-                          alt={`${partner.business} — ${partner.month}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          style={{ transition: `transform 1200ms cubic-bezier(${EASE.join(',')})` }}
-                          loading="lazy"
-                        />
-                      </picture>
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-pencil/20 to-apple/20 flex items-center justify-center">
-                        <UtensilsCrossed size={32} className="text-white/70" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/90 via-chalkboard/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <p className="text-pencil text-[0.625rem] uppercase tracking-[0.22em] font-bold mb-1">{partner.month}</p>
-                      <p className="text-white font-bold text-sm leading-tight">{partner.business}</p>
-                      <p className="text-white/70 text-[0.6875rem] mt-1 leading-snug">{partner.detail}</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Polaroid collage — real moments from the field, pinned like a corkboard */}
-          <div className="mt-16">
-            <p className="text-center font-hand text-xl text-chalkboard/70 -rotate-1 mb-8">
-              …and the camera roll to prove it
-            </p>
-            <div className="flex flex-wrap justify-center items-start gap-5 md:gap-2">
-              {[
-                { src: '/images/may-staff-meeting-opt.jpg',      alt: "A whiteboard reading Happy Teacher Appreciation Week, signed Funding Michigan Teachers, beside three Teacher of the Month certificates", caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
-                { src: '/images/IMG_5568-opt.jpg',           alt: "Finn Regan and Mrs. Freeman smiling in an Okemos High School hallway", caption: 'Special delivery',                     rotate: 2.5,  y: 18 },
-                { src: '/images/may-chick-fil-a-cards-opt.jpg',  alt: "A hand holding a thick stack of Chick-fil-A meal cards", caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
-                { src: '/images/IMG_6113-opt.jpg',           alt: "A school hallway decorated for Valentine's Day with a pink and red balloon arch and paper hearts", caption: 'Post Office of Love, ready for delivery', rotate: 3,    y: 22 },
-                { src: '/images/IMG_6116-opt.jpg',           alt: "A Share the Love sign above a small table set with cards and markers for writing letters to staff", caption: '"Share the Love" writing station',     rotate: -2,   y: 10 },
-              ].map((photo, i) => (
-                <motion.figure
-                  key={photo.src}
-                  initial={{ opacity: 0, y: 40, rotate: 0 }}
-                  whileInView={{ opacity: 1, y: photo.y, rotate: photo.rotate }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.8, delay: i * 0.09, ease: EASE }}
-                  className="polaroid w-[46%] sm:w-44 md:w-48 lg:w-52 shrink-0"
-                  style={{ rotate: `${photo.rotate}deg` }}
+          {/* Text, not photos: these partners' photos are on /sponsors, where
+              each sits beside the gift it records. Shown here as well, the
+              same cookies and donuts appeared on three pages. */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {foodPartners.slice(0, 4).map((partner, i) => {
+              const { name, detail: where } = splitBusinessName(partner.business);
+              return (
+                <motion.div
+                  key={partner.id ?? partner.business}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '0px 0px -80px 0px' }}
+                  transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
+                  className="bg-white rounded-[1.5rem] ring-1 ring-chalkboard/[0.08] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
                 >
-                  <div className="aspect-square overflow-hidden rounded-[2px] bg-chalkboard/5">
-                    <img
-                      src={photo.src}
-                      alt={photo.alt}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <figcaption className="font-hand text-sm text-chalkboard/70 text-center py-3 px-1 leading-tight">
-                    {photo.caption}
-                  </figcaption>
-                </motion.figure>
-              ))}
-            </div>
+                  <p className="text-ruler text-[0.625rem] uppercase tracking-[0.22em] font-bold mb-2">{partner.month}</p>
+                  <p className="font-serif font-bold text-lg leading-snug">{name}</p>
+                  {where && <p className="text-xs text-muted mt-0.5">{where}</p>}
+                  <p className="text-sm text-chalkboard/75 leading-relaxed mt-3">{partner.detail}</p>
+                </motion.div>
+              );
+            })}
           </div>
+          <p className="mt-8 text-center text-sm">
+            <a href="/sponsors" onClick={(e) => { e.preventDefault(); navigate('/sponsors'); }} className="font-bold text-ruler underline underline-offset-4 decoration-ruler/30 hover:decoration-ruler">
+              See every business that has given, with photos
+            </a>
+          </p>
         </div>
       </section>
 

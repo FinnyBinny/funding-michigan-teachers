@@ -10,6 +10,7 @@ import {
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { track } from '../lib/analytics';
 import { useModalDialog } from '../lib/useModalDialog';
 import { STRIPE_PUBLISHABLE_KEY } from '../lib/donate';
@@ -332,12 +333,7 @@ export default function ShopPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Shop — FMT Merch | Funding Michigan Teachers',
-      description:
-        'FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. What\'s left after materials buys classroom supplies.',
-      path: '/shop',
-    });
+    setPageMeta(metaForPath('/shop'));
     const sessionId = new URLSearchParams(window.location.search).get('stripe_session_id');
     if (sessionId) {
       setConfirmation('checking');

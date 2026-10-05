@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
@@ -18,12 +19,7 @@ const EMAIL = 'hello@fundingmichiganteachers.org';
 export default function PrivacyPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Privacy Policy | Funding Michigan Teachers',
-      description:
-        'What Funding Michigan Teachers collects, why, and how to have it removed. We do not sell data and we do not share donor details.',
-      path: '/privacy',
-    });
+    setPageMeta(metaForPath('/privacy'));
   }, []);
 
   return (

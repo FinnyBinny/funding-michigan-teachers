@@ -189,6 +189,7 @@ const AboutPage = lazyPage(() => import('./pages/AboutPage.tsx'));
 const ForTeachersPage = lazyPage(() => import('./pages/ForTeachersPage.tsx'));
 const ShopPage = lazyPage(() => import('./pages/ShopPage.tsx'));
 const PrivacyPage = lazyPage(() => import('./pages/PrivacyPage.tsx'));
+const AccessibilityPage = lazyPage(() => import('./pages/AccessibilityPage.tsx'));
 const SchoolsIndexPage = lazyPage(() => import('./pages/SchoolsIndexPage.tsx'));
 const SchoolPage = lazyPage(() => import('./pages/SchoolPage.tsx'));
 const NotFoundPage = lazyPage(() => import('./pages/NotFoundPage.tsx'));
@@ -273,6 +274,7 @@ function Router() {
   else if (path === '/for-teachers') page = <ForTeachersPage />;
   else if (path === '/shop') page = <ShopPage />;
   else if (path === '/privacy') page = <PrivacyPage />;
+  else if (path === '/accessibility') page = <AccessibilityPage />;
   else if (path === '/restricted') page = <RestrictedPage />;
   // Anything else is genuinely missing. The Worker pairs this with a real 404
   // status; previously every typo silently rendered the homepage at 200.

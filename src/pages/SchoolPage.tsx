@@ -9,6 +9,7 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { Button, ButtonTrailing } from '../components/ui/button';
 import { breadcrumbs, setPageMeta, setPageStructuredData } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { useEvents } from '../hooks/useLocalData';
 import { PAST_EVENTS } from '../data/initialData';
 import { schoolPath, type School } from '../../shared/schools';
@@ -171,11 +172,7 @@ export default function SchoolPage({ school }: { school: School }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: `${school.name} | Funding Michigan Teachers`,
-      description: `What Funding Michigan Teachers does at ${school.name}: staff meals, teacher appreciation, and classroom supplies, with thanks to the local businesses who helped.`,
-      path: schoolPath(school.slug),
-    });
+    setPageMeta(metaForPath(schoolPath(school.slug)));
     // Breadcrumbs show in the search result in place of the bare URL, and
     // tell Google this page sits under the Partner Schools section.
     setPageStructuredData([
@@ -370,6 +367,7 @@ export default function SchoolPage({ school }: { school: School }) {
                     width={school.hero.width}
                     height={school.hero.height}
                     className="w-full h-[420px] sm:h-[480px] lg:h-[540px] xl:h-[600px] object-cover"
+                    style={school.hero.position ? { objectPosition: school.hero.position } : undefined}
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"

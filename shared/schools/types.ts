@@ -27,6 +27,12 @@ export interface SchoolPhoto {
   height: number;
   /** Optional caption shown under the photo. */
   caption?: string;
+  /**
+   * CSS object-position for a cropped slot, e.g. "50% 70%". A tall photo
+   * cropped to a short frame otherwise keeps its middle, which for a hallway
+   * shot is mostly ceiling and carpet.
+   */
+  position?: string;
 }
 
 /** Something FMT already did at this school. */

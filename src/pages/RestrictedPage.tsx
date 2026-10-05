@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ShieldAlert, Mail } from 'lucide-react';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -21,12 +22,7 @@ const APPEAL_EMAIL = 'hello@fundingmichiganteachers.org';
 export default function RestrictedPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Access restricted · Funding Michigan Teachers',
-      description: 'Access to this site is restricted from your network.',
-      path: '/restricted',
-      noindex: true,
-    });
+    setPageMeta(metaForPath('/restricted'));
   }, []);
 
   return (

@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import AdminPanel from '../components/AdminPanel';
 import { supabase } from '../lib/supabase';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
@@ -34,12 +35,7 @@ export default function AccessPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setPageMeta({
-      title: 'Admin · Funding Michigan Teachers',
-      description: 'Internal dashboard.',
-      path: '/access',
-      noindex: true,
-    });
+    setPageMeta(metaForPath('/access'));
   }, []);
 
   useEffect(() => {

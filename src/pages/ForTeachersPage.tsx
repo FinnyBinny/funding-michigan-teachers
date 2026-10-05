@@ -4,6 +4,7 @@ import { Send, Loader2, CheckCircle2, Award, Package, Heart } from 'lucide-react
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
@@ -176,12 +177,7 @@ export default function ForTeachersPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Request Classroom Supplies | Funding Michigan Teachers',
-      description:
-        'Teach at Okemos, East Lansing or Haslett? Tell us what your classroom ran out of and we restock it. No application, no committee, no grant cycle.',
-      path: '/for-teachers',
-    });
+    setPageMeta(metaForPath('/for-teachers'));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -360,33 +356,58 @@ export default function ForTeachersPage() {
         </section>
 
         {/* Reassurance */}
-        <section className="px-4 sm:px-6 py-12 bg-white/60">
+        <section className="px-4 sm:px-6 py-12 bg-white/60" aria-labelledby="how-it-works">
+          <h2 id="how-it-works" className="sr-only">How asking works</h2>
           <div className="max-w-3xl mx-auto grid sm:grid-cols-3 gap-5">
             {REASSURANCE.map((r) => (
               <div key={r.title}>
                 <div className="w-10 h-10 rounded-xl bg-apple/10 text-apple flex items-center justify-center mb-3">
                   <r.icon size={18} strokeWidth={1.6} />
                 </div>
-                <h2 className="font-bold text-sm mb-1.5">{r.title}</h2>
+                <h3 className="font-sans font-bold text-sm mb-1.5">{r.title}</h3>
                 <p className="text-sm text-chalkboard/70 font-light leading-relaxed">{r.body}</p>
               </div>
             ))}
           </div>
         </section>
 
+        {/* What turns up. This photo's one featured slot on the site. */}
+        <section className="px-4 sm:px-6 pt-12">
+          <figure className="max-w-3xl mx-auto">
+            <picture>
+              <source srcSet="/images/IMG_3714(CFA).avif" type="image/avif" />
+              <img
+                src="/images/IMG_3714(CFA)-opt.jpg"
+                alt="Trays of cookies and coupon cards on a staff-room table, beside a whiteboard note reading Thank you for all you do, help yourself to one cookie, signed Funding Michigan Teachers"
+                width={675}
+                height={900}
+                loading="lazy"
+                decoding="async"
+                className="w-full aspect-[4/3] object-cover object-[50%_40%] rounded-[1.5rem] ring-1 ring-chalkboard/10"
+              />
+            </picture>
+            <figcaption className="mt-3 text-sm text-chalkboard/70">
+              The first staff meeting of the 2025–26 school year: cookies and meal coupons from Chick-fil-A, and a note from us.
+            </figcaption>
+          </figure>
+        </section>
+
         {/* The form — the page's single action */}
         <section id="request" className="px-4 sm:px-6 py-14">
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             <h2 className="font-serif font-bold text-2xl sm:text-3xl mb-2">What does your classroom need?</h2>
             <p className="text-chalkboard/70 font-light mb-8 text-sm">
-              Five fields. Under a minute.
+              A few quick questions. The rest are optional.
             </p>
 
             {status === 'success' ? (
-              <RequestReceived onAnother={() => setStatus('idle')} />            ) : (
+              <RequestReceived onAnother={() => setStatus('idle')} />
+            ) : (
               <form onSubmit={handleSubmit} className="bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-8 space-y-5">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="mb-5">
+                {/* "What is this for?" gets its own full-width row; inside the
+                    two-column grid it left School alone on the next row and
+                    cut its own longest option off. */}
+                <div>
                   <label htmlFor="teacher-kind" className={label}>What is this for?</label>
                   <select
                     id="teacher-kind" name="kind" value={form.kind}
@@ -404,7 +425,8 @@ export default function ForTeachersPage() {
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="grid sm:grid-cols-2 gap-4 items-end">
+                  <div>
                     <label htmlFor="teacher-name" className={label}>Your name</label>
                     <input
                       id="teacher-name" name="name" required autoComplete="name"
@@ -616,7 +638,8 @@ export default function ForTeachersPage() {
                 {status === 'mailto' && <SendFailed mailto={mailtoHref()} />}
 
                 <p className="text-xs text-chalkboard/70 font-light text-center leading-relaxed">
-                  Goes straight to Finn. Or email{' '}
+                  Read by our student team and kept with your request so we can follow up.
+                  See our <a href="/privacy" className="text-apple underline">privacy policy</a>, or email{' '}
                   <a href={`mailto:${EMAIL}`} className="text-apple underline">{EMAIL}</a>.
                 </p>
               </form>

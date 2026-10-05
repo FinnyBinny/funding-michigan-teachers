@@ -11,6 +11,7 @@ import ImpactVisualizer from '../components/ImpactVisualizer';
 import EmbeddedDonateCheckout from '../components/EmbeddedDonateCheckout';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { track } from '../lib/analytics';
 import SiteFooter from '../components/SiteFooter';
 import { useProjects } from '../hooks/useLocalData';
@@ -60,12 +61,7 @@ export default function DonatePage() {
   // show a confirmed/failed state instead of the picker.
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Donate to Michigan Teachers | Funding Michigan Teachers',
-      description:
-        'Give to Michigan teachers directly. At least 80¢ of every dollar reaches a classroom — supplies, staff meals and thanks at three partner high schools.',
-      path: '/donate',
-    });
+    setPageMeta(metaForPath('/donate'));
     const params = new URLSearchParams(window.location.search);
 
     const sessionId = params.get('stripe_session_id');

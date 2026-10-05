@@ -76,7 +76,7 @@ jobs:
         run: node scripts/check-images.mjs
 
       - name: Check SEO titles, descriptions and sitemap coverage
-        run: node scripts/check-seo.mjs
+        run: npx tsx scripts/check-seo.mjs
 
       # A school page is built almost entirely out of that school's two colors,
       # so a fourth school with a pale primary would ship a hero nobody can

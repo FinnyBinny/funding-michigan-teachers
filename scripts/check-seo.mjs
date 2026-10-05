@@ -1,5 +1,5 @@
 /**
- * SEO guard — `node scripts/check-seo.mjs`
+ * SEO guard — `npx tsx scripts/check-seo.mjs` (tsx, to read the shared .ts tables)
  *
  * Every page sets its own title and description through setPageMeta, which
  * makes an over-long one easy to write and impossible to notice: a search
@@ -26,33 +26,27 @@ const root = new URL('..', import.meta.url).pathname;
 const problems = [];
 
 // ── Titles and descriptions ────────────────────────────────────────────────
-const files = [
-  'src/App.tsx',
-  ...readdirSync(join(root, 'src/pages')).map((f) => `src/pages/${f}`),
+// Every page's meta lives in shared/pageMeta.ts (the Worker writes it into
+// the HTML too), so this measures the real values, school pages included,
+// rather than guessing at string literals in the page files.
+const { PAGE_META, metaForPath } = await import('../shared/pageMeta.ts');
+const { SCHOOL_SLUGS, schoolPath } = await import('../shared/schools/index.ts');
+
+const metas = [
+  ...Object.entries(PAGE_META).map(([path, m]) => ({ path, ...m })),
+  ...SCHOOL_SLUGS.map((slug) => metaForPath(schoolPath(slug))),
 ];
+for (const m of metas) {
+  if (m.noindex) continue;
+  if (m.title.length > MAX_TITLE) problems.push(`${m.path}: title is ${m.title.length} chars, truncates at ~60`);
+  if (m.description.length > MAX_DESC) problems.push(`${m.path}: description is ${m.description.length} chars, truncates at ~155`);
+  if (m.description.length < MIN_DESC) problems.push(`${m.path}: description is only ${m.description.length} chars — too thin to rank`);
+}
 
-/** Pages that are meant to be short and are noindex anyway. */
-const EXEMPT = /NotFoundPage|RestrictedPage|AccessPage/;
-
-for (const rel of files) {
-  if (EXEMPT.test(rel)) continue;
+// A page that sets its meta by hand would drift from what the Worker sends.
+for (const rel of readdirSync(join(root, 'src/pages')).map((f) => `src/pages/${f}`)) {
   const src = readFileSync(join(root, rel), 'utf8');
-  if (!src.includes('setPageMeta(')) continue;
-
-  // Only plain string literals are measured. A template literal is built at
-  // runtime from a school's name, and its length is verified in the browser
-  // pass instead of guessed at here.
-  const title = /title:\s*'((?:[^'\\]|\\.)*)'/.exec(src);
-  const desc = /description:\s*\n?\s*'((?:[^'\\]|\\.)*)'/.exec(src);
-
-  if (title && title[1].length > MAX_TITLE) {
-    problems.push(`${rel}: title is ${title[1].length} chars, truncates at ~60`);
-  }
-  if (desc) {
-    const n = desc[1].replace(/\\'/g, "'").length;
-    if (n > MAX_DESC) problems.push(`${rel}: description is ${n} chars, truncates at ~155`);
-    if (n < MIN_DESC) problems.push(`${rel}: description is only ${n} chars — too thin to rank`);
-  }
+  if (/setPageMeta\(\{\s*title:/.test(src)) problems.push(`${rel}: sets its title inline — add it to shared/pageMeta.ts instead`);
 }
 
 // ── Every real route is in the sitemap ─────────────────────────────────────

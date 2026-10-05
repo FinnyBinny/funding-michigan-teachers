@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, ArrowRight, Compass } from 'lucide-react';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { NOT_FOUND_META } from '../../shared/pageMeta';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -26,12 +27,7 @@ const WAYS_OUT = [
 export default function NotFoundPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Page not found · Funding Michigan Teachers',
-      description: 'This page went missing.',
-      path: window.location.pathname,
-      noindex: true,
-    });
+    setPageMeta({ ...NOT_FOUND_META, path: window.location.pathname });
   }, []);
 
   return (

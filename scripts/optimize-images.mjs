@@ -36,7 +36,6 @@ const jobs = [
   { src: 'IMG_3714(CFA)-opt.jpg', out: 'IMG_3714(CFA).avif', w: 900, h: 900, avif: { quality: 55 } },
   { src: 'IMG_4369(DNK)-opt.jpg', out: 'IMG_4369(DNK).avif', w: 900, h: 900, avif: { quality: 55 } },
   { src: 'IMG_5678(NBC)-opt.jpg', out: 'IMG_5678(NBC).avif', w: 900, h: 900, avif: { quality: 55 } },
-  { src: 'IMG_6308(FR)-opt.jpg', out: 'IMG_6308(FR).avif', w: 900, h: 900, avif: { quality: 55 } },
   // Below-fold photos still shipping at print resolution.
   { src: 'may-chick-fil-a-cards.jpg', out: 'may-chick-fil-a-cards-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
   { src: 'may-staff-meeting.jpg', out: 'may-staff-meeting-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },

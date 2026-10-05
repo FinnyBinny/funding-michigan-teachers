@@ -18,6 +18,7 @@ import {
   type Designation,
 } from '../shared/donations';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '../shared/supabasePublic';
+import { NOT_FOUND_META, canonicalUrl, metaForPath } from '../shared/pageMeta';
 import {
   MERCH_COLORS, findProduct, priceOrder, validateCart, findCode,
   CODE_LABEL, type CartLine, type Fulfilment,
@@ -159,59 +160,108 @@ function withHeroPreload(request: Request, res: Response): Response {
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
 
+/** djb2, as base36: a short, stable tag for a route in an ETag. */
+function routeTag(input: string): string {
+  let h = 5381;
+  for (let i = 0; i < input.length; i++) h = ((h << 5) + h + input.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+/** The opaque part of an ETag, without W/ or quotes. */
+function etagValue(tag: string): string {
+  return tag.trim().replace(/^W\//, '').replace(/^"|"$/g, '');
+}
+
 /**
- * Serves the SPA shell under a status other than 200 — the app renders the
- * matching page client-side while the response still carries an honest code
- * (404 for a path that doesn't exist, 403 for a blocked visitor).
+ * Serves the SPA shell for a page, with that page's own head.
+ *
+ * Every page is the same index.html underneath. It used to go out exactly as
+ * built, carrying the homepage's title, description, canonical and social
+ * tags whatever the URL, so a crawler that does not run JavaScript (link
+ * previews, AI crawlers, Google's first pass) saw /donate as a copy of the
+ * homepage. The head is now rewritten per route from shared/pageMeta.ts, the
+ * same table the pages use, so what the server sends and what the page sets
+ * agree and the canonical never changes after render.
+ *
+ * Also applies a saved theme as a class on <html>, and serves 404 and 403
+ * under honest status codes.
+ *
+ * Caching: each route gets its own ETag, the asset's plus a route tag, so a
+ * repeat visit to the same page still revalidates to a bodyless 304 and two
+ * pages never answer for each other.
  */
 async function shellWithStatus(request: Request, env: Env, status: number): Promise<Response> {
   // '/' rather than '/index.html': with html_handling at its default the asset
   // service answers '/index.html' with a 307 to '/', and leaning on the binding
   // to follow its own redirect is a dependency worth not having.
+  const url = new URL(request.url);
   const shellUrl = new URL('/', request.url).toString();
 
-  // A real page forwards the caller's headers so If-None-Match still earns a
-  // 304. The shell is ~15KB and every page view fetches it; dropping the
-  // validator here would make all of them unconditional.
+  const meta =
+    status === 404 ? { ...NOT_FOUND_META, path: url.pathname }
+      : status === 403 ? metaForPath('/restricted')
+        : metaForPath(url.pathname);
   const theme = themeFromCookie(request);
+  const tag = routeTag(`${meta.path}|${theme ?? ''}|${status}`);
+
+  // A conditional request carries the ETag we issued for this route. Turn it
+  // back into the asset's own tag so the asset service can say 304. Error
+  // pages are never served from a validator.
   const headers = new Headers(request.headers);
-  if (status !== 200 || theme) {
-    // A 304 must never come back under a 404 or 403, and a page we are about
-    // to rewrite needs its full body — a 304 has none to put a class on.
-    headers.delete('If-None-Match');
-    headers.delete('If-Modified-Since');
+  const ifNoneMatch = request.headers.get('If-None-Match');
+  headers.delete('If-None-Match');
+  headers.delete('If-Modified-Since');
+  if (status === 200 && ifNoneMatch) {
+    const ours = ifNoneMatch.split(',').map(etagValue).find((v) => v.endsWith(`.${tag}`));
+    if (ours) {
+      const asset = ours.slice(0, -(tag.length + 1));
+      headers.set('If-None-Match', `"${asset}", W/"${asset}"`);
+    }
   }
 
   const assetRes = await env.ASSETS.fetch(
     new Request(shellUrl, { method: request.method === 'HEAD' ? 'HEAD' : 'GET', headers }),
   );
   const res = withHeroPreload(request, assetRes);
-  // The default visitor, with no saved theme, gets the asset body untouched,
-  // so its ETag and the 304s that come with it keep working.
-  if (status === 200 && !theme) return res;
+  const assetEtag = res.headers.get('ETag');
 
   const out = new Headers(res.headers);
-  // The shell's ETag belongs to the untouched 200. Carried onto a 404, a 403
-  // or a rewritten page it would let a later conditional request be answered
-  // 304 for a body it does not describe.
   out.delete('ETag');
+  out.delete('Content-Length');
   if (status !== 200) {
     out.set('Cache-Control', 'no-store');
-  } else {
-    // Rewritten per visitor: never shared, always revalidated.
-    out.set('Cache-Control', 'private, no-cache');
+  } else if (assetEtag) {
+    out.set('ETag', `W/"${etagValue(assetEtag)}.${tag}"`);
+    if (theme) out.set('Cache-Control', 'private, no-cache');
   }
   if (theme) out.append('Vary', 'Cookie');
 
+  if (res.status === 304) {
+    return new Response(null, { status: 304, headers: out });
+  }
+
   const response = new Response(res.body, { status, headers: out });
-  if (!theme) return response;
+  const robots = meta.noindex ? 'noindex, nofollow' : 'index, follow';
+  const canonical = canonicalUrl(meta.path);
+  const setContent = (value: string) => ({ element(el: Element) { el.setAttribute('content', value); } });
+
   return new HTMLRewriter()
     .on('html', {
       element(el) {
+        if (!theme) return;
         const existing = el.getAttribute('class');
         el.setAttribute('class', existing ? `${existing} theme-${theme}` : `theme-${theme}`);
       },
     })
+    .on('title', { element(el) { el.setInnerContent(meta.title); } })
+    .on('meta[name="description"]', setContent(meta.description))
+    .on('meta[name="robots"]', setContent(robots))
+    .on('link[rel="canonical"]', { element(el) { el.setAttribute('href', canonical); } })
+    .on('meta[property="og:url"]', setContent(canonical))
+    .on('meta[property="og:title"]', setContent(meta.title))
+    .on('meta[property="og:description"]', setContent(meta.description))
+    .on('meta[name="twitter:title"]', setContent(meta.title))
+    .on('meta[name="twitter:description"]', setContent(meta.description))
     .transform(response);
 }
 

@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { setPageMeta } from './lib/seo';
+import { metaForPath } from '../shared/pageMeta';
 import SiteHeader from './components/SiteHeader';
 import { Button, ButtonTrailing } from './components/ui/button';
 import MichiganMap from './components/MichiganMap';
@@ -32,12 +33,7 @@ import PartnerSchools from './components/PartnerSchools';
 
 export default function App() {
   useEffect(() => {
-    setPageMeta({
-      title: 'Funding Michigan Teachers | Student-Led 501(c)(3)',
-      description:
-        'A student-led 501(c)(3) funding classroom supplies, staff meals and teacher appreciation at Michigan high schools — so no teacher pays out of pocket.',
-      path: '/',
-    });
+    setPageMeta(metaForPath('/'));
   }, []);
 
   const handleDonate = (amount?: number, project?: { id?: number; title: string; teacher_name: string }) => {
@@ -563,6 +559,7 @@ export default function App() {
             </div>
             <div className="flex items-center gap-6">
               <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="/accessibility" className="hover:text-white transition-colors">Accessibility</a>
             </div>
           </div>
         </div>

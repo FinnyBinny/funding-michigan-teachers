@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#fcfaf5" />
 
-    <!-- Primary Meta — the SPA overrides title/description/canonical per route
-         via src/lib/seo.ts; these are the homepage defaults. -->
-    <title>Funding Michigan Teachers | 501(c)(3) Student-Led Nonprofit | Okemos, MI</title>
-    <meta name="description" content="Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters. A student-led 501(c)(3) nonprofit (EIN: 93-4485967) funding classroom supplies, staff meals, and teacher appreciation across Michigan — at least 80¢ of every dollar goes directly to teachers." />
+    <!-- Primary meta. These are the homepage's values. The Worker rewrites the title,
+         description, canonical and social tags for every other page from
+         shared/pageMeta.ts, so keep them in step with PAGE_META['/']. -->
+    <title>Funding Michigan Teachers | Student-Led 501(c)(3)</title>
+    <meta name="description" content="A student-led 501(c)(3) funding classroom supplies, staff meals and teacher appreciation at Michigan high schools — so no teacher pays out of pocket." />
     <meta name="keywords" content="Michigan teachers nonprofit, teacher appreciation Okemos, classroom funding Michigan, student-led nonprofit, donate to Michigan teachers, 501c3 education nonprofit Michigan, Okemos nonprofit, teacher support Michigan" />
     <meta name="robots" content="index, follow" />
     <meta name="author" content="Funding Michigan Teachers" />
@@ -16,9 +17,9 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Funding Michigan Teachers" />
-    <meta property="og:title" content="Funding Michigan Teachers | 501(c)(3) Student-Led Nonprofit" />
-    <meta property="og:description" content="A student-led nonprofit founded in 2023 to support Michigan educators. At least 80¢ of every dollar goes directly to teachers — classroom supplies, appreciation events, and staff meals." />
-    <meta property="og:url" content="https://www.fundingmichiganteachers.org" />
+    <meta property="og:title" content="Funding Michigan Teachers | Student-Led 501(c)(3)" />
+    <meta property="og:description" content="A student-led 501(c)(3) funding classroom supplies, staff meals and teacher appreciation at Michigan high schools — so no teacher pays out of pocket." />
+    <meta property="og:url" content="https://www.fundingmichiganteachers.org/" />
     <meta property="og:image" content="https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-og.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -27,8 +28,8 @@
 
     <!-- Twitter/X card (rendered by several platforms; no X account is linked) -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Funding Michigan Teachers | Student-Led Nonprofit" />
-    <meta name="twitter:description" content="Student-led 501(c)(3) nonprofit supporting Michigan teachers. At least 80¢ of every dollar goes directly to educators." />
+    <meta name="twitter:title" content="Funding Michigan Teachers | Student-Led 501(c)(3)" />
+    <meta name="twitter:description" content="A student-led 501(c)(3) funding classroom supplies, staff meals and teacher appreciation at Michigan high schools — so no teacher pays out of pocket." />
     <meta name="twitter:image" content="https://www.fundingmichiganteachers.org/images/finn-and-mrs-freeman-og.jpg" />
     <meta name="twitter:image:alt" content="Finn Regan with Mrs. Freeman at Okemos High School" />
 
@@ -104,16 +105,7 @@
           "@id": "https://www.fundingmichiganteachers.org/#founder",
           "name": "Finn Regan",
           "jobTitle": "Founder & Executive Director",
-          "description": "Founded Funding Michigan Teachers in November 2023 at age 14 after years of organizing teacher appreciation events at Okemos schools. Grew up watching teachers spend their own money on classrooms and created FMT to give back.",
-          "alumniOf": {
-            "@type": "EducationalOrganization",
-            "name": "Okemos High School",
-            "address": {
-              "@type": "PostalAddress",
-              "addressLocality": "Okemos",
-              "addressRegion": "MI"
-            }
-          }
+          "description": "Founded Funding Michigan Teachers in November 2023 at age 14 after years of organizing teacher appreciation events at Okemos schools. Grew up watching teachers spend their own money on classrooms and created FMT to give back."
         }
       },
       {
@@ -126,81 +118,9 @@
         "publisher": {
           "@id": "https://www.fundingmichiganteachers.org/#organization"
         },
-        "inLanguage": "en-US",
-        "dateModified": "2026-09-15"
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "How do I donate to Funding Michigan Teachers?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Click 'Donate Now' anywhere on the site, or go to fundingmichiganteachers.org/donate. You can give once or monthly — monthly tiers run from $25 (Supply Starter) to $250 (Grant Maker), and any custom amount works. Checkout is a secure embedded card form powered by Stripe, with Apple Pay and Google Pay supported."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Are donations to Funding Michigan Teachers tax-deductible?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Funding Michigan Teachers is a registered 501(c)(3) nonprofit organization with EIN 93-4485967. All donations are fully tax-deductible to the extent allowed by law. You will receive a donation receipt for your records."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How do Michigan teachers apply for classroom funding?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Michigan teachers can submit a classroom project through the Classroom Projects section on our website or reach out directly at hello@fundingmichiganteachers.org. We review applications on a rolling basis. No application is too small — we fund everything from lab equipment to books to art supplies."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does Funding Michigan Teachers use donations?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "At least 80 cents of every dollar goes directly to teachers and classrooms — supplies, food for staff meetings, teacher appreciation events, door decorating competitions, and classroom grants. The rest covers card-processing fees and the basic costs of running the organization. FMT is student-run and pays no salaries."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Who runs Funding Michigan Teachers?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Funding Michigan Teachers is a student-led nonprofit founded in November 2023 by Finn Regan, a high school student from Okemos, Michigan. Finn started the organization at age 14 after years of watching teachers spend their own money on classrooms without recognition. The organization is operated by high school students."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What has Funding Michigan Teachers accomplished?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "In the 2025–26 school year alone, Funding Michigan Teachers delivered more than $8,500 in donations and in-kind support. We partner with three high schools — Okemos, Haslett, and East Lansing — reaching over 220 teachers and 350 total staff, and during Teacher Appreciation Week we delivered meal cards to staff at nine buildings. Accomplishments include staff appreciation meals from local businesses (Chick-fil-A, Dunkin', Nothing Bundt Cakes, Ozzy's Kabob, Jamba Juice), two door decorating competitions awarding $500+ in prizes, a Valentine's letter campaign, classroom supply grants, and a funded dissection lab at Okemos High School."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How can I volunteer with Funding Michigan Teachers?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "You can volunteer at events, help spread the word on social media, or join the student leadership team. Send a message through the Contact form at fundingmichiganteachers.org or email hello@fundingmichiganteachers.org."
-            }
-          }
-        ]
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "DonateAction",
-        "name": "Donate to Funding Michigan Teachers",
-        "description": "Support Michigan teachers by donating to Funding Michigan Teachers, a 501(c)(3) nonprofit. At least 80¢ of every dollar goes directly to educators.",
-        "recipient": {
-          "@id": "https://www.fundingmichiganteachers.org/#organization"
-        },
-        "url": "https://www.fundingmichiganteachers.org/donate"
+        "inLanguage": "en-US"
       }
+
     ]
     </script>
 

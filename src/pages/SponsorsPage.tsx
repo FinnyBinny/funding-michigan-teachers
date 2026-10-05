@@ -4,6 +4,7 @@ import { Heart, Building2, ExternalLink, Send, Loader2, CheckCircle2 } from 'luc
 import CorporateSponsors from '../components/CorporateSponsors';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
 import { splitBusinessName } from '../lib/utils';
@@ -25,12 +26,7 @@ export default function SponsorsPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Corporate Sponsorship | Funding Michigan Teachers',
-      description:
-        'Partner with a student-led 501(c)(3) that feeds and thanks teachers in three mid-Michigan high schools. Local businesses back specific staff meetings.',
-      path: '/sponsors',
-    });
+    setPageMeta(metaForPath('/sponsors'));
   }, []);
 
   // All donations route through /donate, which hosts the embedded Stripe

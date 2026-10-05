@@ -3,6 +3,7 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import PartnerSchools from '../components/PartnerSchools';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { SCHOOLS } from '../../shared/schools';
 
 /**
@@ -23,12 +24,7 @@ function navigate(path: string) {
 export default function SchoolsIndexPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Partner Schools | Funding Michigan Teachers',
-      description:
-        'The Michigan high schools Funding Michigan Teachers works in — Okemos, East Lansing and Haslett. Each has its own page, events and local sponsors.',
-      path: '/schools',
-    });
+    setPageMeta(metaForPath('/schools'));
   }, []);
 
   return (
