@@ -49,6 +49,11 @@ export const PAGE_META: Record<string, RouteMeta> = {
     description:
       'Teach at Okemos, East Lansing or Haslett? Tell us what your classroom needs, from tissues to a whole project. No application, no committee, no grant cycle.',
   },
+  '/internship': {
+    title: 'Student Internship | Funding Michigan Teachers',
+    description:
+      'DRAFT — waiting on the program details. Help run a student-led nonprofit that supports Michigan teachers.',
+  },
   '/privacy': {
     title: 'Privacy Policy | Funding Michigan Teachers',
     description:
