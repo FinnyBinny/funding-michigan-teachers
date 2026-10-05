@@ -72,7 +72,7 @@ function swatchStyle(c: MerchColor): React.CSSProperties {
  * If the file fails to load, the product name stands in, never a broken-image
  * icon.
  */
-function ProductPhoto({ product, className = '' }: { product: MerchProduct; className?: string }) {
+function ProductPhoto({ product, className = '', priority = false }: { product: MerchProduct; className?: string; priority?: boolean }) {
   const photo = MERCH_PHOTOS[product.id];
   const [failed, setFailed] = useState(false);
   if (!photo || failed) {
@@ -88,7 +88,10 @@ function ProductPhoto({ product, className = '' }: { product: MerchProduct; clas
       alt={photo.alt}
       width={photo.width}
       height={photo.height}
-      loading="lazy"
+      // The first card's photo is the largest thing on a phone's first
+      // screen, so it loads first rather than lazily.
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
       decoding="async"
       onError={() => setFailed(true)}
       className={`object-cover ${className}`}
@@ -222,7 +225,7 @@ function ProductCard({ product, index, pick, educator, onPick, onAdd }: {
     >
       {/* Portrait box: the photos are full-length shots. */}
       <div className="relative aspect-[4/5] bg-paper">
-        <ProductPhoto product={product} className="w-full h-full" />
+        <ProductPhoto product={product} className="w-full h-full" priority={index === 0} />
         {shownIn && (
           <span className="absolute left-3 bottom-3 bg-white/90 backdrop-blur-sm text-chalkboard text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full">
             Shown in {shownIn}

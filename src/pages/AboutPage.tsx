@@ -131,13 +131,19 @@ export default function AboutPage() {
             {/* Founder */}
             <div className="mt-10 flex flex-col sm:flex-row items-start gap-6 bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-7">
               <div className="w-full sm:w-40 shrink-0 rounded-2xl overflow-hidden">
+                {/* 160px square beside the text from 640px up; full width,
+                    192px tall, on a phone — so the browser picks by size. */}
                 <picture>
-                  <source srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <source
+                    type="image/avif"
+                    srcSet="/images/finn-and-mrs-freeman-480.avif 480w, /images/finn-and-mrs-freeman-1280.avif 960w"
+                    sizes="(min-width: 640px) 160px, 100vw"
+                  />
                   <img
                     src="/images/finn-and-mrs-freeman-1280.jpg"
                     alt="Finn Regan with Mrs. Freeman at Okemos High School"
-                    width={1280}
-                    height={960}
+                    width={960}
+                    height={1280}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-48 sm:h-40 object-cover object-top"

@@ -40,8 +40,8 @@ export default function SiteFooter() {
           <button onClick={() => navigate('/')} className="flex items-center gap-3 group text-left">
             <div className="w-11 h-11 rounded-2xl overflow-hidden shadow-xl -rotate-3 group-hover:rotate-0 transition-transform shrink-0">
               <picture>
-                <source srcSet="/images/fmt-logo-96.avif" type="image/avif" />
-                <img src="/images/fmt-logo-96.png" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                <source srcSet="/images/fmt-logo-96.avif 96w, /images/fmt-logo-192.avif 192w" sizes="48px" type="image/avif" />
+                <img src="/images/fmt-logo-96.png" srcSet="/images/fmt-logo-96.png 96w, /images/fmt-logo-192.png 192w" sizes="48px" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
               </picture>
             </div>
             <div>

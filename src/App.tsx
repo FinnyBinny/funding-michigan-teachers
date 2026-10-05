@@ -158,13 +158,19 @@ export default function App() {
                   already shown in the left column, so the photo takes that
                   space instead. */}
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
+                {/* Both sources are desktop-only, matching the column. The
+                    column is display:none on smaller screens, but that does
+                    not stop an eager <img> downloading, so phones fetched a
+                    175KB photo they never showed. Below 1024px the <img>
+                    falls back to a 1px GIF instead. */}
                 <picture>
-                  <source srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <source media="(min-width: 1024px)" srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <source media="(min-width: 1024px)" srcSet="/images/finn-and-mrs-freeman-1280.jpg" />
                   <img
-                    src="/images/finn-and-mrs-freeman-1280.jpg"
+                    src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
                     alt="Finn Regan with Mrs. Freeman at Okemos High School"
-                    width={1280}
-                    height={960}
+                    width={960}
+                    height={1280}
                     className="w-full h-[540px] xl:h-[600px] object-cover object-top"
                     loading="eager"
                     decoding="async"
@@ -491,8 +497,8 @@ export default function App() {
               <div className="flex items-center gap-3 mb-6 sm:mb-8">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-2xl rotate-3 shrink-0">
                   <picture>
-                    <source srcSet="/images/fmt-logo-96.avif" type="image/avif" />
-                    <img src="/images/fmt-logo-96.png" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <source srcSet="/images/fmt-logo-96.avif 96w, /images/fmt-logo-192.avif 192w" sizes="48px" type="image/avif" />
+                    <img src="/images/fmt-logo-96.png" srcSet="/images/fmt-logo-96.png 96w, /images/fmt-logo-192.png 192w" sizes="48px" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   </picture>
                 </div>
                 <span className="font-serif text-xl sm:text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>

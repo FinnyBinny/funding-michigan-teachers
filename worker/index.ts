@@ -142,6 +142,24 @@ function isAssetPath(pathname: string): boolean {
 }
 
 /**
+ * The homepage's hero photo, preloaded on the homepage only.
+ *
+ * It was a <link rel=preload> in index.html, the shell every route shares, so
+ * every desktop page downloaded the homepage's 175KB photo. A Link header
+ * changes nothing in the body, so the shell's ETag stays valid, and Cloudflare
+ * can send it ahead as an Early Hint. Desktop only, like the photo itself.
+ */
+const HERO_PRELOAD =
+  '</images/finn-and-mrs-freeman-1280.avif>; rel=preload; as=image; type="image/avif"; media="(min-width: 1024px)"';
+
+function withHeroPreload(request: Request, res: Response): Response {
+  if (new URL(request.url).pathname !== '/' || !res.ok) return res;
+  const headers = new Headers(res.headers);
+  headers.append('Link', HERO_PRELOAD);
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/**
  * Serves the SPA shell under a status other than 200 — the app renders the
  * matching page client-side while the response still carries an honest code
  * (404 for a path that doesn't exist, 403 for a blocked visitor).
@@ -164,11 +182,12 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
     headers.delete('If-Modified-Since');
   }
 
-  const res = await env.ASSETS.fetch(
+  const assetRes = await env.ASSETS.fetch(
     new Request(shellUrl, { method: request.method === 'HEAD' ? 'HEAD' : 'GET', headers }),
   );
-  // The default visitor, with no saved theme, gets the asset untouched, so
-  // its ETag and the 304s that come with it keep working.
+  const res = withHeroPreload(request, assetRes);
+  // The default visitor, with no saved theme, gets the asset body untouched,
+  // so its ETag and the 304s that come with it keep working.
   if (status === 200 && !theme) return res;
 
   const out = new Headers(res.headers);

@@ -96,8 +96,8 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
           <button onClick={() => go('/')} className="flex items-center gap-3 group cursor-pointer min-w-0 text-left" aria-label="Funding Michigan Teachers — home">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-lg transform -rotate-3 transition-transform group-hover:rotate-0 shrink-0">
               <picture>
-                <source srcSet="/images/fmt-logo-96.avif" type="image/avif" />
-                <img src="/images/fmt-logo-96.png" alt="" width={96} height={96} className="w-full h-full object-cover" decoding="async" />
+                <source srcSet="/images/fmt-logo-96.avif 96w, /images/fmt-logo-192.avif 192w" sizes="48px" type="image/avif" />
+                <img src="/images/fmt-logo-96.png" srcSet="/images/fmt-logo-96.png 96w, /images/fmt-logo-192.png 192w" sizes="48px" alt="" width={96} height={96} className="w-full h-full object-cover" decoding="async" />
               </picture>
             </div>
             <div className="flex flex-col min-w-0">

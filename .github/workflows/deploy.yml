@@ -71,6 +71,10 @@ jobs:
       - name: Check impact figures are consistent
         run: bash scripts/check-consistency.sh
 
+      # Two partner photos and the social share image once shipped sideways.
+      - name: Check no image ships sideways
+        run: node scripts/check-images.mjs
+
       - name: Check SEO titles, descriptions and sitemap coverage
         run: node scripts/check-seo.mjs
 
