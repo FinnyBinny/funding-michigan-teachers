@@ -26,8 +26,7 @@ import FAQAssistant from './components/FAQAssistant';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import { STAT } from './data/impactStats';
-import { TeeArt as ShopTee, HoodieArt as ShopHoodie } from './components/merchDoodles';
-import { MERCH_COLORS as SHOP_COLORS } from '../shared/merch';
+import { MERCH_PHOTOS } from './data/merchPhotos';
 import Programs from './components/Programs';
 import PartnerSchools from './components/PartnerSchools';
 
@@ -349,9 +348,20 @@ export default function App() {
               transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
               className="group w-full bg-chalkboard text-white rounded-[1.75rem] px-7 py-7 sm:px-9 flex flex-col sm:flex-row sm:items-center gap-5 text-left hover:bg-chalkboard/95 transition-colors"
             >
+              {/* The shop's own product photos, so this band changes when they do. */}
               <span className="flex -space-x-3 shrink-0" aria-hidden="true">
-                <ShopTee color={SHOP_COLORS[0]} className="w-16 h-16 rotate-[-6deg]" />
-                <ShopHoodie color={SHOP_COLORS[2]} className="w-16 h-16 rotate-[5deg]" />
+                {[MERCH_PHOTOS.tee, MERCH_PHOTOS.hoodie].map((ph, i) => (
+                  <img
+                    key={ph.src}
+                    src={ph.src}
+                    alt=""
+                    width={ph.width}
+                    height={ph.height}
+                    loading="lazy"
+                    decoding="async"
+                    className={`w-14 h-[70px] object-cover rounded-xl ring-2 ring-chalkboard ${i ? 'rotate-[5deg]' : 'rotate-[-6deg]'}`}
+                  />
+                ))}
               </span>
               <span className="flex-1 min-w-0">
                 <span className="block font-serif font-bold text-2xl leading-snug mb-1">

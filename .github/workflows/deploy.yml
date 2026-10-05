@@ -90,6 +90,11 @@ jobs:
       - name: Test donation checkout parameters
         run: npx tsx scripts/test-donation-session.mts
 
+      # The shop page and the Worker both price orders with priceOrder(); this
+      # checks codes, delivery and the covered fee add up to what is charged.
+      - name: Test shop pricing
+        run: npx tsx scripts/test-merch-pricing.mts
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty

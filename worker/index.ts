@@ -19,7 +19,7 @@ import {
 } from '../shared/donations';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '../shared/supabasePublic';
 import {
-  MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart, findCode,
+  MERCH_COLORS, findProduct, priceOrder, validateCart, findCode,
   CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
 
@@ -477,7 +477,13 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   // fault whatever the server's own configuration is, so it earns a 400 rather
   // than being masked by a 500 about a missing key — and rejecting it here
   // costs nothing.
-  let body: { lines?: CartLine[]; fulfilment?: Fulfilment; code?: string };
+  let body: {
+    lines?: (CartLine & { atCost?: boolean })[];
+    fulfilment?: Fulfilment;
+    code?: string;
+    educator?: boolean;
+    coverFee?: boolean;
+  };
   try {
     body = await request.json();
   } catch {
@@ -488,87 +494,44 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   const problem = validateCart(lines);
   if (problem) return json({ error: problem }, 400);
 
-  // The code is re-checked here, not trusted from the page. A browser that
-  // claims educator pricing without a valid code simply does not get it.
+  // The code is looked up here, never taken from the page. Only its kind goes
+  // into pricing, and only once this lookup has found it.
   const code = findCode(env.MERCH_CODES, String(body.code ?? ''));
-  const educatorPricing = code?.kind === 'educator';
-  let freeTeeRemaining = code?.kind === 'free-tee' ? 1 : 0;
 
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Payments are not configured on the server.' }, 500);
   }
 
   const fulfilment: Fulfilment = body.fulfilment === 'delivery' ? 'delivery' : 'pickup';
-  const { delivery } = orderTotal(lines, fulfilment);
+  // Educator pricing is an honour-system box (see PricingOptions). A page
+  // cached from before this change sends it per line as atCost instead.
+  const educator = body.educator === true || lines.some((l) => l.atCost === true);
+  const priced = priceOrder(lines, {
+    fulfilment,
+    educator,
+    codeKind: code?.kind ?? null,
+    coverFee: body.coverFee === true,
+  });
+
+  // Stripe cannot take a $0 payment. The page sends a free tee on its own by
+  // email instead; this only catches a page that did not.
+  if (priced.total === 0) {
+    return json({ error: 'Nothing to pay — email hello@fundingmichiganteachers.org with your size and color and we will get your shirt to you.' }, 400);
+  }
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
   });
   const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
 
-  const items: {
+  const items = priced.items.map((it) => ({
     price_data: {
-      currency: string;
-      product_data: { name: string; description: string };
-      unit_amount: number;
-    };
-    quantity: number;
-  }[] = [];
-
-  for (const l of lines) {
-    const product = findProduct(l.productId)!;
-    const color = MERCH_COLORS.find((c) => c.id === l.colorId)!;
-    const atCost = educatorPricing || l.atCost;
-
-    // A free-tee code covers exactly one shirt. The rest of the line is
-    // charged normally rather than the whole line going free.
-    let freeHere = 0;
-    if (freeTeeRemaining > 0 && product.id === 'tee') {
-      freeHere = Math.min(freeTeeRemaining, l.qty);
-      freeTeeRemaining -= freeHere;
-    }
-
-    if (freeHere > 0) {
-      items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${product.name} — ${color.name}, ${l.size}`,
-            description: 'Teacher of the Month — on us.',
-          },
-          unit_amount: 0,
-        },
-        quantity: freeHere,
-      });
-    }
-
-    if (l.qty - freeHere > 0) {
-      items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${product.name} — ${color.name}, ${l.size}`,
-            description: atCost
-              ? 'Educator pricing: sold at our cost, no margin to FMT.'
-              : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
-          },
-          unit_amount: unitPrice(product, atCost),
-        },
-        quantity: l.qty - freeHere,
-      });
-    }
-  }
-
-  if (delivery > 0) {
-    items.push({
-      price_data: {
-        currency: 'usd',
-        product_data: { name: 'Local delivery', description: 'Free on orders over $50.' },
-        unit_amount: delivery,
-      },
-      quantity: 1,
-    });
-  }
+      currency: 'usd',
+      product_data: { name: it.name, description: it.description },
+      unit_amount: it.unitAmount,
+    },
+    quantity: it.quantity,
+  }));
 
   // A compact packing list, because Stripe truncates long metadata values and
   // the line items alone do not say which press setting each shirt needs.
@@ -576,10 +539,18 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
     .map((l) => {
       const p = findProduct(l.productId)!;
       const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
-      return `${l.qty}x ${p.name}/${c.name}/${l.size}${l.atCost ? ' (educator)' : ''}`;
+      return `${l.qty}x ${p.name}/${c.name}/${l.size}`;
     })
     .join('; ')
+    .concat(educator || code?.kind === 'educator' ? ' (educator pricing)' : '')
     .slice(0, 480);
+  const metadata = {
+    order_type: 'merch',
+    fulfilment,
+    packing,
+    code: code?.code ?? '',
+    fee_covered_cents: String(priced.fee),
+  };
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -593,7 +564,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
         : {}),
       phone_number_collection: { enabled: true },
       return_url: `${origin}/shop?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
+      metadata,
       /**
        * The packing list on the PaymentIntent, not just the session.
        *
@@ -606,7 +577,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
        */
       payment_intent_data: {
         description: `${packing} — ${fulfilment === 'delivery' ? 'DELIVERY' : 'pickup'}`,
-        metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
+        metadata,
       },
       custom_text: {
         submit: {

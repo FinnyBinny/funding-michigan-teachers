@@ -1,49 +1,106 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-import { X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Pencil, Ticket, Loader2 } from 'lucide-react';
+import {
+  X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Ticket, Loader2,
+  ShoppingBag, Check, Shield, ArrowRight,
+} from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { track } from '../lib/analytics';
 import { STRIPE_PUBLISHABLE_KEY } from '../lib/donate';
-import { GARMENT_ART } from '../components/merchDoodles';
 import { MERCH_PHOTOS } from '../data/merchPhotos';
 import {
-  MERCH, MERCH_COLORS, MERCH_SIZES, orderTotal, formatPrice, findProduct,
+  MERCH, MERCH_COLORS, MERCH_SIZES, priceOrder, formatPrice, findProduct,
   FREE_DELIVERY_OVER, DELIVERY_FEE,
-  type CartLine, type Fulfilment, type MerchSize, type MerchColor,
+  type CartLine, type CodeKind, type Fulfilment, type MerchSize, type MerchColor, type MerchProduct,
 } from '../../shared/merch';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
+const ORDER_EMAIL = 'hello@fundingmichiganteachers.org';
+
+/**
+ * "Cover the card fee" starts ticked, as on the donate page — the founder's
+ * call (October 2026). It is optional, itemized, and the buyer can untick it.
+ */
+const COVER_FEE_DEFAULT = true;
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 
-/** Per-product picker state, before the item is added to the bag. */
-interface Picker { size: MerchSize; colorId: string; qty: number; }
-
 /**
- * What a shirt actually pays for.
- *
- * This line used to compute a supply count from price minus cost — "about 8
- * spiral notebooks" — which was wrong twice over. It was only as honest as
- * the cost figures behind it, and two of those are still estimates; and it
- * counted the whole margin as though every cent reached a classroom, when
- * card fees and overhead come out of it first. It also published the margin
- * sideways, since a notebook count divides straight back into dollars.
- *
- * Naming the program the money feeds is true of every order, needs no
- * arithmetic, and cannot drift out of date when a blank price changes.
+ * What a shirt actually pays for. Names the program rather than counting
+ * supplies: a count would only be as honest as the cost estimates behind it,
+ * and it publishes the margin sideways.
  */
 const IMPACT_NOTE =
   'Shirt sales pay for supply restocks — the box that turns up when a classroom runs out of markers in February.';
 
-function MerchCheckout({ lines, fulfilment, code, onClose }: {
-  lines: CartLine[]; fulfilment: Fulfilment; code: string; onClose: () => void;
+/** Per-product picker state, before the item is added to the order. */
+interface Picker { size: MerchSize; colorId: string; }
+
+/**
+ * A card opens on the colorway in its photo, so the photo and the selected
+ * swatch agree until the shopper changes it.
+ */
+function defaultColorId(productId: string): string {
+  const pictured = MERCH_PHOTOS[productId]?.colorId;
+  return pictured && MERCH_COLORS.some((c) => c.id === pictured) ? pictured : MERCH_COLORS[0].id;
+}
+
+function swatchStyle(c: MerchColor): React.CSSProperties {
+  return {
+    background: c.speckle
+      ? `radial-gradient(circle at 30% 30%, #5a5a5e 1px, transparent 1.5px), radial-gradient(circle at 70% 60%, #5a5a5e 1px, transparent 1.5px), ${c.hex}`
+      : c.hex,
+  };
+}
+
+/**
+ * The product photo, always — whichever colorway is selected.
+ *
+ * This used to swap in a hand-drawn garment for any colorway without a photo,
+ * so two of three swatches on every card turned the photo into a drawing.
+ * Shops that have not shot every colorway do what this does instead: show
+ * the photo they have and say which colorway it is ("Shown in White").
+ *
+ * If the file fails to load, the product name stands in, never a broken-image
+ * icon.
+ */
+function ProductPhoto({ product, className = '' }: { product: MerchProduct; className?: string }) {
+  const photo = MERCH_PHOTOS[product.id];
+  const [failed, setFailed] = useState(false);
+  if (!photo || failed) {
+    return (
+      <div className={`flex items-center justify-center text-center p-4 font-serif font-bold text-chalkboard/40 ${className}`}>
+        {product.name}
+      </div>
+    );
+  }
+  return (
+    <img
+      src={photo.src}
+      alt={photo.alt}
+      width={photo.width}
+      height={photo.height}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      className={`object-cover ${className}`}
+    />
+  );
+}
+
+// ── Checkout dialog ─────────────────────────────────────────────────────────
+
+function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onClose }: {
+  lines: CartLine[]; fulfilment: Fulfilment; code: string; educator: boolean; coverFee: boolean;
+  total: number; onClose: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
 
@@ -52,20 +109,27 @@ function MerchCheckout({ lines, fulfilment, code, onClose }: {
       setError("Couldn't load the secure checkout. Check your connection, or any script blocker."));
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   const fetchClientSecret = useCallback(async () => {
     setError(null);
     const res = await fetch('/api/create-merch-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lines, fulfilment, code }),
+      // Ids, sizes, quantities and two yes/no answers. Never a price.
+      body: JSON.stringify({ lines, fulfilment, code, educator, coverFee }),
     });
-    const data = await res.json();
+    const data = (await res.json().catch(() => ({}))) as { clientSecret?: string; error?: string };
     if (!res.ok || !data.clientSecret) {
       setError(data.error || 'Could not start checkout. Please try again.');
       throw new Error(data.error || 'merch session failed');
     }
-    return data.clientSecret as string;
-  }, [lines, fulfilment, code]);
+    return data.clientSecret;
+  }, [lines, fulfilment, code, educator, coverFee]);
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 
@@ -78,20 +142,29 @@ function MerchCheckout({ lines, fulfilment, code, onClose }: {
       <motion.div
         initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, ease: EASE }}
-        className="bg-white rounded-[2rem] w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="merch-checkout-title"
+        className="bg-white rounded-[2rem] w-full max-w-lg max-h-[92dvh] overflow-hidden flex flex-col shadow-2xl"
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-chalkboard/8 shrink-0">
-          <p className="font-serif font-bold text-lg">Checkout</p>
-          <button onClick={onClose} aria-label="Close checkout" className="p-2 rounded-xl hover:bg-chalkboard/5 text-chalkboard/50 hover:text-chalkboard transition-colors">
-            <X size={20} />
+        <div className="bg-chalkboard px-6 py-4 flex items-center justify-between shrink-0">
+          <div>
+            <p id="merch-checkout-title" className="text-white font-bold text-sm">Pay {formatPrice(total)}</p>
+            <p className="text-white/60 text-[10px] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
+              <Shield size={10} strokeWidth={1.5} aria-hidden="true" />
+              Secure checkout by Stripe
+            </p>
+          </div>
+          <button onClick={onClose} aria-label="Close checkout" className="p-2 rounded-xl hover:bg-white/10 text-white/70 hover:text-white transition-colors">
+            <X size={18} />
           </button>
         </div>
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto bg-paper/40">
           {error ? (
             <div className="p-8 text-center">
-              <AlertCircle size={22} className="text-apple mx-auto mb-3" />
-              <p className="text-sm text-chalkboard/75 leading-relaxed">{error}</p>
-              <a href="mailto:hello@fundingmichiganteachers.org" className="inline-block mt-4 text-sm font-bold text-apple underline">
+              <AlertCircle size={22} className="text-apple mx-auto mb-3" aria-hidden="true" />
+              <p className="text-sm text-chalkboard/80 leading-relaxed" role="alert">{error}</p>
+              <a href={`mailto:${ORDER_EMAIL}`} className="inline-block mt-4 text-sm font-bold text-apple underline">
                 Order by email instead
               </a>
             </div>
@@ -100,9 +173,9 @@ function MerchCheckout({ lines, fulfilment, code, onClose }: {
               <EmbeddedCheckout />
             </EmbeddedCheckoutProvider>
           ) : (
-            <p className="p-8 text-center text-sm text-chalkboard/70">
+            <p className="p-8 text-center text-sm text-chalkboard/75">
               Online payment isn't configured. Email{' '}
-              <a href="mailto:hello@fundingmichiganteachers.org" className="text-apple underline">hello@fundingmichiganteachers.org</a>{' '}
+              <a href={`mailto:${ORDER_EMAIL}`} className="text-apple underline">{ORDER_EMAIL}</a>{' '}
               and we'll sort your order out.
             </p>
           )}
@@ -112,74 +185,146 @@ function MerchCheckout({ lines, fulfilment, code, onClose }: {
   );
 }
 
-/**
- * A card opens on the colorway we have a photo of, and on the first swatch
- * otherwise. Without this every card started on speckled black, so the
- * sweatshirt and hoodie opened on a drawing with the photograph one click
- * away — which sells the shirt worse than it actually looks.
- *
- * Falls through to the first swatch if a photo ever names a colorway that
- * isn't for sale, so a typo cannot leave a card unselectable.
- */
-function defaultColorId(productId: string): string {
-  const pictured = MERCH_PHOTOS[productId]?.colorId;
-  return pictured && MERCH_COLORS.some((c) => c.id === pictured)
-    ? pictured
-    : MERCH_COLORS[0].id;
-}
+// ── Product card ────────────────────────────────────────────────────────────
 
-/**
- * The garment, shown as a photo where we have one of the selected colorway
- * and as the hand-drawn version otherwise.
- *
- * `failed` carries the ids whose photo file did not load. A missing photo
- * quietly becomes a drawing instead of a broken-image icon, which is what
- * makes it safe to list a photo here before the file has been committed.
- */
-function Garment({ productId, color, className, imgClassName, failed, onFail }: {
-  productId: string;
-  color: MerchColor;
-  className?: string;
-  imgClassName?: string;
-  failed: Record<string, boolean>;
-  onFail: (id: string) => void;
+function ProductCard({ product, index, pick, educator, onPick, onAdd }: {
+  product: MerchProduct;
+  index: number;
+  pick: Picker;
+  educator: boolean;
+  onPick: (patch: Partial<Picker>) => void;
+  onAdd: () => void;
 }) {
-  const photo = MERCH_PHOTOS[productId];
-  const Art = GARMENT_ART[productId];
+  const [added, setAdded] = useState(false);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
 
-  if (photo && photo.colorId === color.id && !failed[productId]) {
-    return (
-      <img
-        src={photo.src}
-        alt={photo.alt}
-        width={photo.width}
-        height={photo.height}
-        loading="lazy"
-        decoding="async"
-        onError={() => onFail(productId)}
-        className={imgClassName}
-      />
-    );
-  }
+  const color = MERCH_COLORS.find((c) => c.id === pick.colorId)!;
+  const photo = MERCH_PHOTOS[product.id];
+  const shownIn = photo ? MERCH_COLORS.find((c) => c.id === photo.colorId)?.name : undefined;
+  const price = educator ? product.cost : product.price;
 
-  return Art ? <Art color={color} className={className} /> : null;
+  const add = () => {
+    onAdd();
+    setAdded(true);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setAdded(false), 1800);
+  };
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -60px 0px' }}
+      transition={{ duration: 0.6, delay: index * 0.08, ease: EASE }}
+      aria-labelledby={`product-${product.id}`}
+      className="bg-white rounded-[1.75rem] ring-1 ring-chalkboard/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col"
+    >
+      {/* Portrait box: the photos are full-length shots. */}
+      <div className="relative aspect-[4/5] bg-paper">
+        <ProductPhoto product={product} className="w-full h-full" />
+        {shownIn && (
+          <span className="absolute left-3 bottom-3 bg-white/90 backdrop-blur-sm text-chalkboard text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full">
+            Shown in {shownIn}
+          </span>
+        )}
+      </div>
+
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id={`product-${product.id}`} className="font-serif font-bold text-lg leading-snug">{product.name}</h2>
+          <p className="font-serif font-bold text-xl tabular-nums shrink-0">{formatPrice(price)}</p>
+        </div>
+        <p className="text-sm text-chalkboard/70 mt-1 mb-4 leading-snug">
+          {product.blurb}
+          {educator && <span className="text-apple font-bold"> Educator pricing.</span>}
+        </p>
+
+        {/* Native radios, drawn as swatches: arrow keys move between them and
+            a screen reader hears "Navy, radio button, 3 of 3". */}
+        <fieldset className="mb-4">
+          <legend className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
+            Color: <span className="text-chalkboard">{color.name}</span>
+          </legend>
+          <div className="flex gap-2.5">
+            {MERCH_COLORS.map((c) => (
+              <label key={c.id} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name={`color-${product.id}`}
+                  value={c.id}
+                  checked={c.id === pick.colorId}
+                  onChange={() => onPick({ colorId: c.id })}
+                  className="sr-only peer"
+                />
+                <span className="sr-only">{c.name}</span>
+                <span
+                  aria-hidden="true"
+                  className="block w-8 h-8 rounded-full ring-1 ring-chalkboard/20 ring-offset-2 ring-offset-white transition-shadow peer-checked:ring-2 peer-checked:ring-apple peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-ruler"
+                  style={swatchStyle(c)}
+                />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset className="mb-5">
+          <legend className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">Size</legend>
+          <div className="grid grid-cols-5 gap-1.5">
+            {MERCH_SIZES.map((sz) => (
+              <label key={sz} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name={`size-${product.id}`}
+                  value={sz}
+                  checked={sz === pick.size}
+                  onChange={() => onPick({ size: sz })}
+                  className="sr-only peer"
+                />
+                <span className="block text-center py-2 rounded-lg text-xs font-bold bg-paper text-chalkboard/80 hover:bg-chalkboard/10 transition-colors peer-checked:bg-chalkboard peer-checked:text-white peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ruler">
+                  {sz}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <button
+          onClick={add}
+          className={`mt-auto w-full py-3 rounded-xl font-bold text-sm transition-colors active:scale-[0.98] flex items-center justify-center gap-2 ${
+            added ? 'bg-chalkboard text-white' : 'bg-apple text-white hover:bg-apple/90'
+          }`}
+        >
+          {added ? <><Check size={15} strokeWidth={2.5} aria-hidden="true" /> Added</> : <>Add to order</>}
+        </button>
+      </div>
+    </motion.article>
+  );
 }
+
+// ── Page ────────────────────────────────────────────────────────────────────
+
+type Confirmation = null | 'checking' | 'confirmed' | 'failed';
 
 export default function ShopPage() {
   const [pickers, setPickers] = useState<Record<string, Picker>>(() =>
-    Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: defaultColorId(p.id), qty: 1 }])));
+    Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: defaultColorId(p.id) }])));
   const [cart, setCart] = useState<CartLine[]>([]);
   const [fulfilment, setFulfilment] = useState<Fulfilment>('pickup');
   const [educator, setEducator] = useState(false);
+  const [coverFee, setCoverFee] = useState(COVER_FEE_DEFAULT);
   const [checkingOut, setCheckingOut] = useState(false);
   // Codes are checked by the server; the page never knows what any code is,
   // only what the server says about the one that was typed.
+  const [codeOpen, setCodeOpen] = useState(false);
   const [codeInput, setCodeInput] = useState('');
-  const [code, setCode] = useState<{ value: string; kind: string; label: string } | null>(null);
+  const [code, setCode] = useState<{ value: string; kind: CodeKind; label: string } | null>(null);
   const [codeState, setCodeState] = useState<'idle' | 'checking' | 'bad'>('idle');
-  const [photoFailed, setPhotoFailed] = useState<Record<string, boolean>>({});
-  const failPhoto = (id: string) => setPhotoFailed((p) => ({ ...p, [id]: true }));
-  const [confirmed, setConfirmed] = useState(false);
+  const [confirmation, setConfirmation] = useState<Confirmation>(null);
+  const [announce, setAnnounce] = useState('');
+  const [panelInView, setPanelInView] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -189,33 +334,53 @@ export default function ShopPage() {
         'FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. What\'s left after materials buys classroom supplies.',
       path: '/shop',
     });
-    if (new URLSearchParams(window.location.search).get('stripe_session_id')) {
-      setConfirmed(true);
+    const sessionId = new URLSearchParams(window.location.search).get('stripe_session_id');
+    if (sessionId) {
+      setConfirmation('checking');
+      fetch(`/api/checkout-session-status?session_id=${encodeURIComponent(sessionId)}`)
+        .then((r) => r.json())
+        .then((data: { status?: string; paymentStatus?: string; amountTotal?: number }) => {
+          const ok = data.status === 'complete' || data.paymentStatus === 'paid';
+          setConfirmation(ok ? 'confirmed' : 'failed');
+          if (ok) track('merch_purchase_completed', { value: data.amountTotal ? data.amountTotal / 100 : undefined });
+        })
+        .catch(() => setConfirmation('failed'));
     }
   }, []);
 
-  // Educator pricing is a property of the whole order, so applying it has to
-  // rewrite the lines already in the bag, not just the ones added afterwards.
-  const lines = useMemo(() => cart.map((l) => ({ ...l, atCost: educator })), [cart, educator]);
-  const { subtotal, delivery, total } = orderTotal(lines, fulfilment);
+  // The bar at the bottom of a phone screen hides while the order itself is
+  // on screen.
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setPanelInView(e.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [confirmation]);
 
-  const setPicker = (id: string, patch: Partial<Picker>) =>
-    setPickers((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+  const priced = priceOrder(cart, { fulfilment, educator, codeKind: code?.kind ?? null, coverFee });
+  const feeIfCovered = priceOrder(cart, { fulfilment, educator, codeKind: code?.kind ?? null, coverFee: true }).fee;
+  const itemCount = cart.reduce((n, l) => n + l.qty, 0);
+  const effectiveEducator = educator || code?.kind === 'educator';
 
-  const addToBag = (productId: string) => {
-    const pick = pickers[productId];
+  const addToOrder = (product: MerchProduct) => {
+    const pick = pickers[product.id];
+    const color = MERCH_COLORS.find((c) => c.id === pick.colorId)!;
     setCart((prev) => {
-      const i = prev.findIndex((l) => l.productId === productId && l.size === pick.size && l.colorId === pick.colorId);
+      const i = prev.findIndex((l) => l.productId === product.id && l.size === pick.size && l.colorId === pick.colorId);
       if (i >= 0) {
         const next = [...prev];
-        next[i] = { ...next[i], qty: Math.min(10, next[i].qty + pick.qty) };
+        next[i] = { ...next[i], qty: Math.min(10, next[i].qty + 1) };
         return next;
       }
-      return [...prev, { productId, size: pick.size, colorId: pick.colorId, qty: pick.qty }];
+      return [...prev, { productId: product.id, size: pick.size, colorId: pick.colorId, qty: 1 }];
     });
+    setAnnounce(`Added ${product.name}, ${color.name}, size ${pick.size}, to your order.`);
+    track('merch_added_to_order', { item: product.id });
   };
 
-  const removeLine = (i: number) => setCart((prev) => prev.filter((_, idx) => idx !== i));
+  const setQty = (i: number, qty: number) =>
+    setCart((prev) => (qty < 1 ? prev.filter((_, idx) => idx !== i) : prev.map((l, idx) => (idx === i ? { ...l, qty: Math.min(10, qty) } : l))));
 
   const applyCode = async () => {
     const entered = codeInput.trim();
@@ -227,10 +392,9 @@ export default function ShopPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: entered }),
       });
-      const data = await res.json();
-      if (data.valid) {
-        setCode({ value: entered.toUpperCase(), kind: data.kind, label: data.label });
-        if (data.kind === 'educator') setEducator(true);
+      const data = (await res.json()) as { valid?: boolean; kind?: CodeKind; label?: string };
+      if (data.valid && data.kind) {
+        setCode({ value: entered.toUpperCase(), kind: data.kind, label: data.label ?? '' });
         setCodeState('idle');
         setCodeInput('');
       } else {
@@ -241,29 +405,75 @@ export default function ShopPage() {
     }
   };
 
-  const clearCode = () => {
-    setCode(null);
-    setCodeState('idle');
-    setEducator(false);
+  const reviewOrder = () => {
+    panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    headingRef.current?.focus({ preventScroll: true });
   };
 
-  if (confirmed) {
+  const startCheckout = () => {
+    track('merch_checkout_started', { value: priced.total / 100 });
+    setCheckingOut(true);
+  };
+
+  /** A free tee on its own costs $0, which Stripe cannot take: it is claimed by email. */
+  const freeClaimHref = () => {
+    const lines = cart.map((l) => {
+      const p = findProduct(l.productId)!;
+      const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
+      return `${l.qty} x ${p.name}, ${c.name}, ${l.size}`;
+    });
+    const body = [
+      `Code: ${code?.value ?? ''}`,
+      ...lines,
+      `Pickup or delivery: ${fulfilment}`,
+      '',
+      'Name:',
+      'School:',
+    ].join('\n');
+    return `mailto:${ORDER_EMAIL}?subject=${encodeURIComponent('My free FMT tee')}&body=${encodeURIComponent(body)}`;
+  };
+
+  if (confirmation) {
     return (
       <div className="min-h-[100dvh] bg-paper flex flex-col">
         <SiteHeader />
         <main className="flex-1 flex items-center justify-center px-4 py-24">
-          <div className="max-w-md text-center">
-            <div className="w-14 h-14 rounded-2xl bg-apple/10 text-apple flex items-center justify-center mx-auto mb-5">
-              <CheckCircle2 size={26} />
-            </div>
-            <h1 className="font-serif font-bold text-3xl mb-3">Order in.</h1>
-            <p className="text-chalkboard/70 font-light leading-relaxed mb-7">
-              Thank you — a receipt is on its way to your inbox. We press every order by hand, so
-              give us a few days; we'll email you when yours is ready and sort out pickup or delivery.
-            </p>
-            <button onClick={() => navigate('/shop')} className="bg-chalkboard text-white px-7 py-3 rounded-full font-bold text-sm hover:bg-apple transition-colors">
-              Back to the shop
-            </button>
+          <div className="max-w-md text-center" role="status">
+            {confirmation === 'checking' && (
+              <>
+                <Loader2 className="animate-spin text-apple mx-auto mb-5" size={30} aria-hidden="true" />
+                <p className="text-chalkboard/70">Confirming your order…</p>
+              </>
+            )}
+            {confirmation === 'confirmed' && (
+              <>
+                <div className="w-14 h-14 rounded-2xl bg-apple/10 text-apple flex items-center justify-center mx-auto mb-5">
+                  <CheckCircle2 size={26} aria-hidden="true" />
+                </div>
+                <h1 className="font-serif font-bold text-3xl mb-3">Order in.</h1>
+                <p className="text-chalkboard/75 font-light leading-relaxed mb-7">
+                  Thank you — a receipt is on its way to your inbox. We press every order by hand, so
+                  give us a few days; we'll email you when yours is ready and sort out pickup or delivery.
+                </p>
+              </>
+            )}
+            {confirmation === 'failed' && (
+              <>
+                <div className="w-14 h-14 rounded-2xl bg-pencil/15 text-pencil-dark flex items-center justify-center mx-auto mb-5">
+                  <AlertCircle size={26} aria-hidden="true" />
+                </div>
+                <h1 className="font-serif font-bold text-3xl mb-3">Couldn't confirm that.</h1>
+                <p className="text-chalkboard/75 font-light leading-relaxed mb-7">
+                  We couldn't verify this order. If you were charged, your Stripe receipt is your proof
+                  and we'll honour it — email {ORDER_EMAIL} and we'll sort it out.
+                </p>
+              </>
+            )}
+            {confirmation !== 'checking' && (
+              <button onClick={() => { setConfirmation(null); navigate('/shop'); }} className="bg-chalkboard text-white px-7 py-3 rounded-full font-bold text-sm hover:bg-apple transition-colors">
+                Back to the shop
+              </button>
+            )}
           </div>
         </main>
         <SiteFooter />
@@ -275,382 +485,307 @@ export default function ShopPage() {
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <SiteHeader />
 
-      <main className="relative z-10 flex-1">
-        <section className="px-4 sm:px-6 pt-28 sm:pt-36 pb-10">
-          <div className="pointer-events-none absolute top-0 left-0 w-[560px] h-[560px] bg-pencil/[0.08] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/4" />
-          <motion.div
+      {/* Announces each add, for anyone who cannot see the order update. */}
+      <p className="sr-only" role="status" aria-live="polite">{announce}</p>
+
+      <main className="relative z-10 flex-1 px-4 sm:px-6 pt-28 sm:pt-36 pb-28 xl:pb-20">
+        <div className="pointer-events-none absolute top-0 left-0 w-[560px] h-[560px] bg-pencil/[0.08] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/4" />
+
+        <div className="max-w-7xl mx-auto relative">
+          <motion.header
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: EASE }}
-            className="max-w-3xl mx-auto relative"
+            className="max-w-2xl mb-10 sm:mb-12"
           >
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/50 mb-5">
+            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/60 mb-4">
               Printed locally · Pressed by students
             </p>
-            <h1 className="font-serif font-bold text-[clamp(2.25rem,7vw,3.75rem)] leading-[1.03] tracking-[-0.02em] mb-6 text-balance">
+            <h1 className="font-serif font-bold text-[clamp(2.25rem,6vw,3.5rem)] leading-[1.03] tracking-[-0.02em] mb-4 text-balance">
               Wear it. <span className="text-apple italic font-normal">Fund it.</span>
             </h1>
-            <p className="text-xl text-chalkboard/70 font-light leading-relaxed">
+            <p className="text-lg text-chalkboard/75 font-light leading-relaxed">
               Swift Prints makes our film here in town, and our students heat-press every shirt one
               at a time. What's left after materials buys pencils, markers and tissues for classrooms
               that ran out.
             </p>
-          </motion.div>
-        </section>
+          </motion.header>
 
-        {/* Products */}
-        <section className="px-4 sm:px-6 pb-12">
-          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
-            {MERCH.map((product, i) => {
-              const pick = pickers[product.id];
-              const color = MERCH_COLORS.find((c) => c.id === pick.colorId)!;
-              const price = educator ? product.cost : product.price;
-              return (
-                <motion.div
+          <div className="grid xl:grid-cols-[minmax(0,1fr)_380px] gap-8 items-start">
+            {/* Products */}
+            <section aria-label="Products" className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {MERCH.map((product, i) => (
+                <ProductCard
                   key={product.id}
-                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.6, delay: i * 0.08, ease: EASE }}
-                  className="bg-white rounded-[1.75rem] ring-1 ring-chalkboard/8 p-5 flex flex-col"
-                >
-                  {/* Portrait box: the photos are full-length shots, and a
-                      short landscape crop of one cuts the artwork in half. */}
-                  <div className="bg-paper rounded-2xl mb-4 aspect-[4/5] overflow-hidden">
-                    <Garment
-                      productId={product.id}
-                      color={color}
-                      className="w-full h-full p-3"
-                      imgClassName="w-full h-full object-cover"
-                      failed={photoFailed}
-                      onFail={failPhoto}
-                    />
-                  </div>
+                  product={product}
+                  index={i}
+                  pick={pickers[product.id]}
+                  educator={effectiveEducator}
+                  onPick={(patch) => setPickers((prev) => ({ ...prev, [product.id]: { ...prev[product.id], ...patch } }))}
+                  onAdd={() => addToOrder(product)}
+                />
+              ))}
+            </section>
 
-                  <h2 className="font-serif font-bold text-lg leading-snug">{product.name}</h2>
-                  <p className="text-sm text-chalkboard/60 font-light mt-1 mb-3 leading-snug">{product.blurb}</p>
-
-                  <p className="font-serif font-bold text-2xl mb-4">
-                    {formatPrice(price)}
-                    {educator && (
-                      <span className="ml-2 text-xs font-sans font-bold uppercase tracking-wider text-apple align-middle">
-                        at cost
-                      </span>
-                    )}
-                  </p>
-
-                  {/* Color */}
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
-                    Color — {color.name}
-                  </p>
-                  <div className="flex gap-2 mb-4">
-                    {MERCH_COLORS.map((c) => (
-                      <button
-                        key={c.id}
-                        onClick={() => setPicker(product.id, { colorId: c.id })}
-                        aria-label={c.name}
-                        aria-pressed={c.id === pick.colorId}
-                        className={`w-8 h-8 rounded-full ring-2 transition-all ${
-                          c.id === pick.colorId ? 'ring-apple scale-110' : 'ring-chalkboard/15 hover:ring-chalkboard/35'
-                        }`}
-                        style={{
-                          background: c.speckle
-                            ? `radial-gradient(circle at 30% 30%, #5a5a5e 1px, transparent 1.5px), radial-gradient(circle at 70% 60%, #5a5a5e 1px, transparent 1.5px), ${c.hex}`
-                            : c.hex,
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Size */}
-                  <label htmlFor={`size-${product.id}`} className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 block">
-                    Size
-                  </label>
-                  <div className="flex gap-1.5 mb-4" id={`size-${product.id}`}>
-                    {MERCH_SIZES.map((sz) => (
-                      <button
-                        key={sz}
-                        onClick={() => setPicker(product.id, { size: sz })}
-                        aria-pressed={sz === pick.size}
-                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
-                          sz === pick.size
-                            ? 'bg-chalkboard text-white'
-                            : 'bg-paper text-chalkboard/70 hover:bg-chalkboard/10'
-                        }`}
-                      >
-                        {sz}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Quantity + add */}
-                  <div className="flex items-center gap-2 mt-auto">
-                    <div className="flex items-center gap-1 bg-paper rounded-xl p-1">
-                      <button onClick={() => setPicker(product.id, { qty: Math.max(1, pick.qty - 1) })}
-                        aria-label="One fewer" className="w-7 h-7 rounded-lg hover:bg-chalkboard/10 flex items-center justify-center">
-                        <Minus size={13} />
-                      </button>
-                      <span className="w-6 text-center text-sm font-bold tabular-nums">{pick.qty}</span>
-                      <button onClick={() => setPicker(product.id, { qty: Math.min(10, pick.qty + 1) })}
-                        aria-label="One more" className="w-7 h-7 rounded-lg hover:bg-chalkboard/10 flex items-center justify-center">
-                        <Plus size={13} />
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => addToBag(product.id)}
-                      className="flex-1 bg-apple text-white py-2.5 rounded-xl font-bold text-sm hover:bg-apple/90 active:scale-[0.98] transition-all"
-                    >
-                      Add
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* The order slip.
-
-            This was a plain white box with a bulleted list in it — the least
-            designed thing on a site that otherwise has a voice. It is now the
-            paper artifact the rest of the site is built around: a supply order
-            slip, torn along the top, ruled like a notebook, with the garment
-            drawn on each line and a hand-written note saying what the order
-            actually buys a classroom. */}
-        <section className="px-4 sm:px-6 pb-16">
-          <div className="max-w-2xl mx-auto">
-            <div className="relative bg-white rounded-[1.5rem] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.12)] ring-1 ring-chalkboard/8 overflow-hidden">
-              {/* torn top edge */}
-              <div
-                className="h-3 w-full"
-                style={{
-                  background:
-                    'repeating-linear-gradient(90deg, #fcfaf5 0 7px, transparent 7px 14px)',
-                  boxShadow: 'inset 0 -1px 0 rgba(26,28,29,0.08)',
-                }}
-                aria-hidden="true"
-              />
-
-              <div className="p-6 sm:p-8">
-                <div className="flex items-baseline justify-between mb-1">
-                  <h2 className="font-hand text-3xl text-chalkboard -rotate-1">Your order</h2>
-                  <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/40">
-                    FMT · Okemos
-                  </span>
+            {/* The order. Beside the products on a wide screen, so adding
+                something visibly lands; below them on anything narrower, with
+                the bar at the bottom of the screen pointing to it. */}
+            <aside
+              ref={panelRef}
+              aria-labelledby="order-heading"
+              className="xl:sticky xl:top-28 scroll-mt-28"
+            >
+              <div className="bg-white rounded-[1.75rem] ring-1 ring-chalkboard/[0.08] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.12)] p-6">
+                <div className="flex items-baseline justify-between mb-4">
+                  <h2 id="order-heading" ref={headingRef} tabIndex={-1} className="font-serif font-bold text-2xl outline-none">
+                    Your order
+                  </h2>
+                  {itemCount > 0 && (
+                    <span className="text-xs font-bold text-chalkboard/60">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
+                  )}
                 </div>
-                <div className="h-px bg-chalkboard/15 mb-5" />
-
-                <p className="text-xs text-chalkboard/55 font-light leading-relaxed mb-6">
-                  Merch is a purchase, not a donation —{' '}
-                  <strong className="text-chalkboard/75 font-semibold">it isn't tax-deductible</strong>.
-                  What's left after materials goes to classrooms.
-                </p>
 
                 {cart.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <p className="font-hand text-2xl text-chalkboard/30 -rotate-1 mb-1">nothing here yet</p>
-                    <p className="text-sm text-chalkboard/50 font-light">
-                      Pick a size and color above.
+                  <div className="py-8 text-center border-t border-chalkboard/10">
+                    <ShoppingBag size={22} className="mx-auto text-chalkboard/30 mb-3" aria-hidden="true" />
+                    <p className="text-sm text-chalkboard/70 leading-relaxed">
+                      Nothing here yet. Pick a color and size, then <strong className="font-bold text-chalkboard">Add to order</strong>.
                     </p>
                   </div>
                 ) : (
                   <>
-                    {/* ruled lines, like the pad this would be written on */}
-                    <ul className="mb-7">
-                      {lines.map((l, i) => {
+                    <ul className="border-t border-chalkboard/10 mb-5">
+                      {cart.map((l, i) => {
                         const prod = findProduct(l.productId)!;
                         const col = MERCH_COLORS.find((x) => x.id === l.colorId)!;
+                        const unit = effectiveEducator ? prod.cost : prod.price;
                         return (
-                          <li
-                            key={`${l.productId}-${l.size}-${l.colorId}`}
-                            className="flex items-center gap-4 py-3 border-b border-dashed border-chalkboard/15"
-                          >
-                            <span className="w-11 h-11 shrink-0 bg-paper rounded-xl overflow-hidden block">
-                              <Garment
-                                productId={l.productId}
-                                color={col}
-                                className="w-full h-full p-1"
-                                imgClassName="w-full h-full object-cover"
-                                failed={photoFailed}
-                                onFail={failPhoto}
-                              />
+                          <li key={`${l.productId}-${l.size}-${l.colorId}`} className="flex items-center gap-3 py-3 border-b border-chalkboard/10">
+                            <span className="w-12 h-14 shrink-0 bg-paper rounded-lg overflow-hidden block">
+                              <ProductPhoto product={prod} className="w-full h-full text-[8px]" />
                             </span>
                             <span className="flex-1 min-w-0">
-                              <span className="block text-sm font-bold leading-snug truncate">{prod.name}</span>
-                              <span className="block text-xs text-chalkboard/55">
-                                {col.name} · {l.size} · ×{l.qty}
+                              <span className="block text-sm font-bold leading-snug">{prod.name}</span>
+                              <span className="flex items-center gap-1.5 text-xs text-chalkboard/70 mt-0.5">
+                                <span className="w-2.5 h-2.5 rounded-full ring-1 ring-chalkboard/20 shrink-0" style={swatchStyle(col)} aria-hidden="true" />
+                                {col.name} · {l.size}
+                              </span>
+                              <span className="mt-1.5 inline-flex items-center gap-0.5 bg-paper rounded-lg p-0.5">
+                                <button onClick={() => setQty(i, l.qty - 1)} aria-label={`One fewer ${prod.name}, ${col.name}, ${l.size}`}
+                                  className="w-7 h-7 rounded-md hover:bg-chalkboard/10 flex items-center justify-center">
+                                  <Minus size={12} aria-hidden="true" />
+                                </button>
+                                <span className="w-6 text-center text-xs font-bold tabular-nums" aria-label={`Quantity ${l.qty}`}>{l.qty}</span>
+                                <button onClick={() => setQty(i, l.qty + 1)} disabled={l.qty >= 10} aria-label={`One more ${prod.name}, ${col.name}, ${l.size}`}
+                                  className="w-7 h-7 rounded-md hover:bg-chalkboard/10 flex items-center justify-center disabled:opacity-30">
+                                  <Plus size={12} aria-hidden="true" />
+                                </button>
                               </span>
                             </span>
-                            <span className="text-sm font-bold tabular-nums">
-                              {formatPrice((educator ? prod.cost : prod.price) * l.qty)}
+                            <span className="flex flex-col items-end gap-1 shrink-0">
+                              <span className="text-sm font-bold tabular-nums">{formatPrice(unit * l.qty)}</span>
+                              <button onClick={() => setQty(i, 0)} className="text-xs text-chalkboard/60 hover:text-apple underline underline-offset-2">
+                                Remove<span className="sr-only"> {prod.name}, {col.name}, {l.size}</span>
+                              </button>
                             </span>
-                            <button
-                              onClick={() => removeLine(i)}
-                              aria-label={`Remove ${prod.name}`}
-                              className="p-1.5 rounded-lg text-chalkboard/30 hover:text-apple hover:bg-apple/5 transition-colors shrink-0"
-                            >
-                              <X size={15} />
-                            </button>
                           </li>
                         );
                       })}
                     </ul>
 
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mb-2.5">
-                      How would you like it?
-                    </p>
-                    <div className="grid sm:grid-cols-2 gap-2.5 mb-7">
-                      {([
-                        { id: 'pickup' as const, icon: MapPin, title: 'Pickup — free',
-                          body: 'We drop off at your school, or catch us at a popup event.' },
-                        { id: 'delivery' as const, icon: Truck,
-                          title: `Delivery — ${formatPrice(DELIVERY_FEE)}`,
-                          body: `Free on orders over ${formatPrice(FREE_DELIVERY_OVER)}.` },
-                      ]).map((opt) => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setFulfilment(opt.id)}
-                          aria-pressed={fulfilment === opt.id}
-                          className={`text-left p-4 rounded-2xl ring-1 transition-all ${
-                            fulfilment === opt.id
-                              ? 'ring-apple bg-apple/5 shadow-[0_4px_14px_rgba(192,57,43,0.08)]'
-                              : 'ring-chalkboard/10 hover:ring-chalkboard/30'
-                          }`}
-                        >
-                          <span className="flex items-center gap-2 font-bold text-sm mb-1">
-                            <opt.icon size={14} className="text-apple" />
-                            {opt.title}
-                          </span>
-                          <span className="block text-xs text-chalkboard/60 font-light leading-snug">
-                            {opt.body}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                    <fieldset className="mb-5">
+                      <legend className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">Pickup or delivery</legend>
+                      <div className="grid grid-cols-2 gap-2">
+                        {([
+                          { id: 'pickup' as const, icon: MapPin, title: 'Pickup', price: 'Free', body: 'At your school or one of our events.' },
+                          { id: 'delivery' as const, icon: Truck, title: 'Delivery', price: formatPrice(DELIVERY_FEE), body: `Free over ${formatPrice(FREE_DELIVERY_OVER)}.` },
+                        ]).map((opt) => (
+                          <label key={opt.id} className="cursor-pointer">
+                            <input type="radio" name="fulfilment" value={opt.id} checked={fulfilment === opt.id}
+                              onChange={() => setFulfilment(opt.id)} className="sr-only peer" />
+                            <span className="block h-full p-3 rounded-xl ring-1 ring-chalkboard/15 hover:ring-chalkboard/35 transition-all peer-checked:ring-2 peer-checked:ring-apple peer-checked:bg-apple/[0.04] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ruler">
+                              <span className="flex items-center justify-between gap-1 text-sm font-bold">
+                                <span className="flex items-center gap-1.5"><opt.icon size={13} className="text-apple" aria-hidden="true" />{opt.title}</span>
+                                <span className="text-xs">{opt.price}</span>
+                              </span>
+                              <span className="block text-xs text-chalkboard/70 leading-snug mt-1">{opt.body}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
 
-                    {/* Educator pricing.
-
-                        This began as a large card at the top of the page that
-                        spelled out what a garment costs us — "a tee is $14
-                        instead of $25" — which published FMT's margin to every
-                        visitor before they had even picked a size. The option
-                        is worth keeping; broadcasting the numbers is not. It
-                        now sits quietly with the other order options and says
-                        nothing about what we make on a shirt. */}
-                    <label className="flex items-start gap-3 mb-7 cursor-pointer group">
+                    {/* Educator pricing: an honour-system box. It deliberately
+                        says nothing about what we make on a shirt. */}
+                    <label className="flex items-start gap-3 mb-3 cursor-pointer">
                       <input
                         type="checkbox" id="educator-pricing" name="educator"
                         checked={educator} onChange={(e) => setEducator(e.target.checked)}
                         className="mt-0.5 w-4 h-4 accent-[#c0392b] shrink-0"
                       />
-                      <span className="flex items-start gap-2 text-sm text-chalkboard/70 font-light leading-snug group-hover:text-chalkboard transition-colors">
-                        <GraduationCap size={15} className="text-apple shrink-0 mt-0.5" />
-                        <span>
-                          I'm a teacher or school staff member —{' '}
-                          <strong className="font-semibold text-chalkboard">educator pricing</strong>
-                        </span>
+                      <span className="text-sm text-chalkboard/80 leading-snug">
+                        <GraduationCap size={14} className="inline text-apple mr-1 -mt-0.5" aria-hidden="true" />
+                        I'm a teacher or school staff member: <strong className="font-semibold text-chalkboard">educator pricing</strong>
                       </span>
                     </label>
 
-                    {/* Code entry. Partner schools and Teacher of the Month
-                        winners get one; the server decides what it unlocks. */}
-                    <div className="mb-6">
+                    {feeIfCovered > 0 ? (
+                      <label className="flex items-start gap-3 mb-4 cursor-pointer">
+                        <input
+                          type="checkbox" id="merch-cover-fee" name="coverFee"
+                          checked={coverFee} onChange={(e) => setCoverFee(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 accent-[#c0392b] shrink-0"
+                        />
+                        <span className="text-sm text-chalkboard/80 leading-snug">
+                          Add {formatPrice(feeIfCovered)} to cover the card processing fee, so the full price reaches FMT.
+                        </span>
+                      </label>
+                    ) : null}
+
+                    {/* Codes: partner schools and Teacher of the Month winners
+                        get one; the server decides what it unlocks. */}
+                    <div className="mb-5">
                       {code ? (
-                        <div className="flex items-center gap-3 bg-apple/5 ring-1 ring-apple/25 rounded-2xl px-4 py-3">
-                          <Ticket size={15} className="text-apple shrink-0" />
+                        <div className="flex items-center gap-3 bg-apple/5 ring-1 ring-apple/25 rounded-xl px-3.5 py-2.5">
+                          <Ticket size={14} className="text-apple shrink-0" aria-hidden="true" />
                           <span className="flex-1 min-w-0">
                             <span className="block text-xs font-bold tracking-wide">{code.value}</span>
-                            <span className="block text-xs text-chalkboard/60 font-light">{code.label}</span>
+                            <span className="block text-xs text-chalkboard/70">{code.label}</span>
                           </span>
-                          <button onClick={clearCode} aria-label="Remove code"
-                            className="p-1.5 rounded-lg text-chalkboard/35 hover:text-apple transition-colors">
+                          <button onClick={() => { setCode(null); setCodeState('idle'); }} aria-label="Remove code"
+                            className="p-1.5 rounded-lg text-chalkboard/50 hover:text-apple transition-colors">
                             <X size={14} />
                           </button>
                         </div>
+                      ) : !codeOpen ? (
+                        <button onClick={() => setCodeOpen(true)} aria-expanded={false} aria-controls="merch-code-row"
+                          className="text-sm font-bold text-ruler underline underline-offset-4 decoration-ruler/30 hover:decoration-ruler">
+                          Have a code?
+                        </button>
                       ) : (
-                        <>
-                          <label htmlFor="merch-code" className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mb-2 block">
-                            Have a code?
+                        <div id="merch-code-row">
+                          <label htmlFor="merch-code" className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 block">
+                            Code from your school or Teacher of the Month
                           </label>
                           <div className="flex gap-2">
                             <input
-                              id="merch-code" name="code" value={codeInput}
+                              id="merch-code" name="code" value={codeInput} autoFocus autoComplete="off"
                               onChange={(e) => { setCodeInput(e.target.value); setCodeState('idle'); }}
                               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCode(); } }}
-                              placeholder="From your school or Teacher of the Month"
-                              className="flex-1 min-w-0 bg-paper border border-chalkboard/10 rounded-xl px-4 py-2.5 text-sm uppercase tracking-wide outline-none focus:ring-4 focus:ring-apple/10 focus:border-apple/40 transition-all placeholder:normal-case placeholder:tracking-normal placeholder:text-chalkboard/35"
+                              aria-invalid={codeState === 'bad'}
+                              aria-describedby={codeState === 'bad' ? 'merch-code-error' : undefined}
+                              className="flex-1 min-w-0 bg-paper ring-1 ring-chalkboard/15 rounded-xl px-3.5 py-2.5 text-sm uppercase tracking-wide outline-none focus:ring-2 focus:ring-apple/40"
                             />
                             <button onClick={applyCode} disabled={codeState === 'checking' || !codeInput.trim()}
-                              className="px-5 rounded-xl bg-chalkboard/8 hover:bg-chalkboard/15 font-bold text-sm transition-colors disabled:opacity-40">
-                              {codeState === 'checking' ? <Loader2 size={15} className="animate-spin" /> : 'Apply'}
+                              className="px-4 rounded-xl bg-chalkboard text-white font-bold text-sm transition-colors hover:bg-apple disabled:opacity-40">
+                              {codeState === 'checking' ? <Loader2 size={15} className="animate-spin" aria-label="Checking" /> : 'Apply'}
                             </button>
                           </div>
                           {codeState === 'bad' && (
-                            <p className="text-xs text-apple font-bold mt-2">
+                            <p id="merch-code-error" className="text-xs text-apple font-bold mt-2" role="alert">
                               That code isn't working. Check it with whoever gave it to you.
                             </p>
                           )}
-                        </>
+                        </div>
                       )}
                     </div>
 
-                    <div className="space-y-2 text-sm mb-6">
-                      <div className="flex justify-between text-chalkboard/65">
-                        <span>Subtotal</span>
-                        <span className="tabular-nums">{formatPrice(subtotal)}</span>
+                    <dl className="space-y-1.5 text-sm border-t border-chalkboard/10 pt-4 mb-5">
+                      <div className="flex justify-between text-chalkboard/75">
+                        <dt>Items</dt>
+                        <dd className="tabular-nums">{formatPrice(priced.merchandise + priced.freeTeeSavings)}</dd>
                       </div>
-                      <div className="flex justify-between text-chalkboard/65">
-                        <span>{fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}</span>
-                        <span className="tabular-nums">
-                          {delivery === 0 ? 'Free' : formatPrice(delivery)}
-                        </span>
+                      {priced.freeTeeSavings > 0 && (
+                        <div className="flex justify-between text-apple font-bold">
+                          <dt>Free tee</dt>
+                          <dd className="tabular-nums">−{formatPrice(priced.freeTeeSavings)}</dd>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-chalkboard/75">
+                        <dt>{fulfilment === 'pickup' ? 'Pickup' : 'Delivery'}</dt>
+                        <dd className="tabular-nums">{priced.delivery === 0 ? 'Free' : formatPrice(priced.delivery)}</dd>
                       </div>
-                      <div className="h-px bg-chalkboard/20 !mt-3" />
-                      <div className="flex justify-between font-serif font-bold text-xl !mt-3">
-                        <span>Total</span>
-                        <span className="tabular-nums">{formatPrice(total)}</span>
+                      {priced.fee > 0 && (
+                        <div className="flex justify-between text-chalkboard/75">
+                          <dt>Card fee, covered by you</dt>
+                          <dd className="tabular-nums">{formatPrice(priced.fee)}</dd>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-serif font-bold text-xl pt-2">
+                        <dt>Total</dt>
+                        <dd className="tabular-nums">{formatPrice(priced.total)}</dd>
                       </div>
-                    </div>
+                    </dl>
 
-                    {/* What the order actually does — the reason this isn't
-                        just a store. See IMPACT_NOTE for why it names a
-                        program instead of counting supplies. */}
-                    <div className="bg-paper rounded-2xl px-5 py-4 mb-6 flex items-start gap-3">
-                      <Pencil size={15} className="text-apple shrink-0 mt-1" strokeWidth={1.8} />
-                      <p className="font-hand text-lg text-chalkboard/80 leading-snug">
-                        {educator
-                          ? "You're paying our cost, so none of this goes to FMT — which is the whole point."
-                          : IMPACT_NOTE}
-                      </p>
-                    </div>
+                    {priced.total === 0 ? (
+                      <a href={freeClaimHref()}
+                        className="w-full bg-chalkboard text-white py-4 rounded-2xl font-bold hover:bg-apple transition-colors flex items-center justify-center gap-2">
+                        Claim your free tee by email <ArrowRight size={15} aria-hidden="true" />
+                      </a>
+                    ) : (
+                      <button onClick={startCheckout}
+                        className="w-full bg-chalkboard text-white py-4 rounded-2xl font-bold hover:bg-apple transition-colors active:scale-[0.98]">
+                        Check out · {formatPrice(priced.total)}
+                      </button>
+                    )}
 
-                    <button
-                      onClick={() => setCheckingOut(true)}
-                      className="w-full bg-chalkboard text-white py-4 rounded-2xl font-bold hover:bg-apple transition-colors active:scale-[0.98]"
-                    >
-                      Check out — {formatPrice(total)}
-                    </button>
-                    <p className="text-xs text-chalkboard/50 font-light text-center mt-3">
-                      Secure card payment through Stripe.
+                    <p className="text-xs text-chalkboard/65 leading-relaxed mt-4">
+                      {effectiveEducator
+                        ? "You're paying our cost, so FMT makes nothing on this order — which is the point."
+                        : IMPACT_NOTE}{' '}
+                      Merch is a purchase, not a donation, so it isn't tax-deductible. Card payments by Stripe.
                     </p>
                   </>
                 )}
               </div>
-            </div>
 
-            <p className="text-sm text-chalkboard/60 font-light text-center mt-6 leading-relaxed">
-              Want to support us without the shirt?{' '}
-              <button onClick={() => navigate('/donate')} className="text-apple font-bold underline">
-                Donate directly
-              </button>{' '}
-              — that part is tax-deductible.
-            </p>
+              <p className="text-sm text-chalkboard/70 text-center mt-5 leading-relaxed">
+                Rather skip the shirt?{' '}
+                <a href="/donate" onClick={(e) => { e.preventDefault(); navigate('/donate'); }} className="text-apple font-bold underline underline-offset-2">
+                  Donate directly
+                </a>{' '}
+                — that part is tax-deductible.
+              </p>
+            </aside>
           </div>
-        </section>
-
+        </div>
       </main>
+
+      {/* Below the wide layout, the order sits under the products. This bar
+          keeps it one tap away once something is in it. */}
+      <AnimatePresence>
+        {itemCount > 0 && !panelInView && !checkingOut && (
+          <motion.div
+            initial={{ y: 90, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 90, opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="xl:hidden fixed bottom-4 inset-x-4 z-[60] max-w-md mx-auto"
+          >
+            <button
+              onClick={reviewOrder}
+              className="w-full flex items-center justify-between gap-3 bg-chalkboard text-white rounded-full pl-5 pr-2 py-2 shadow-[0_18px_40px_rgba(0,0,0,0.3)]"
+            >
+              <span className="flex items-center gap-2 text-sm font-bold">
+                <ShoppingBag size={15} aria-hidden="true" />
+                {itemCount} {itemCount === 1 ? 'item' : 'items'} · {formatPrice(priced.total)}
+              </span>
+              <span className="bg-white text-chalkboard text-xs font-bold uppercase tracking-[0.14em] rounded-full px-4 py-2.5">
+                Review order
+              </span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {checkingOut && (
-          <MerchCheckout lines={lines} fulfilment={fulfilment} code={code?.value ?? ''} onClose={() => setCheckingOut(false)} />
+          <MerchCheckout
+            lines={cart}
+            fulfilment={fulfilment}
+            code={code?.value ?? ''}
+            educator={educator}
+            coverFee={coverFee}
+            total={priced.total}
+            onClose={() => setCheckingOut(false)}
+          />
         )}
       </AnimatePresence>
 

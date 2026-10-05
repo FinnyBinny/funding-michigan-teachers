@@ -26,6 +26,9 @@ export type AnalyticsEvent =
   | 'returnables_cta_clicked'
   | 'returnables_form_started'
   | 'stripe_donation_clicked'
+  | 'merch_added_to_order'
+  | 'merch_checkout_started'
+  | 'merch_purchase_completed'  // a shop order actually cleared Stripe
   | 'faq_opened';
 
 /**
