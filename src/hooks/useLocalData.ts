@@ -32,7 +32,11 @@ export function readLS<T>(key: string, fallback: T[]): T[] {
   }
 }
 export function saveLS<T>(key: string, data: T[]): void {
-  localStorage.setItem(key, JSON.stringify(data));
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    /* storage blocked: nothing to persist to */
+  }
   window.dispatchEvent(new Event('fmt-data-changed'));
 }
 

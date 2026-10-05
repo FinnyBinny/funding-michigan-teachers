@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { X, AlertCircle, Shield } from 'lucide-react';
 import { STRIPE_PUBLISHABLE_KEY, type DonationFrequency } from '../lib/donate';
 import { coverFee as grossUp, dollars } from '../../shared/donations';
+import { useModalDialog } from '../lib/useModalDialog';
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
@@ -35,12 +37,9 @@ export default function EmbeddedDonateCheckout({
   // and never takes a total from this page.
   const totalCents = coverFee ? grossUp(giftCents).totalCents : giftCents;
 
-  // A dialog closes on Escape.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  // Focus moves in, Tab stays in, Escape closes, the page behind is inert.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalDialog(dialogRef, onClose);
 
   // loadStripe() can reject if js.stripe.com is unreachable (network blip,
   // ad-blocker, restrictive proxy) — without this, a rejected promise leaves
@@ -69,7 +68,8 @@ export default function EmbeddedDonateCheckout({
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 
-  return (
+  // Rendered into <body>, outside #root, which is inert while this is open.
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -82,6 +82,7 @@ export default function EmbeddedDonateCheckout({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 10 }}
         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="donate-checkout-title"
@@ -95,7 +96,7 @@ export default function EmbeddedDonateCheckout({
             <p id="donate-checkout-title" className="text-white font-bold text-sm">
               {dollars(totalCents)}{frequency === 'monthly' ? '/month' : ''} to {designationLabel}
             </p>
-            <p className="text-white/45 text-[10px] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
+            <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
               <Shield size={10} strokeWidth={1.5} />
               Secure checkout by Stripe
             </p>
@@ -115,7 +116,7 @@ export default function EmbeddedDonateCheckout({
             <div className="p-10 flex flex-col items-center text-center gap-3">
               <AlertCircle size={28} className="text-pencil-dark" />
               <p className="font-bold text-chalkboard">Stripe isn't configured yet.</p>
-              <p className="text-sm text-chalkboard/55 max-w-xs">
+              <p className="text-sm text-chalkboard/70 max-w-xs">
                 An admin needs to add <code className="bg-chalkboard/5 px-1.5 py-0.5 rounded text-xs">STRIPE_SECRET_KEY</code> as a Secret in the
                 Cloudflare dashboard before embedded checkout will work.
               </p>
@@ -138,6 +139,7 @@ export default function EmbeddedDonateCheckout({
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }

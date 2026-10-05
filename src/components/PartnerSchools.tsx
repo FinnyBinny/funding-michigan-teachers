@@ -49,7 +49,7 @@ function SchoolCard({ school, compact }: { school: School; compact: boolean }) {
         >
           {school.name}
         </h3>
-        <p className="text-sm text-chalkboard/65 mt-1">Home of the {school.mascot}</p>
+        <p className="text-sm text-chalkboard/70 mt-1">Home of the {school.mascot}</p>
         {!compact && (
           <p className="text-chalkboard/75 font-light leading-relaxed mt-3">{school.intro}</p>
         )}

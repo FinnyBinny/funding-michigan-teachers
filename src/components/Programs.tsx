@@ -48,13 +48,13 @@ export default function Programs() {
         transition={{ duration: 0.7, ease: EASE }}
         className="text-center mb-10"
       >
-        <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/50 mb-4">
+        <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-4">
           Running right now
         </p>
         <h2 className="font-serif font-bold text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.05] tracking-[-0.02em] mb-4 text-balance">
           Two things we do <span className="text-apple italic font-normal">all year</span>.
         </h2>
-        <p className="text-chalkboard/65 font-light max-w-xl mx-auto leading-relaxed">
+        <p className="text-chalkboard/70 font-light max-w-xl mx-auto leading-relaxed">
           Not events with a date on them — standing programs any teacher at a partner school
           can be part of.
         </p>
@@ -75,7 +75,7 @@ export default function Programs() {
             </div>
 
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/45 mb-1.5">
+              <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-1.5">
                 {program.eyebrow}
               </p>
               <h3 className="font-serif font-bold text-xl leading-snug">{program.title}</h3>

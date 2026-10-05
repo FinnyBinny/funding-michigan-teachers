@@ -12,7 +12,7 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; icon: typeof C
   community:    { label: 'Community',    color: 'bg-pencil/10 text-pencil-dark', icon: Users },
   // Fundraisers are how the money came in, not a time we showed up in a
   // building — labelled and coloured apart so the two never read as one.
-  fundraiser:   { label: 'Fundraiser',   color: 'bg-chalkboard/8 text-chalkboard/60', icon: Coins },
+  fundraiser:   { label: 'Fundraiser',   color: 'bg-chalkboard/8 text-chalkboard/70', icon: Coins },
 };
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -53,7 +53,7 @@ function EventCard({ event, index }: { event: PastEvent; index: number }) {
           <Calendar size={11} />
           {event.month}
         </span>
-        <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${cfg.color}`}>
           <Icon size={11} />
           {cfg.label}
         </span>
@@ -63,13 +63,13 @@ function EventCard({ event, index }: { event: PastEvent; index: number }) {
         {event.title}
       </h4>
 
-      <p className="text-chalkboard/60 text-sm leading-relaxed flex-1">
+      <p className="text-chalkboard/70 text-sm leading-relaxed flex-1">
         {event.description}
       </p>
 
       {event.partner && (
         <div className="pt-4 border-t border-chalkboard/5">
-          <p className="text-xs font-bold uppercase tracking-widest text-chalkboard/35">
+          <p className="text-xs font-bold uppercase tracking-widest text-chalkboard/70">
             Partner
           </p>
           <p className="text-sm font-semibold text-chalkboard/70 mt-0.5">
@@ -115,18 +115,19 @@ export default function PastEvents() {
           <h3 className="text-3xl font-serif font-bold text-chalkboard mb-2">
             What We've Done
           </h3>
-          <p className="text-chalkboard/55 text-lg max-w-xl">
+          <p className="text-chalkboard/70 text-lg max-w-xl">
             Every time we showed up for Michigan teachers — the history stays, and each new school year gets its own chapter.
           </p>
         </div>
 
         {/* School-year tabs */}
         {years.length > 0 && (
-          <div className="bg-chalkboard/[0.04] ring-1 ring-chalkboard/10 rounded-full p-1 flex items-center gap-1 w-fit">
+          <div className="bg-chalkboard/[0.04] ring-1 ring-chalkboard/10 rounded-full p-1 flex items-center gap-1 w-fit max-w-full overflow-x-auto" role="group" aria-label="School year">
             {years.map((year) => (
               <button
                 key={year}
                 onClick={() => setActiveYear(year)}
+                aria-pressed={activeYear === year}
                 className="relative px-5 py-2 rounded-full text-xs font-bold uppercase tracking-[0.16em]"
                 style={{ transition: 'color 500ms cubic-bezier(0.32,0.72,0,1)' }}
               >
@@ -137,7 +138,7 @@ export default function PastEvents() {
                     transition={{ type: 'spring', damping: 26, stiffness: 320 }}
                   />
                 )}
-                <span className={cn('relative z-10', activeYear === year ? 'text-white' : 'text-chalkboard/55')}>
+                <span className={cn('relative z-10 whitespace-nowrap', activeYear === year ? 'text-white' : 'text-chalkboard/75')}>
                   {year}
                 </span>
               </button>

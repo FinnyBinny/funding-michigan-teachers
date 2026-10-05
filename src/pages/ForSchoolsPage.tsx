@@ -12,6 +12,7 @@ import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
+import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { STAT, TAW_CARD_VALUE } from '../data/impactStats';
 import { track } from '../lib/analytics';
 
@@ -115,6 +116,7 @@ export default function ForSchoolsPage() {
       {/* Floating glass nav island */}
       <SiteHeader />
 
+      <main id="main">
       {/* HERO — Editorial Split layout */}
       <section
         ref={heroRef}
@@ -134,9 +136,9 @@ export default function ForSchoolsPage() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
-              className="inline-flex items-center gap-2 bg-white ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.24em] text-chalkboard/70 mb-8 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+              className="inline-flex items-center gap-2 bg-white ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.24em] text-chalkboard/70 mb-8 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-apple animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-apple" />
               Trial Period Complete · Growing for 2026–27
             </motion.div>
 
@@ -148,14 +150,14 @@ export default function ForSchoolsPage() {
             >
               Bring the<br/>
               programs that <span className="text-apple italic font-normal">empower teachers</span><br/>
-              <span className="text-chalkboard/55">to your school.</span>
+              <span className="text-chalkboard/70">to your school.</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.25, ease: EASE }}
-              className="text-lg text-chalkboard/65 max-w-xl leading-relaxed font-light mb-10"
+              className="text-lg text-chalkboard/70 max-w-xl leading-relaxed font-light mb-10"
             >
               Okemos High School was our proving ground — a full school year of showing up at every staff meeting. Haslett and East Lansing High School followed, and during Teacher Appreciation Week we got meal cards into the hands of staff at nine buildings across three districts. Three of those are ongoing partnerships; the rest are schools we want to come back to. Same programs, same student-led model, zero cost to your building.
             </motion.p>
@@ -188,7 +190,7 @@ export default function ForSchoolsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.6 }}
-              className="mt-9 text-[10px] text-chalkboard/35 font-bold uppercase tracking-[0.24em] flex items-center gap-2"
+              className="mt-9 text-[0.625rem] text-chalkboard/70 font-bold uppercase tracking-[0.24em] flex items-center gap-2"
             >
               <span className="inline-block w-4 h-px bg-chalkboard/20" />
               Student-Led · 501(c)(3) · EIN 93-4485967
@@ -208,7 +210,7 @@ export default function ForSchoolsPage() {
               {/* Inner core */}
               <div className="bg-white rounded-[calc(2.25rem-0.5rem)] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
                 <div className="flex items-center gap-2 mb-7">
-                  <span className="text-[10px] uppercase tracking-[0.28em] font-bold text-chalkboard/40">Impact Snapshot</span>
+                  <span className="text-[0.625rem] uppercase tracking-[0.28em] font-bold text-chalkboard/70">Impact Snapshot</span>
                   <div className="h-px flex-1 bg-chalkboard/10" />
                 </div>
 
@@ -221,20 +223,20 @@ export default function ForSchoolsPage() {
                       transition={{ duration: 0.6, delay: 0.5 + i * 0.08, ease: EASE }}
                     >
                       <p className={`font-serif font-bold text-4xl leading-none ${n.color}`}>{n.value}</p>
-                      <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-chalkboard/45 mt-2">{n.label}</p>
+                      <p className="text-[0.625rem] uppercase tracking-[0.18em] font-bold text-chalkboard/70 mt-2">{n.label}</p>
                     </motion.div>
                   ))}
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-chalkboard/8">
-                  <p className="text-xs text-chalkboard/55 leading-relaxed font-light">
+                  <p className="text-xs text-chalkboard/70 leading-relaxed font-light">
                     A trial year with FMT means zero financial ask of your school — we bring the funding, the partners, the programs, and the student leadership. You just open the door.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="absolute -top-3 -right-3 bg-apple text-white rounded-2xl px-3.5 py-2 text-[9px] uppercase tracking-[0.2em] font-bold shadow-[0_8px_20px_rgba(192,57,43,0.35)] rotate-3">
+            <div className="absolute -top-3 -right-3 bg-apple text-white rounded-2xl px-3.5 py-2 text-[0.625rem] uppercase tracking-[0.2em] font-bold shadow-[0_8px_20px_rgba(192,57,43,0.35)] rotate-3">
               No cost to schools
             </div>
           </motion.div>
@@ -246,13 +248,13 @@ export default function ForSchoolsPage() {
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-16">
             <motion.div
-              initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.9, ease: EASE }}
               className="lg:col-span-7"
             >
-              <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.24em]">
+              <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-6 uppercase tracking-[0.24em]">
                 <Sparkles size={11} />
                 What We Run
               </div>
@@ -268,7 +270,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
               className="lg:col-span-5 lg:pt-6"
             >
-              <p className="text-lg text-chalkboard/60 leading-relaxed font-light">
+              <p className="text-lg text-chalkboard/70 leading-relaxed font-light">
                 These aren't one-off events. They are the rhythm of how we show up. Same programs, same months, every year — that's how appreciation stops feeling like a stunt and starts feeling like culture.
               </p>
             </motion.div>
@@ -284,8 +286,8 @@ export default function ForSchoolsPage() {
               return (
                 <motion.article
                   key={program.title}
-                  initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-                  whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-80px' }}
                   transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}
                   className={`${span} group`}
@@ -300,7 +302,7 @@ export default function ForSchoolsPage() {
                              style={{ transition: `transform 700ms cubic-bezier(${EASE.join(',')})` }}>
                           <Icon size={20} className={accent.text} />
                         </div>
-                        <span className={`text-[10px] uppercase tracking-[0.24em] font-bold ${accent.text} px-2.5 py-1 rounded-full ${accent.bg}`}>
+                        <span className={`text-[0.625rem] uppercase tracking-[0.24em] font-bold ${accent.text} px-2.5 py-1 rounded-full ${accent.bg}`}>
                           {program.eyebrow}
                         </span>
                       </div>
@@ -309,7 +311,7 @@ export default function ForSchoolsPage() {
                         {program.title}
                       </h3>
 
-                      <p className="text-chalkboard/60 text-base font-light leading-relaxed mb-7 flex-1">
+                      <p className="text-chalkboard/70 text-base font-light leading-relaxed mb-7 flex-1">
                         {program.summary}
                       </p>
 
@@ -347,7 +349,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.8, ease: EASE }}
               className="lg:col-span-7"
             >
-              <div className="inline-flex items-center gap-2 bg-pencil/15 text-pencil ring-1 ring-pencil/30 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.24em]">
+              <div className="inline-flex items-center gap-2 bg-pencil/15 text-pencil ring-1 ring-pencil/30 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-6 uppercase tracking-[0.24em]">
                 <Award size={11} />
                 May 2026 · Teacher Appreciation Week
               </div>
@@ -362,7 +364,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
               className="lg:col-span-5 lg:pt-4"
             >
-              <p className="text-white/55 text-lg font-light leading-relaxed">
+              <p className="text-white/70 text-lg font-light leading-relaxed">
                 Three educators a month. Nominated by students, voted by staff, recognized publicly — because the people who change lives every day deserve to have it said out loud.
               </p>
             </motion.div>
@@ -370,8 +372,8 @@ export default function ForSchoolsPage() {
 
           {/* Featured ceremony image */}
           <motion.div
-            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ duration: 1, ease: EASE }}
             className="mb-12"
@@ -386,7 +388,7 @@ export default function ForSchoolsPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-chalkboard via-chalkboard/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                  <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil ring-1 ring-pencil/30 px-3 py-1.5 rounded-full text-[10px] font-bold mb-4 uppercase tracking-[0.22em]">
+                  <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil ring-1 ring-pencil/30 px-3 py-1.5 rounded-full text-[0.625rem] font-bold mb-4 uppercase tracking-[0.22em]">
                     <Calendar size={11} />
                     Caught in the act
                   </div>
@@ -403,8 +405,8 @@ export default function ForSchoolsPage() {
             {teachersOfMonth.slice(0, 3).map((teacher, i) => (
               <motion.article
                 key={teacher.id ?? teacher.teacher_name}
-                initial={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
-                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{ duration: 0.9, delay: i * 0.1, ease: EASE }}
                 className="group relative"
@@ -416,11 +418,11 @@ export default function ForSchoolsPage() {
                   <div className="h-full bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.375rem)] p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex flex-col">
                     {/* Month tag */}
                     <div className="flex items-center justify-between mb-7">
-                      <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-bold text-pencil bg-pencil/10 ring-1 ring-pencil/20 px-2.5 py-1 rounded-full">
+                      <span className="inline-flex items-center gap-1.5 text-[0.625rem] uppercase tracking-[0.22em] font-bold text-pencil bg-pencil/10 ring-1 ring-pencil/20 px-2.5 py-1 rounded-full">
                         <Calendar size={10} />
                         {teacher.month}
                       </span>
-                      <span className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/30">#{String(i + 1).padStart(2, '0')}</span>
+                      <span className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-white/70">#{String(i + 1).padStart(2, '0')}</span>
                     </div>
 
                     {/* Avatar — outer/inner concentric */}
@@ -442,12 +444,12 @@ export default function ForSchoolsPage() {
                     <h3 className="font-serif font-bold text-2xl text-white leading-tight mb-1">
                       {teacher.teacher_name}
                     </h3>
-                    <p className="text-[11px] uppercase tracking-[0.22em] font-bold text-white/40 mb-5">
+                    <p className="text-[0.6875rem] uppercase tracking-[0.22em] font-bold text-white/70 mb-5">
                       {[teacher.subject, teacher.school].filter(Boolean).join(' · ')}
                     </p>
 
                     {/* Why */}
-                    <blockquote className="text-white/65 text-sm font-light leading-relaxed border-l-2 border-pencil/30 pl-4 flex-1">
+                    <blockquote className="text-white/70 text-sm font-light leading-relaxed border-l-2 border-pencil/30 pl-4 flex-1">
                       {teacher.why}
                     </blockquote>
                   </div>
@@ -480,7 +482,7 @@ export default function ForSchoolsPage() {
 
               {/* Copy side */}
               <div className="md:col-span-7 p-8 md:p-12 lg:p-14 flex flex-col justify-center">
-                <div className="inline-flex items-center gap-2 bg-apple/15 text-apple ring-1 ring-apple/30 px-3 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.22em] w-fit">
+                <div className="inline-flex items-center gap-2 bg-apple/15 text-apple ring-1 ring-apple/30 px-3 py-1.5 rounded-full text-[0.625rem] font-bold mb-6 uppercase tracking-[0.22em] w-fit">
                   <Sparkles size={11} />
                   And there's more
                 </div>
@@ -488,21 +490,21 @@ export default function ForSchoolsPage() {
                   <span className="text-pencil italic font-normal">{STAT.tawStaff.value} staff members</span><br/>
                   across nine buildings.
                 </h3>
-                <p className="text-white/55 text-base md:text-lg font-light leading-relaxed mb-7">
+                <p className="text-white/70 text-base md:text-lg font-light leading-relaxed mb-7">
                   During Teacher Appreciation Week, five local businesses showed up for teachers: <span className="text-white font-medium">Chick-fil-A</span> gave over 1,000 meal cards — 500 breakfast, 500 lunch entrées, roughly $5,000 in value —, <span className="text-white font-medium">Dunkin'</span> brought coffee and donuts to the OHS staff meeting where our first Teachers of the Month were announced, <span className="text-white font-medium">Playmakers</span> donated two $25 gift cards, <span className="text-white font-medium">Cottage Inn</span> gave five $20 gift cards, and <span className="text-white font-medium">Culver's</span> donated ~70–75 free custard coupons — reaching every Okemos school, plus Haslett High School and East Lansing High School.
                 </p>
                 <div className="grid grid-cols-3 gap-5 pt-6 border-t border-white/10">
                   <div>
                     <p className="font-serif font-bold text-3xl text-pencil leading-none">{STAT.tawStaff.value}</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Staff reached</p>
+                    <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-white/70 mt-2">Staff reached</p>
                   </div>
                   <div>
                     <p className="font-serif font-bold text-3xl text-pencil leading-none">{STAT.tawBuildings.value}</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Buildings, 3 districts</p>
+                    <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-white/70 mt-2">Buildings, 3 districts</p>
                   </div>
                   <div>
                     <p className="font-serif font-bold text-3xl text-pencil leading-none">5</p>
-                    <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mt-2">Local partners</p>
+                    <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-white/70 mt-2">Local partners</p>
                   </div>
                 </div>
               </div>
@@ -516,13 +518,13 @@ export default function ForSchoolsPage() {
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
-              initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.8, ease: EASE }}
               className="lg:col-span-7"
             >
-              <div className="inline-flex items-center gap-2 bg-ruler/10 text-ruler ring-1 ring-ruler/20 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.24em]">
+              <div className="inline-flex items-center gap-2 bg-ruler/10 text-ruler ring-1 ring-ruler/20 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-6 uppercase tracking-[0.24em]">
                 <Coffee size={11} />
                 Proof of cadence
               </div>
@@ -538,7 +540,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
               className="lg:col-span-5 lg:pt-4"
             >
-              <p className="text-chalkboard/60 text-lg font-light leading-relaxed">
+              <p className="text-chalkboard/70 text-lg font-light leading-relaxed">
                 We don't ask the school to source food. We don't ask the PTA. We line up local partners in your community and deliver — every single staff meeting.
               </p>
             </motion.div>
@@ -570,14 +572,14 @@ export default function ForSchoolsPage() {
                       </picture>
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-pencil/20 to-apple/20 flex items-center justify-center">
-                        <UtensilsCrossed size={32} className="text-white/50" />
+                        <UtensilsCrossed size={32} className="text-white/70" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/90 via-chalkboard/20 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <p className="text-pencil text-[9px] uppercase tracking-[0.22em] font-bold mb-1">{partner.month}</p>
+                      <p className="text-pencil text-[0.625rem] uppercase tracking-[0.22em] font-bold mb-1">{partner.month}</p>
                       <p className="text-white font-bold text-sm leading-tight">{partner.business}</p>
-                      <p className="text-white/60 text-[11px] mt-1 leading-snug">{partner.detail}</p>
+                      <p className="text-white/70 text-[0.6875rem] mt-1 leading-snug">{partner.detail}</p>
                     </div>
                   </div>
                 </div>
@@ -587,16 +589,16 @@ export default function ForSchoolsPage() {
 
           {/* Polaroid collage — real moments from the field, pinned like a corkboard */}
           <div className="mt-16">
-            <p className="text-center font-hand text-xl text-chalkboard/45 -rotate-1 mb-8">
+            <p className="text-center font-hand text-xl text-chalkboard/70 -rotate-1 mb-8">
               …and the camera roll to prove it
             </p>
             <div className="flex flex-wrap justify-center items-start gap-5 md:gap-2">
               {[
-                { src: '/images/may-staff-meeting-opt.jpg',      caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
-                { src: '/images/IMG_5568-opt.jpg',           caption: 'Special delivery',                     rotate: 2.5,  y: 18 },
-                { src: '/images/may-chick-fil-a-cards-opt.jpg',  caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
-                { src: '/images/IMG_6113-opt.jpg',           caption: 'Post Office of Love, ready for delivery', rotate: 3,    y: 22 },
-                { src: '/images/IMG_6116-opt.jpg',           caption: '"Share the Love" writing station',     rotate: -2,   y: 10 },
+                { src: '/images/may-staff-meeting-opt.jpg',      alt: "A whiteboard reading Happy Teacher Appreciation Week, signed Funding Michigan Teachers, beside three Teacher of the Month certificates", caption: 'Teacher of the Month, announced live', rotate: -3.5, y: 0 },
+                { src: '/images/IMG_5568-opt.jpg',           alt: "Finn Regan and Mrs. Freeman smiling in an Okemos High School hallway", caption: 'Special delivery',                     rotate: 2.5,  y: 18 },
+                { src: '/images/may-chick-fil-a-cards-opt.jpg',  alt: "A hand holding a thick stack of Chick-fil-A meal cards", caption: '1,000+ meal cards, ready to go',       rotate: -1.5, y: 6 },
+                { src: '/images/IMG_6113-opt.jpg',           alt: "A school hallway decorated for Valentine's Day with a pink and red balloon arch and paper hearts", caption: 'Post Office of Love, ready for delivery', rotate: 3,    y: 22 },
+                { src: '/images/IMG_6116-opt.jpg',           alt: "A Share the Love sign above a small table set with cards and markers for writing letters to staff", caption: '"Share the Love" writing station',     rotate: -2,   y: 10 },
               ].map((photo, i) => (
                 <motion.figure
                   key={photo.src}
@@ -610,13 +612,13 @@ export default function ForSchoolsPage() {
                   <div className="aspect-square overflow-hidden rounded-[2px] bg-chalkboard/5">
                     <img
                       src={photo.src}
-                      alt={photo.caption}
+                      alt={photo.alt}
                       className="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
                     />
                   </div>
-                  <figcaption className="font-hand text-sm text-chalkboard/60 text-center py-3 px-1 leading-tight">
+                  <figcaption className="font-hand text-sm text-chalkboard/70 text-center py-3 px-1 leading-tight">
                     {photo.caption}
                   </figcaption>
                 </motion.figure>
@@ -631,13 +633,13 @@ export default function ForSchoolsPage() {
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
           <div className="grid lg:grid-cols-12 gap-10 mb-14">
             <motion.div
-              initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
-              whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.9, ease: EASE }}
               className="lg:col-span-7"
             >
-              <div className="inline-flex items-center gap-2 bg-pencil/20 text-chalkboard ring-1 ring-pencil/40 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.24em]">
+              <div className="inline-flex items-center gap-2 bg-pencil/20 text-chalkboard ring-1 ring-pencil/40 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-6 uppercase tracking-[0.24em]">
                 <Calendar size={11} />
                 Trial Year
               </div>
@@ -653,7 +655,7 @@ export default function ForSchoolsPage() {
               transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
               className="lg:col-span-5 lg:pt-4"
             >
-              <p className="text-lg text-chalkboard/60 leading-relaxed font-light">
+              <p className="text-lg text-chalkboard/70 leading-relaxed font-light">
                 We are intentional about not over-promising. A trial year is a structured 7-step rollout — small enough that we never miss, big enough that your staff will feel it from week one.
               </p>
             </motion.div>
@@ -667,8 +669,8 @@ export default function ForSchoolsPage() {
               {ROADMAP.map((step, i) => (
                 <motion.div
                   key={step.phase}
-                  initial={{ opacity: 0, x: -20, filter: 'blur(6px)' }}
-                  whileInView={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: '-80px' }}
                   transition={{ duration: 0.7, delay: i * 0.07, ease: EASE }}
                   className="relative flex gap-5 md:gap-8 items-start group"
@@ -686,10 +688,10 @@ export default function ForSchoolsPage() {
                   <div className="flex-1 bg-white ring-1 ring-chalkboard/8 rounded-[1.5rem] p-6 md:p-7 hover:ring-chalkboard/20 hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all"
                        style={{ transition: `all 700ms cubic-bezier(${EASE.join(',')})` }}>
                     <div className="flex flex-wrap items-baseline gap-3 mb-2">
-                      <span className="text-[10px] uppercase tracking-[0.24em] font-bold text-apple">{step.phase}</span>
+                      <span className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-apple">{step.phase}</span>
                       <h3 className="font-serif font-bold text-2xl text-chalkboard tracking-[-0.01em]">{step.title}</h3>
                     </div>
-                    <p className="text-chalkboard/60 text-base font-light leading-relaxed">{step.detail}</p>
+                    <p className="text-chalkboard/70 text-base font-light leading-relaxed">{step.detail}</p>
                   </div>
                 </motion.div>
               ))}
@@ -705,21 +707,21 @@ export default function ForSchoolsPage() {
 
         <div className="max-w-5xl mx-auto w-full relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
-            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, ease: EASE }}
             className="text-center"
           >
-            <div className="inline-flex items-center gap-2 bg-white/8 ring-1 ring-white/15 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em]">
-              <span className="w-1.5 h-1.5 rounded-full bg-apple animate-pulse" />
+            <div className="inline-flex items-center gap-2 bg-white/8 ring-1 ring-white/15 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-8 uppercase tracking-[0.24em]">
+              <span className="w-1.5 h-1.5 rounded-full bg-apple" />
               Limited to 9 Pilot Schools · 2026–27
             </div>
             <h2 className="text-5xl md:text-7xl font-serif font-bold leading-[0.95] tracking-[-0.02em] text-balance mb-8">
               Bring this<br/>
-              <span className="text-apple italic font-normal">to your school.</span>
+              <span className="text-apple-on-dark italic font-normal">to your school.</span>
             </h2>
-            <p className="text-lg text-white/55 max-w-2xl mx-auto font-light leading-relaxed mb-12">
+            <p className="text-lg text-white/70 max-w-2xl mx-auto font-light leading-relaxed mb-12">
               We're opening nine pilot spots for the 2026–27 school year. If you're an admin, a department lead, or a teacher who thinks your building deserves this — the form below takes two minutes.
             </p>
 
@@ -751,7 +753,7 @@ export default function ForSchoolsPage() {
                   className="bg-white/5 ring-1 ring-white/10 rounded-2xl p-5 text-left"
                 >
                   <c.icon size={18} className="text-pencil mb-3" />
-                  <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-white/40 mb-1">{c.label}</p>
+                  <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-white/70 mb-1">{c.label}</p>
                   <p className="text-sm text-white/80 font-light leading-snug">{c.text}</p>
                 </motion.div>
               ))}
@@ -759,11 +761,35 @@ export default function ForSchoolsPage() {
           </motion.div>
         </div>
       </section>
+      </main>
 
       <SiteFooter />
 
       <div className="grain-overlay" aria-hidden="true" />
     </div>
+  );
+}
+
+/** Replaces the pilot form once the enquiry has been delivered. */
+function PilotThanks() {
+  const headingRef = useFocusOnMount<HTMLHeadingElement>();
+  return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="max-w-xl mx-auto bg-white/[0.04] ring-1 ring-white/10 rounded-[2rem] p-2"
+      >
+        <div className="bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.5rem)] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/15 ring-1 ring-apple/30 flex items-center justify-center">
+            <CheckCircle2 size={24} className="text-apple" />
+          </div>
+          <h3 ref={headingRef} tabIndex={-1} className="font-serif font-bold text-2xl text-white mb-2 outline-none">You're on the list.</h3>
+          <p className="text-white/75 text-sm font-light leading-relaxed max-w-sm mx-auto">
+            We'll reach out within a few days to set up your listening tour. Nine spots, first conversations first.
+          </p>
+        </div>
+      </motion.div>
   );
 }
 
@@ -774,11 +800,11 @@ export default function ForSchoolsPage() {
  * inquiry is ever lost.
  */
 function PilotInterestForm() {
-  const inp = 'w-full bg-white/[0.06] ring-1 ring-white/15 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/30 transition-all';
-  const lbl = 'block text-left text-[10px] uppercase tracking-[0.2em] font-bold text-white/40 mb-1.5';
+  const inp = 'w-full bg-white/[0.06] ring-1 ring-white/40 rounded-2xl px-5 py-3.5 text-sm text-white outline-none placeholder:text-white/55 transition-all';
+  const lbl = 'block text-left text-[0.625rem] uppercase tracking-[0.2em] font-bold text-white/75 mb-1.5';
 
   const [form, setForm] = useState({ name: '', role: '', email: '', school: '', district: '', staffSize: '', note: '' });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -822,36 +848,18 @@ function PilotInterestForm() {
       if (!error) submitted = true;
     }
 
-    if (!submitted) {
-      // Last-resort fallback — open a prefilled email so nothing is lost
-      const subject = encodeURIComponent(`Pilot School Interest — ${form.school}`);
-      const body = encodeURIComponent(`Name: ${form.name} (${form.role})\nSchool: ${form.school}\nDistrict: ${form.district}\nStaff size: ${form.staffSize}\nEmail: ${form.email}\n\n${form.note}`);
-      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
-    }
+    if (submitted) track('school_inquiry_submitted');
+    setStatus(submitted ? 'success' : 'error');
+  };
 
-    track('school_inquiry_submitted');
-    setStatus('success');
+  const mailto = () => {
+    const subject = encodeURIComponent(`Pilot School Interest — ${form.school}`);
+    const body = encodeURIComponent(`Name: ${form.name} (${form.role})\nSchool: ${form.school}\nDistrict: ${form.district}\nStaff size: ${form.staffSize}\nEmail: ${form.email}\n\n${form.note}`);
+    return `mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`;
   };
 
   if (status === 'success') {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: EASE }}
-        className="max-w-xl mx-auto bg-white/[0.04] ring-1 ring-white/10 rounded-[2rem] p-2"
-      >
-        <div className="bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.5rem)] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-          <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/15 ring-1 ring-apple/30 flex items-center justify-center">
-            <CheckCircle2 size={24} className="text-apple" />
-          </div>
-          <h3 className="font-serif font-bold text-2xl text-white mb-2">You're on the list.</h3>
-          <p className="text-white/55 text-sm font-light leading-relaxed max-w-sm mx-auto">
-            We'll reach out within a few days to set up your listening tour. Nine spots, first conversations first.
-          </p>
-        </div>
-      </motion.div>
-    );
+    return <PilotThanks />;
   }
 
   return (
@@ -866,37 +874,37 @@ function PilotInterestForm() {
       <div className="bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.5rem)] p-7 md:p-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={lbl}>Your Name</label>
-            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Alex Rivera" />
+            <label htmlFor="sch-name" className={lbl}>Your Name</label>
+            <input id="sch-name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Alex Rivera" />
           </div>
           <div>
-            <label className={lbl}>Your Role</label>
-            <input required value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={inp} placeholder="Principal / Teacher / Parent" />
-          </div>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className={lbl}>School</label>
-            <input required value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} className={inp} placeholder="Lincoln Elementary" />
-          </div>
-          <div>
-            <label className={lbl}>District</label>
-            <input required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className={inp} placeholder="Lansing Public Schools" />
+            <label htmlFor="sch-role" className={lbl}>Your Role</label>
+            <input id="sch-role" autoComplete="organization-title" required value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className={inp} placeholder="Principal / Teacher / Parent" />
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={lbl}>Email</label>
-            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="you@school.edu" />
+            <label htmlFor="sch-school" className={lbl}>School</label>
+            <input id="sch-school" autoComplete="organization" required value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} className={inp} placeholder="Lincoln Elementary" />
           </div>
           <div>
-            <label className={lbl}>Approx. Staff Size</label>
-            <input value={form.staffSize} onChange={(e) => setForm({ ...form, staffSize: e.target.value })} className={inp} placeholder="~85" />
+            <label htmlFor="sch-district" className={lbl}>District</label>
+            <input id="sch-district" required value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })} className={inp} placeholder="Lansing Public Schools" />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="sch-email" className={lbl}>Email</label>
+            <input id="sch-email" autoComplete="email" required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="you@school.edu" />
+          </div>
+          <div>
+            <label htmlFor="sch-staff" className={lbl}>Approx. Staff Size</label>
+            <input id="sch-staff" value={form.staffSize} onChange={(e) => setForm({ ...form, staffSize: e.target.value })} className={inp} placeholder="~85" />
           </div>
         </div>
         <div>
-          <label className={lbl}>Anything we should know? (optional)</label>
-          <textarea rows={3} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className={inp} placeholder="Our staff could really use a morale boost this year…" />
+          <label htmlFor="sch-note" className={lbl}>Anything we should know? (optional)</label>
+          <textarea id="sch-note" rows={3} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className={inp} placeholder="Our staff could really use a morale boost this year…" />
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
@@ -914,12 +922,13 @@ function PilotInterestForm() {
           </button>
           <a
             href="mailto:hello@fundingmichiganteachers.org?subject=For%20Schools%20%E2%80%94%20Bring%20FMT%20to%20Our%20District"
-            className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] font-bold text-white/40 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-[0.6875rem] uppercase tracking-[0.18em] font-bold text-white/75 hover:text-white transition-colors"
           >
-            <Mail size={12} />
+            <Mail size={12} aria-hidden="true" />
             Or email us instead
           </a>
         </div>
+        {status === 'error' && <SendFailed mailto={mailto()} onDark />}
       </div>
     </motion.form>
   );

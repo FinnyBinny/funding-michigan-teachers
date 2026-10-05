@@ -44,19 +44,19 @@ export default function RestrictedPage() {
             <ShieldAlert size={24} strokeWidth={1.5} />
           </div>
 
-          <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-3">
+          <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-3">
             Access restricted
           </p>
           <h1 className="font-serif font-bold text-2xl sm:text-3xl leading-tight tracking-[-0.01em] mb-4">
             You can't reach this site right now.
           </h1>
-          <p className="text-sm text-chalkboard/60 font-light leading-relaxed mb-7">
+          <p className="text-sm text-chalkboard/70 font-light leading-relaxed mb-7">
             Access to Funding Michigan Teachers has been restricted from this network.
           </p>
 
           <div className="bg-paper ring-1 ring-chalkboard/8 rounded-2xl px-5 py-5 text-left">
             <p className="text-sm font-bold text-chalkboard mb-1.5">Think this is a mistake?</p>
-            <p className="text-xs text-chalkboard/55 font-light leading-relaxed mb-4">
+            <p className="text-xs text-chalkboard/70 font-light leading-relaxed mb-4">
               This can happen to a whole household, school, or office at once — if you
               believe you've been restricted in error, get in touch and we'll take a look.
             </p>
@@ -73,7 +73,7 @@ export default function RestrictedPage() {
           </div>
         </div>
 
-        <p className="text-center text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/30 mt-6">
+        <p className="text-center text-[0.625rem] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mt-6">
           Funding Michigan Teachers · Student-Led 501(c)(3)
         </p>
       </motion.div>

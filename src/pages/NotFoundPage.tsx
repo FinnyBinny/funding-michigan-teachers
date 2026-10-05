@@ -38,7 +38,7 @@ export default function NotFoundPage() {
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <div className="pointer-events-none absolute top-0 left-0 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />
 
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-20">
+      <main id="main" className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -49,16 +49,16 @@ export default function NotFoundPage() {
             <Compass size={24} strokeWidth={1.5} />
           </div>
 
-          <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-4">
+          <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-4">
             Error 404
           </p>
           <h1 className="font-serif font-bold text-[clamp(2rem,7vw,3rem)] leading-[1.05] tracking-[-0.02em] mb-4">
             This page went <span className="text-apple italic font-normal">missing</span>.
           </h1>
-          <p className="font-hand text-xl text-chalkboard/45 -rotate-1 mb-8">
+          <p className="font-hand text-xl text-chalkboard/70 -rotate-1 mb-8">
             even our best students misplace things
           </p>
-          <p className="text-chalkboard/60 font-light leading-relaxed mb-9">
+          <p className="text-chalkboard/70 font-light leading-relaxed mb-9">
             The link may be out of date, or the address might have a typo. Here's where
             most people are headed:
           </p>
@@ -75,7 +75,7 @@ export default function NotFoundPage() {
               >
                 <span className="min-w-0">
                   <span className="block text-sm font-bold text-chalkboard leading-snug">{way.label}</span>
-                  <span className="block text-xs text-chalkboard/50 font-light leading-snug">{way.hint}</span>
+                  <span className="block text-xs text-chalkboard/70 font-light leading-snug">{way.hint}</span>
                 </span>
                 <span className="w-7 h-7 rounded-full bg-chalkboard/5 group-hover:bg-apple group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
                   <ArrowRight size={13} />
@@ -86,7 +86,7 @@ export default function NotFoundPage() {
 
           <button
             onClick={() => navigate('/')}
-            className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-chalkboard/50 hover:text-apple transition-colors min-h-[44px]"
+            className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-chalkboard/70 hover:text-apple transition-colors min-h-[44px]"
           >
             <ArrowLeft size={14} />
             Back to Funding Michigan Teachers

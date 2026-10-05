@@ -35,11 +35,19 @@ export const supabase =
     : null;
 
 /** Returns a stable anonymous voter ID for this browser (stored in localStorage). */
+let memoryVoterId: string | null = null;
 export function getVoterId(): string {
-  let id = localStorage.getItem('fmt_voter_id');
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem('fmt_voter_id', id);
+  // localStorage throws when a browser blocks site storage; the vote still
+  // counts, it just is not remembered after this visit.
+  try {
+    let id = localStorage.getItem('fmt_voter_id');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('fmt_voter_id', id);
+    }
+    return id;
+  } catch {
+    memoryVoterId ??= crypto.randomUUID();
+    return memoryVoterId;
   }
-  return id;
 }

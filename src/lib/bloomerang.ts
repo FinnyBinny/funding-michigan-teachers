@@ -35,6 +35,8 @@ export const BLOOMERANG_FORMS = {
   pilotSchool: 'Website — bring FMT to your school',
   sponsor: 'Website — sponsorship enquiry',
   newsletter: 'Website — Impact Report signup',
+  project: 'Website — classroom project submission',
+  returnables: 'Website — returnables pickup request',
 } as const;
 
 export type BloomerangForm = keyof typeof BLOOMERANG_FORMS;

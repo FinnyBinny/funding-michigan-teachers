@@ -25,6 +25,26 @@ export default function FAQAssistant() {
   ]);
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Opening moves focus into the panel; Escape closes it and hands focus back
+  // to the button. Before, the button that had focus was hidden on open, so
+  // focus fell to the page body and keyboard users were lost.
+  useEffect(() => {
+    if (!isOpen) return;
+    inputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen]);
+
+  const close = () => {
+    setIsOpen(false);
+    requestAnimationFrame(() => launcherRef.current?.focus());
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -44,50 +64,58 @@ export default function FAQAssistant() {
 
   return (
     <>
+      {/* Above the Donate ribbon on phones, where both sit at the bottom. */}
       <motion.button
+        ref={launcherRef}
         initial={{ scale: 0, rotate: -45 }}
         animate={{ scale: 1, rotate: 0 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(true)}
+        aria-label="Quick answers to common questions"
+        aria-expanded={isOpen}
+        aria-controls="faq-panel"
         className={cn(
-          "fixed bottom-8 right-8 z-50 w-16 h-16 bg-apple text-white rounded-full shadow-2xl flex items-center justify-center group",
-          isOpen && "hidden"
+          "fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 w-14 h-14 lg:w-16 lg:h-16 bg-apple text-white rounded-full shadow-2xl flex items-center justify-center group",
+          isOpen && "invisible"
         )}
       >
-        <MessageSquare size={28} className="group-hover:scale-110 transition-transform" />
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-pencil text-chalkboard text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce border-2 border-white">
+        <MessageSquare size={26} className="group-hover:scale-110 transition-transform" aria-hidden="true" />
+        <span aria-hidden="true" className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-pencil text-chalkboard text-[0.625rem] font-bold rounded-full flex items-center justify-center border-2 border-white">
           ?
-        </div>
+        </span>
       </motion.button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="faq-panel"
+            role="dialog"
+            aria-labelledby="faq-title"
             initial={{ opacity: 0, y: 100, scale: 0.8, transformOrigin: 'bottom right' }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed bottom-8 right-8 z-50 w-[400px] max-h-[600px] bg-white rounded-[2.5rem] shadow-2xl border border-chalkboard/5 flex flex-col overflow-hidden"
+            className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-[70] w-[min(400px,calc(100vw-2rem))] max-h-[min(600px,calc(100dvh-2rem))] bg-white rounded-[2rem] shadow-2xl border border-chalkboard/10 flex flex-col overflow-hidden"
           >
             <div className="bg-chalkboard p-6 text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-apple rounded-xl flex items-center justify-center">
                   <BookOpen size={22} />
                 </div>
+                {/* It matches keywords against our FAQ; it is not a person
+                    and not live. It used to say "Always Available" beside a
+                    pulsing green dot, which reads as someone on the other end. */}
                 <div>
-                  <h3 className="font-bold leading-none">Quick Answers</h3>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-60">Always Available</span>
-                  </div>
+                  <h2 id="faq-title" className="font-bold leading-none text-base">Quick Answers</h2>
+                  <p className="text-[0.6875rem] text-white/75 mt-1">Answers from our FAQ. For anything else, email us.</p>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} aria-label="Close help" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <button onClick={close} aria-label="Close quick answers" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                 <X size={20} />
               </button>
             </div>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4" role="log" aria-live="polite" aria-label="Conversation">
               {messages.map((msg, i) => (
                 <motion.div
                   key={i}
@@ -96,7 +124,7 @@ export default function FAQAssistant() {
                   className={cn("flex gap-3 max-w-[90%]", msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto")}
                 >
                   <div className={cn(
-                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold mt-1",
+                    "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[0.6875rem] font-bold mt-1",
                     msg.role === 'user' ? "bg-ruler text-white" : "bg-apple/10 text-apple"
                   )}>
                     {msg.role === 'user' ? 'You' : 'FMT'}
@@ -128,12 +156,14 @@ export default function FAQAssistant() {
               </div>
               <div className="flex gap-2">
                 <input
+                  ref={inputRef}
                   type="text"
+                  aria-label="Your question"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Ask a question..."
-                  className="flex-1 bg-white border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-apple/20 focus:border-apple transition-all"
+                  className="flex-1 min-w-0 bg-white border border-chalkboard/30 rounded-xl px-4 py-3 text-sm outline-none transition-all"
                 />
                 <button
                   onClick={() => handleSend()}

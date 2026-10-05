@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -67,7 +67,32 @@ const HOME_ANCHORS = [
 export default function SiteHeader({ isHome = false, onDark = false }: { isHome?: boolean; onDark?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const current = typeof window !== 'undefined' ? window.location.pathname.replace(/\/+$/, '') || '/' : '/';
+
+  // While the phone menu is open it is the page: Escape closes it, the page
+  // behind is inert (no Tab stops hidden under the panel) and does not
+  // scroll. Closing with Escape hands focus back to the button that opened it.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const behind = [...document.querySelectorAll<HTMLElement>('main, footer')];
+    behind.forEach((el) => el.setAttribute('inert', ''));
+    const html = document.documentElement;
+    const prevOverflow = html.style.overflow;
+    html.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      behind.forEach((el) => el.removeAttribute('inert'));
+      html.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -84,16 +109,43 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
     navigate(path);
   };
 
+  /**
+   * Navigation items are real links, so they can be opened in a new tab and a
+   * screen reader announces them as links, with the click handled in-app.
+   * A modified click (new tab, new window) is left to the browser.
+   */
+  const linkProps = (path: string) => ({
+    href: path,
+    'aria-current': current === path ? ('page' as const) : undefined,
+    onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      e.preventDefault();
+      go(path);
+    },
+  });
+
+  /** Skips to the page's <main>, whichever page this is. */
+  const skipToContent = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const main = document.querySelector('main');
+    if (!main) return;
+    e.preventDefault();
+    main.setAttribute('tabindex', '-1');
+    main.focus({ preventScroll: true });
+    main.scrollIntoView();
+  };
+
   return (
-    <>
+    <header>
+      <a href="#main" onClick={skipToContent} className="skip-link">Skip to content</a>
       <nav
+        aria-label="Main"
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-[padding,background-color,box-shadow] duration-300 px-6 py-4',
           scrolled ? 'bg-white/95 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.05)] py-3' : 'bg-transparent',
         )}
       >
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto flex justify-between items-center">
-          <button onClick={() => go('/')} className="flex items-center gap-3 group cursor-pointer min-w-0 text-left" aria-label="Funding Michigan Teachers — home">
+          <a {...linkProps('/')} className="flex items-center gap-3 group cursor-pointer min-w-0 text-left" aria-label="Funding Michigan Teachers — home">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl overflow-hidden shadow-lg transform -rotate-3 transition-transform group-hover:rotate-0 shrink-0">
               <picture>
                 <source srcSet="/images/fmt-logo-96.avif 96w, /images/fmt-logo-192.avif 192w" sizes="48px" type="image/avif" />
@@ -102,16 +154,16 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
             </div>
             <div className="flex flex-col min-w-0">
               <span className={cn('font-serif text-base sm:text-xl font-bold tracking-tight leading-none truncate', overDark && 'text-white')}>Funding Michigan Teachers</span>
-              <span className={cn('text-[10px] uppercase tracking-[0.2em] font-bold hidden sm:block', overDark ? 'text-white/70' : 'text-muted')}>Student-Led Nonprofit</span>
+              <span className={cn('text-[0.625rem] uppercase tracking-[0.2em] font-bold hidden sm:block', overDark ? 'text-white/70' : 'text-muted')}>Student-Led Nonprofit</span>
             </div>
-          </button>
+          </a>
 
           {/* Desktop nav — real pages, every page */}
           <div className="hidden lg:flex items-center gap-8 font-medium text-xs uppercase tracking-[0.15em]">
             {PAGES.map((item) => (
-              <button
+              <a
                 key={item.path}
-                onClick={() => go(item.path)}
+                {...linkProps(item.path)}
                 className={cn(
                   'transition-colors relative group cursor-pointer uppercase tracking-[0.15em]',
                   overDark ? 'text-white/85 hover:text-white' : 'hover:text-apple',
@@ -126,25 +178,27 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
                     current === item.path ? 'w-full' : 'w-0 group-hover:w-full',
                   )}
                 />
-              </button>
+              </a>
             ))}
-            <button
-              onClick={() => go('/donate')}
+            <a
+              {...linkProps('/donate')}
               className={cn(
                 'px-8 py-2.5 rounded-full transition-all hover:scale-105 active:scale-95 shadow-lg font-bold cursor-pointer',
                 overDark ? 'bg-white text-chalkboard hover:bg-white/90' : 'bg-chalkboard text-white hover:bg-apple',
               )}
             >
               Donate Now
-            </button>
+            </a>
           </div>
 
           {/* Mobile hamburger */}
           <button
+            ref={toggleRef}
             onClick={() => setMenuOpen(!menuOpen)}
-            className={cn('lg:hidden p-2 rounded-xl transition-colors', overDark ? 'text-white hover:bg-white/10' : 'hover:bg-chalkboard/5')}
-            aria-label="Toggle menu"
+            className={cn('lg:hidden p-2 rounded-xl transition-colors', overDark && !menuOpen ? 'text-white hover:bg-white/10' : 'hover:bg-chalkboard/5')}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
+            aria-controls="site-menu"
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -154,29 +208,31 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
       {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
-          <motion.div
+          <motion.nav
+            id="site-menu"
+            aria-label="Site menu"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl pt-24 pb-8 px-6 shadow-2xl lg:hidden max-h-screen overflow-y-auto"
+            className="fixed top-0 left-0 right-0 z-40 bg-white pt-24 pb-8 px-6 shadow-2xl lg:hidden max-h-[100dvh] overflow-y-auto overscroll-contain"
           >
             <div className="flex flex-col gap-4">
               {[{ label: 'Home', path: '/' }, ...PAGES].map((item) => (
-                <button
+                <a
                   key={item.path}
-                  onClick={() => go(item.path)}
+                  {...linkProps(item.path)}
                   className={cn(
-                    'text-left text-lg font-bold uppercase tracking-widest hover:text-apple transition-colors py-2 border-b border-chalkboard/5',
+                    'text-left text-lg font-bold uppercase tracking-widest hover:text-apple transition-colors py-2 border-b border-chalkboard/10',
                     current === item.path && 'text-apple',
                   )}
                 >
                   {item.label}
-                </button>
+                </a>
               ))}
 
               {isHome && (
                 <div className="mt-2">
-                  <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-muted mb-2">On this page</p>
+                  <p className="text-[0.625rem] uppercase tracking-[0.25em] font-bold text-muted mb-2">On this page</p>
                   <div className="flex flex-wrap gap-x-5 gap-y-2">
                     {HOME_ANCHORS.map((a) => (
                       <a
@@ -192,16 +248,16 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
                 </div>
               )}
 
-              <button
-                onClick={() => go('/donate')}
-                className="mt-4 bg-apple text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-apple/90 transition-all cursor-pointer"
+              <a
+                {...linkProps('/donate')}
+                className="mt-4 bg-apple text-white text-center px-8 py-4 rounded-2xl font-bold text-lg hover:bg-apple/90 transition-all cursor-pointer"
               >
                 Donate Now
-              </button>
+              </a>
             </div>
-          </motion.div>
+          </motion.nav>
         )}
       </AnimatePresence>
-    </>
+    </header>
   );
 }

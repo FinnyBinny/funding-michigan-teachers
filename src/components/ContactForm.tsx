@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
+import { SendFailed } from './FormStatus';
 import { track } from '../lib/analytics';
 
 export default function ContactForm() {
@@ -44,21 +45,20 @@ export default function ContactForm() {
       if (!error) submitted = true;
     }
 
+    // Confirmations stay on screen; they used to disappear after 5-9 seconds.
     if (submitted) {
       track('contact_form_submitted');
       setStatus('success');
       setForm({ name: '', email: '', message: '' });
-      setTimeout(() => setStatus('idle'), 5000);
     } else {
-      // Final fallback: hand the message to their email app. This is NOT a
-      // send — saying "Message sent!" here would be a lie if their mail
-      // client never opens, so the UI says what actually happened.
-      const subject = encodeURIComponent(`Contact from ${form.name} — Funding Michigan Teachers`);
-      const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\nMessage:\n${form.message}`);
-      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
       setStatus('mailto');
-      setTimeout(() => setStatus('idle'), 9000);
     }
+  };
+
+  const mailto = () => {
+    const subject = encodeURIComponent(`Contact from ${form.name} — Funding Michigan Teachers`);
+    const body = encodeURIComponent(`Name: ${form.name}\nEmail: ${form.email}\n\nMessage:\n${form.message}`);
+    return `mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -69,14 +69,14 @@ export default function ContactForm() {
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
       >
-        <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[10px] font-bold mb-8 border border-apple/20 uppercase tracking-[0.2em]">
+        <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.625rem] font-bold mb-8 border border-apple/20 uppercase tracking-[0.2em]">
           <MessageSquare size={14} />
           <span>Get in Touch</span>
         </div>
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold mb-5 leading-[0.9] tracking-tight text-chalkboard">
           Let's <span className="text-apple italic font-normal">Connect</span>.
         </h2>
-        <p className="text-base text-chalkboard/60 mb-8 font-light leading-relaxed max-w-md">
+        <p className="text-base text-chalkboard/70 mb-8 font-light leading-relaxed max-w-md">
           Have questions about our mission or want to get involved? We're here to help you make an impact.
         </p>
 
@@ -90,7 +90,7 @@ export default function ContactForm() {
                 <item.icon size={20} />
               </div>
               <div className="pt-1 min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted mb-1">{item.label}</div>
+                <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted mb-1">{item.label}</div>
                 <div className="text-sm sm:text-base font-bold text-chalkboard break-all">{item.value}</div>
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function ContactForm() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="contact-name" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Your Name</label>
+              <label htmlFor="contact-name" className="block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Your Name</label>
               <input 
                 required
                 id="contact-name"
@@ -116,12 +116,12 @@ export default function ContactForm() {
                 autoComplete="name"
                 value={form.name}
                 onChange={e => setForm({...form, name: e.target.value})}
-                className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
+                className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/65" 
                 placeholder="Sarah Jenkins"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="contact-email" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Email Address</label>
+              <label htmlFor="contact-email" className="block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Email Address</label>
               <input 
                 required
                 type="email"
@@ -130,13 +130,13 @@ export default function ContactForm() {
                 autoComplete="email"
                 value={form.email}
                 onChange={e => setForm({...form, email: e.target.value})}
-                className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/20" 
+                className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all placeholder:text-chalkboard/65" 
                 placeholder="sarah@example.com"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <label htmlFor="contact-message" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Message</label>
+            <label htmlFor="contact-message" className="block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Message</label>
             <textarea 
               required
               id="contact-message"
@@ -144,7 +144,7 @@ export default function ContactForm() {
               value={form.message}
               onChange={e => setForm({...form, message: e.target.value})}
               rows={5}
-              className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all resize-none placeholder:text-chalkboard/20" 
+              className="w-full bg-paper border border-chalkboard/5 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 outline-none transition-all resize-none placeholder:text-chalkboard/65" 
               placeholder="How can we help you?"
             />
           </div>
@@ -166,20 +166,15 @@ export default function ContactForm() {
           </button>
         </form>
         
-        <AnimatePresence>
-          {(status === 'success' || status === 'mailto') && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-8 p-5 bg-apple/10 border border-apple/20 rounded-2xl text-apple text-center font-bold"
-            >
-              {status === 'mailto'
-                ? "We opened your email app with the message ready — press send there and it'll reach us."
-                : "Message sent! We'll get back to you within a day or two."}
-            </motion.div>
+        {/* Present before anything is announced, so it is read out. */}
+        <div role="status" aria-live="polite" className="mt-8 empty:hidden">
+          {status === 'success' && (
+            <p className="p-5 bg-apple/10 border border-apple/20 rounded-2xl text-apple text-center font-bold">
+              Message sent! We'll get back to you within a day or two.
+            </p>
           )}
-        </AnimatePresence>
+        </div>
+        {status === 'mailto' && <div className="mt-8 text-center"><SendFailed mailto={mailto()} /></div>}
       </motion.div>
     </div>
   );

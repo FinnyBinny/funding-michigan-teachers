@@ -92,7 +92,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
           // A term must come before its description in a <dl>; the figure is
           // shown first by reversing the column, not the markup.
           <div key={stat.label} className="px-3 py-4 sm:px-6 sm:py-5 text-center flex flex-col-reverse">
-            <dt className="text-[9px] sm:text-[10px] uppercase tracking-[0.16em] font-bold text-muted mt-1.5 leading-snug">{stat.label}</dt>
+            <dt className="text-[0.625rem] sm:text-[0.625rem] uppercase tracking-[0.16em] font-bold text-muted mt-1.5 leading-snug">{stat.label}</dt>
             <dd className="font-serif font-bold text-xl sm:text-3xl leading-none text-chalkboard">{stat.value}</dd>
           </div>
         ))}
@@ -128,7 +128,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
 
             <p className="flex items-baseline gap-1.5 mb-5">
               <span className="text-3xl font-serif font-bold">{tier.price}</span>
-              <span className={cn('text-[10px] font-bold uppercase tracking-widest', tier.dark ? 'text-white/70' : 'text-muted')}>a year</span>
+              <span className={cn('text-[0.625rem] font-bold uppercase tracking-widest', tier.dark ? 'text-white/70' : 'text-muted')}>a year</span>
             </p>
 
             <div className={cn('border-t pt-4 flex-1 mb-6', tier.dark ? 'border-white/15' : 'border-chalkboard/10')}>
@@ -139,7 +139,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
               )}
               <ul className="space-y-2">
                 {tier.perks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2.5 text-[13.5px] leading-snug">
+                  <li key={perk} className="flex items-start gap-2.5 text-[0.84375rem] leading-snug">
                     <Check size={14} strokeWidth={2.5} className={cn('shrink-0 mt-0.5', tier.dark ? 'text-pencil' : 'text-apple')} aria-hidden="true" />
                     <span className={tier.dark ? 'text-white/85' : 'text-chalkboard/80'}>{perk}</span>
                   </li>
@@ -174,7 +174,7 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
         className="bg-chalkboard rounded-[2.5rem] p-7 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8"
       >
         <div className="text-center md:text-left">
-          <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-5 uppercase tracking-widest border border-pencil/20">
+          <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-5 uppercase tracking-widest border border-pencil/20">
             <Handshake size={13} aria-hidden="true" />
             <span>Custom Packages Available</span>
           </div>

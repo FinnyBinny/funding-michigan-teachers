@@ -72,8 +72,8 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
     >
       {/* Double-bezel shell */}
@@ -83,22 +83,22 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
 
             {/* LEFT — the dial */}
             <div className="p-7 md:p-8 flex flex-col justify-center bg-paper/40 border-b lg:border-b-0 lg:border-r border-chalkboard/5">
-              <div className="inline-flex items-center gap-2 w-fit bg-apple/10 text-apple ring-1 ring-apple/20 px-3 py-1 rounded-full text-[10px] font-bold mb-7 uppercase tracking-[0.24em]">
+              <div className="inline-flex items-center gap-2 w-fit bg-apple/10 text-apple ring-1 ring-apple/20 px-3 py-1 rounded-full text-[0.625rem] font-bold mb-7 uppercase tracking-[0.24em]">
                 <Sparkles size={11} strokeWidth={1.5} />
                 See your impact
               </div>
 
               {/* Big animated dollar readout */}
               <div className="flex items-baseline gap-2 mb-1">
-                <span className="font-serif font-bold text-chalkboard/30 text-3xl md:text-4xl">$</span>
+                <span className="font-serif font-bold text-chalkboard/70 text-3xl md:text-4xl">$</span>
                 <span className="font-serif font-bold text-chalkboard leading-none text-[clamp(3.5rem,7vw,5.5rem)] tracking-[-0.03em] tabular-nums">
                   <AnimatedNumber value={amount} />
                 </span>
-                <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 mb-2">
+                <span className="text-[0.6875rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
                   {frequency === 'monthly' ? '/ month' : 'one-time'}
                 </span>
               </div>
-              <p className="font-hand text-lg text-chalkboard/45 mb-8 -rotate-1">…turns into real things, fast</p>
+              <p className="font-hand text-lg text-chalkboard/70 mb-8 -rotate-1">…turns into real things, fast</p>
 
               {/* Slider */}
               <input
@@ -109,9 +109,10 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                 value={Math.min(amount, 300)}
                 onChange={(e) => onAmountChange(Number(e.target.value))}
                 aria-label="Donation amount"
+                aria-valuetext={`$${amount}${frequency === 'monthly' ? ' a month' : ', one time'}`}
                 className="impact-slider w-full"
               />
-              <div className="flex justify-between mt-2 text-[10px] uppercase tracking-[0.18em] font-bold text-chalkboard/30">
+              <div className="flex justify-between mt-2 text-[0.625rem] uppercase tracking-[0.18em] font-bold text-chalkboard/70">
                 <span>$1</span>
                 <span>$150</span>
                 <span>$300+</span>
@@ -120,10 +121,10 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
               {/* The supply basket — fills with chips as the slider moves */}
               <div className="mt-8 pt-6 border-t border-chalkboard/8">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/45">
+                  <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
                     Your supply basket
                   </span>
-                  <span className="font-hand text-sm text-chalkboard/40 -rotate-1">
+                  <span className="font-hand text-sm text-chalkboard/70 -rotate-1">
                     {amount >= GRANT_SIZE ? 'overflowing!!' : amount >= 100 ? 'filling up fast' : 'slide to fill it…'}
                   </span>
                 </div>
@@ -131,7 +132,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
 
                 {/* Classroom-grant readout */}
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/45">
+                  <span className="flex items-center gap-2 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
                     <GraduationCap size={13} strokeWidth={1.5} className="text-apple" />
                     One full classroom grant
                   </span>
@@ -139,7 +140,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                     <AnimatedNumber value={grantPct} format={(n) => `${Math.round(n)}%`} />
                   </span>
                 </div>
-                <p className="text-[11px] text-chalkboard/45 font-light mt-1.5">
+                <p className="text-[0.6875rem] text-chalkboard/70 font-light mt-1.5">
                   {amount >= GRANT_SIZE
                     ? `That's ${Math.floor(amount / GRANT_SIZE)} full classroom grant${Math.floor(amount / GRANT_SIZE) > 1 ? 's' : ''} — a teacher's entire wishlist, funded.`
                     : `$${GRANT_SIZE} funds a teacher's entire classroom project.`}
@@ -149,7 +150,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
 
             {/* RIGHT — the equivalence cards */}
             <div className="p-7 md:p-8 flex flex-col justify-center">
-              <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-6">
+              <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-6">
                 Your {frequency === 'monthly' ? 'monthly ' : ''}gift is…
               </p>
 
@@ -162,9 +163,9 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                       <motion.div
                         key={item.key}
                         layout
-                        initial={{ opacity: 0, x: 24, filter: 'blur(4px)' }}
-                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, x: -16, filter: 'blur(4px)' }}
+                        initial={{ opacity: 0, x: 24 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -16 }}
                         transition={{ duration: 0.5, delay: i * 0.06, ease: EASE }}
                         className="flex items-center gap-4 bg-paper/50 ring-1 ring-chalkboard/6 rounded-2xl px-5 py-4 hover:ring-chalkboard/15"
                         style={{ transition: 'box-shadow 500ms cubic-bezier(0.32,0.72,0,1)' }}
@@ -176,9 +177,9 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                           <p className="font-serif font-bold text-2xl md:text-3xl leading-none text-chalkboard tabular-nums">
                             <AnimatedNumber value={count} />
                           </p>
-                          <p className="text-xs text-chalkboard/55 font-light mt-1 leading-snug">
+                          <p className="text-xs text-chalkboard/70 font-light mt-1 leading-snug">
                             {count === 1 ? item.singular : item.plural}
-                            <span className="text-chalkboard/30"> · ~${item.unit < 1 ? item.unit.toFixed(2) : item.unit} each</span>
+                            <span className="text-chalkboard/70"> · ~${item.unit < 1 ? item.unit.toFixed(2) : item.unit} each</span>
                           </p>
                         </div>
                       </motion.div>
@@ -187,7 +188,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                 </AnimatePresence>
               </div>
 
-              <p className="mt-6 text-[11px] text-chalkboard/35 font-light leading-relaxed">
+              <p className="mt-6 text-[0.6875rem] text-chalkboard/70 font-light leading-relaxed">
                 Approximate retail equivalents. In practice, your gift goes wherever teachers need it most — supplies, staff meals, appreciation events, and classroom grants.
               </p>
             </div>

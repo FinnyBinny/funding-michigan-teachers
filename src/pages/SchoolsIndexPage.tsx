@@ -35,7 +35,7 @@ export default function SchoolsIndexPage() {
     <div className="min-h-[100dvh] bg-paper flex flex-col">
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <section className="px-4 sm:px-6 pt-28 sm:pt-36 pb-8">
           <div className="max-w-5xl mx-auto">
             <h1 className="font-serif font-bold text-[clamp(2.25rem,6vw,3.5rem)] leading-[1.05] tracking-tight mb-5 text-balance">
@@ -49,8 +49,9 @@ export default function SchoolsIndexPage() {
           </div>
         </section>
 
-        <section className="px-4 sm:px-6 pb-12">
+        <section className="px-4 sm:px-6 pb-12" aria-labelledby="schools-list-heading">
           <div className="max-w-5xl mx-auto">
+            <h2 id="schools-list-heading" className="sr-only">Our partner schools</h2>
             <PartnerSchools />
           </div>
         </section>

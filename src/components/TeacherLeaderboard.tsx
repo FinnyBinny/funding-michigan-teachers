@@ -47,7 +47,7 @@ export default function TeacherLeaderboard() {
     'rounded-2xl flex items-center justify-center font-serif font-bold shadow-sm shrink-0',
     index === 0 ? 'bg-pencil text-chalkboard' :
     index === 1 ? 'bg-slate-100 text-chalkboard' :
-    index === 2 ? 'bg-orange-50 text-chalkboard' : 'bg-chalkboard/5 text-chalkboard/40'
+    index === 2 ? 'bg-orange-50 text-chalkboard' : 'bg-chalkboard/5 text-chalkboard/70'
   );
 
   return (
@@ -59,8 +59,8 @@ export default function TeacherLeaderboard() {
             <Trophy size={32} className="text-pencil" />
           </div>
           <div>
-            <h3 className="text-xl sm:text-2xl font-serif font-bold mb-1 sm:mb-2 text-white">Teacher Leaderboard</h3>
-            <p className="text-white/50 text-sm font-light">Celebrating our most active and engaged educators across Michigan.</p>
+            <p className="text-xl sm:text-2xl font-serif font-bold mb-1 sm:mb-2 text-white">This year's most engaged</p>
+            <p className="text-white/75 text-sm font-light">Celebrating our most active and engaged educators across Michigan.</p>
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function TeacherLeaderboard() {
               <div className={cn(rankBadge(index), 'w-9 h-9 text-base')}>{index + 1}</div>
               <div className="min-w-0 flex-1">
                 <p className="font-serif font-bold text-base text-chalkboard truncate">{entry.teacher_name}</p>
-                <p className="text-[11px] text-muted font-bold uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                <p className="text-[0.6875rem] text-muted font-bold uppercase tracking-widest flex items-center gap-1 mt-0.5">
                   <School size={10} className="text-apple shrink-0" />
                   <span className="truncate">{entry.school_name}</span>
                 </p>
@@ -92,18 +92,18 @@ export default function TeacherLeaderboard() {
                   <Star size={12} />
                 </div>
                 <p className="font-mono font-bold text-sm text-chalkboard">{entry.project_count}</p>
-                <p className="text-[9px] uppercase tracking-widest font-bold text-muted mt-0.5">Initiatives</p>
+                <p className="text-[0.625rem] uppercase tracking-widest font-bold text-muted mt-0.5">Initiatives</p>
               </div>
               <div className="bg-paper/60 rounded-xl p-2.5 text-center">
                 <div className="flex items-center justify-center gap-1 text-apple mb-1">
                   <TrendingUp size={12} />
                 </div>
                 <p className="font-mono font-bold text-sm text-chalkboard">{entry.total_votes}</p>
-                <p className="text-[9px] uppercase tracking-widest font-bold text-muted mt-0.5">Votes</p>
+                <p className="text-[0.625rem] uppercase tracking-widest font-bold text-muted mt-0.5">Votes</p>
               </div>
               <div className="bg-paper/60 rounded-xl p-2.5 text-center">
                 <p className="font-serif font-bold text-sm text-apple mt-[3px]">${entry.total_raised.toLocaleString()}</p>
-                <p className="text-[9px] uppercase tracking-widest font-bold text-muted mt-1.5">Raised</p>
+                <p className="text-[0.625rem] uppercase tracking-widest font-bold text-muted mt-1.5">Raised</p>
               </div>
             </div>
           </motion.div>
@@ -115,11 +115,11 @@ export default function TeacherLeaderboard() {
         <table className="w-full text-left border-collapse min-w-[500px]">
           <thead>
             <tr className="bg-paper/50 border-b border-chalkboard/5">
-              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Rank</th>
-              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Educator</th>
-              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Initiatives</th>
-              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Votes</th>
-              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[10px] uppercase tracking-[0.2em] font-bold text-muted">Raised</th>
+              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted">Rank</th>
+              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted">Educator</th>
+              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted">Initiatives</th>
+              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted">Votes</th>
+              <th className="px-6 sm:px-12 py-4 sm:py-6 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted">Raised</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-chalkboard/5">
@@ -181,7 +181,7 @@ export default function TeacherLeaderboard() {
       {leaderboard.length === 0 && (
         <div className="p-16 sm:p-24 text-center">
           <div className="w-14 h-14 bg-chalkboard/5 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Trophy size={40} className="text-chalkboard/20" />
+            <Trophy size={40} className="text-chalkboard/70" />
           </div>
           <p className="text-muted font-serif italic text-xl">No data yet. Start a project to join the leaderboard!</p>
         </div>

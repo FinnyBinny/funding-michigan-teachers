@@ -44,7 +44,7 @@ export default function OurMission() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest">
             <GraduationCap size={14} />
             <span>Our Origin Story</span>
           </div>
@@ -53,7 +53,7 @@ export default function OurMission() {
           </h2>
 
           <div className="mb-6">
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-apple mb-2.5">Our Mission</p>
+            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-apple mb-2.5">Our Mission</p>
             <p className="text-lg text-chalkboard/85 leading-relaxed">
               Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
             </p>
@@ -64,7 +64,7 @@ export default function OurMission() {
           </p>
 
           <div className="mb-8">
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-3">Our Values</p>
+            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-3">Our Values</p>
             <div className="grid sm:grid-cols-2 gap-2.5">
               {VALUES.map((value) => (
                 <div
@@ -103,11 +103,11 @@ export default function OurMission() {
           <div className="grid sm:grid-cols-2 gap-8">
             <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-apple/20 transition-colors">
               <div className="text-3xl font-serif font-bold text-apple mb-1 group-hover:scale-110 transition-transform origin-left">80¢+</div>
-              <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Direct to Classrooms</div>
+              <div className="text-[0.625rem] font-bold text-muted uppercase tracking-[0.2em]">Direct to Classrooms</div>
             </div>
             <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-ruler/20 transition-colors">
               <div className="text-3xl font-serif font-bold text-ruler mb-1 group-hover:scale-110 transition-transform origin-left">350+</div>
-              <div className="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">Staff Reached</div>
+              <div className="text-[0.625rem] font-bold text-muted uppercase tracking-[0.2em]">Staff Reached</div>
             </div>
           </div>
         </motion.div>
@@ -127,7 +127,7 @@ export default function OurMission() {
               </div>
               <div>
                 <h3 className="text-xl font-serif font-bold mb-2">{point.title}</h3>
-                <p className="text-chalkboard/60 leading-relaxed font-light text-base">
+                <p className="text-chalkboard/70 leading-relaxed font-light text-base">
                   {point.description}
                 </p>
               </div>
@@ -145,7 +145,7 @@ export default function OurMission() {
                 <Apple size={24} className="text-apple" />
                 Join the Movement
               </h3>
-              <p className="text-white/60 mb-5 text-sm font-light leading-relaxed">
+              <p className="text-white/70 mb-5 text-sm font-light leading-relaxed">
                 Whether you're a donor, a teacher, or a student, there's a place for you in our mission to transform Michigan education.
               </p>
               <button 

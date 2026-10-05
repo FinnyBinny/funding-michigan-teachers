@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { joinMailingList } from '../lib/bloomerang';
 import { track } from '../lib/analytics';
+import { SendFailed } from './FormStatus';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -38,20 +39,20 @@ export default function Newsletter() {
       if (!error) submitted = true;
     }
 
+    // The confirmation stays up: it used to vanish after five seconds, too
+    // quickly for some people to read, and screen readers never heard it.
     if (submitted) {
       track('newsletter_signup');
       setStatus('success');
-      setEmail('');
-      setTimeout(() => setStatus('idle'), 5000);
     } else {
-      // Final fallback: open mailto so no signup is ever lost
-      const subject = encodeURIComponent('Newsletter Signup — Funding Michigan Teachers');
-      const body = encodeURIComponent(`Please add me to the FMT newsletter.\n\nEmail: ${email}`);
-      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
-      setStatus('success');
-      setEmail('');
-      setTimeout(() => setStatus('idle'), 5000);
+      setStatus('error');
     }
+  };
+
+  const mailto = () => {
+    const subject = encodeURIComponent('Newsletter Signup — Funding Michigan Teachers');
+    const body = encodeURIComponent(`Please add me to the FMT newsletter.\n\nEmail: ${email}`);
+    return `mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -64,14 +65,14 @@ export default function Newsletter() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[10px] font-bold mb-8 border border-apple/20 uppercase tracking-[0.2em]">
-              <Sparkles size={14} />
+            <div className="inline-flex items-center gap-2 bg-pencil/15 text-pencil px-4 py-1.5 rounded-full text-[0.625rem] font-bold mb-8 border border-pencil/30 uppercase tracking-[0.2em]">
+              <Sparkles size={14} aria-hidden="true" />
               <span>Stay Informed</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white mb-5 leading-tight">
-              Get the <span className="text-apple italic font-normal">Impact</span> Report.
+              Get the <span className="text-pencil italic font-normal">Impact</span> Report.
             </h2>
-            <p className="text-base text-white/60 font-light leading-relaxed max-w-lg">
+            <p className="text-base text-white/75 font-light leading-relaxed max-w-lg">
               Monthly updates on exactly where your support goes — teacher appreciation events, funded classrooms, and the students who benefit. No filler. Just impact.
             </p>
           </motion.div>
@@ -86,7 +87,7 @@ export default function Newsletter() {
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-[1.75rem] shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label htmlFor="newsletter-email" className="block text-[10px] uppercase tracking-[0.2em] font-bold text-white/70 ml-2">Email Address</label>
+                  <label htmlFor="newsletter-email" className="block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-white/70 ml-2">Email Address</label>
                   <div className="relative">
                     <input 
                       required
@@ -97,7 +98,7 @@ export default function Newsletter() {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="Enter your email"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 focus:ring-4 focus:ring-apple/20 outline-none transition-all text-base"
+                      className="w-full bg-white/5 border border-white/40 rounded-2xl px-5 py-4 text-white placeholder:text-white/55 outline-none transition-all text-base"
                     />
                   </div>
                 </div>
@@ -119,30 +120,18 @@ export default function Newsletter() {
                 </button>
               </form>
               
-              <AnimatePresence>
+              {/* Present before anything is announced, so the message is read
+                  out when it appears. */}
+              <div role="status" aria-live="polite" className="mt-6 empty:hidden">
                 {status === 'success' && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-6 p-4 bg-apple/10 border border-apple/20 rounded-xl text-apple text-center font-medium"
-                  >
-                    Thank you! You've been added to our list.
-                  </motion.div>
+                  <p className="p-4 bg-white/10 border border-white/20 rounded-xl text-white text-center font-medium">
+                    Thank you — you're on the list.
+                  </p>
                 )}
-                {status === 'error' && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-center font-medium"
-                  >
-                    Something went wrong. Please try again.
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              </div>
+              {status === 'error' && <div className="mt-6"><SendFailed mailto={mailto()} onDark /></div>}
 
-              <p className="mt-8 text-[10px] text-white/30 text-center uppercase tracking-widest leading-relaxed">
+              <p className="mt-8 text-[0.625rem] text-white/70 text-center uppercase tracking-widest leading-relaxed">
                 By subscribing, you agree to receive our monthly newsletter. <br />
                 You can unsubscribe at any time.
               </p>

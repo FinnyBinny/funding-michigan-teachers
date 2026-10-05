@@ -53,7 +53,7 @@ export default function AboutPage() {
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <SiteHeader />
 
-      <main className="relative z-10 flex-1">
+      <main id="main" className="relative z-10 flex-1">
         {/* Hero */}
         <section className="px-4 sm:px-6 pt-28 sm:pt-36 pb-14">
           <div className="pointer-events-none absolute top-0 left-0 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />
@@ -63,12 +63,15 @@ export default function AboutPage() {
             transition={{ duration: 0.7, ease: EASE }}
             className="max-w-3xl mx-auto relative"
           >
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/50 mb-5">
-              Student-Led · 501(c)(3) · Founded Okemos 2023
-            </p>
-            <h1 className="font-serif font-bold text-[clamp(2.25rem,7vw,3.75rem)] leading-[1.03] tracking-[-0.02em] mb-6">
-              Michigan teachers give everything. <span className="text-apple italic font-normal">We give back.</span>
+            {/* The H1 says what this page is. It used to repeat the homepage's
+                headline, so /about had no heading saying "About" and search
+                saw two pages with the same H1. The tagline stays, as a line. */}
+            <h1 className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-5 font-sans">
+              About Funding Michigan Teachers <span className="font-normal">· Student-led 501(c)(3) · Founded Okemos 2023</span>
             </h1>
+            <p className="font-serif font-bold text-[clamp(2.25rem,7vw,3.75rem)] leading-[1.03] tracking-[-0.02em] mb-6">
+              Michigan teachers give everything. <span className="text-apple italic font-normal">We give back.</span>
+            </p>
             <p className="text-xl text-chalkboard/70 font-light leading-relaxed mb-4">
               Funding Michigan teachers so no educator pays out of pocket, and every educator knows
               their work matters.
@@ -151,7 +154,7 @@ export default function AboutPage() {
                 </picture>
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/50 mb-1.5">
+                <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mb-1.5">
                   Founder &amp; Executive Director
                 </p>
                 <h3 className="font-serif font-bold text-xl mb-2">Finn Regan</h3>
@@ -209,7 +212,7 @@ export default function AboutPage() {
         <section className="px-4 sm:px-6 py-14 bg-white/60">
           <div className="max-w-3xl mx-auto">
             <h2 className="font-serif font-bold text-2xl sm:text-3xl mb-3">Our year</h2>
-            <p className="text-chalkboard/60 font-light mb-8">
+            <p className="text-chalkboard/70 font-light mb-8">
               What a school year with FMT looks like. Individual staff meetings and one-off events
               get added throughout the year.
             </p>
@@ -219,7 +222,7 @@ export default function AboutPage() {
                   key={row.when}
                   className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 bg-white ring-1 ring-chalkboard/8 rounded-2xl px-5 py-4"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple w-full sm:w-32 shrink-0">
+                  <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-apple w-full sm:w-32 shrink-0">
                     {row.when}
                   </p>
                   <p className="text-sm text-chalkboard/75 font-light leading-snug">{row.what}</p>
@@ -254,7 +257,7 @@ export default function AboutPage() {
             </div>
             <a
               href={`mailto:${EMAIL}`}
-              className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-chalkboard/60 hover:text-apple transition-colors"
+              className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-chalkboard/70 hover:text-apple transition-colors"
             >
               <Mail size={14} />
               {EMAIL}

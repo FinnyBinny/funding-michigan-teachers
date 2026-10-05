@@ -71,7 +71,7 @@ export default function App() {
     <div className="min-h-screen bg-paper selection:bg-pencil/30 overflow-x-hidden">
       <SiteHeader isHome />
 
-      <main>
+      <main id="main">
         {/* Hero Section */}
         <section className="viewport-section hero-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
           {/* Ambient brand glows — atmospheric depth without the moving particles */}
@@ -79,26 +79,30 @@ export default function App() {
           <div className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] bg-pencil/[0.06] rounded-full blur-[120px]" />
 
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-[2]">
+            {/* The headline and intro are the first thing anyone (and Google's
+                LCP measure) sees, so they paint at once and only slide:
+                starting them at opacity 0 behind a blur held back the
+                homepage's largest text by about 1.5s on a phone. */}
             <motion.div
-              initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1] }}
+              initial={{ y: 16 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
               className="lg:col-span-7"
             >
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1, ease: [0.32, 0.72, 0, 1] }}
-                className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+                className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-apple animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-apple" />
                 Student-Led · 501(c)(3) · Founded Okemos 2023
               </motion.div>
               <h1 className="font-serif font-bold leading-[0.95] tracking-[-0.025em] mb-7 text-[clamp(2.5rem,4.6vw,4.5rem)]">
                 Michigan teachers give everything.{' '}
                 <span className="text-apple italic font-normal">We give back.</span>
               </h1>
-              <p className="text-lg text-chalkboard/65 max-w-xl mb-10 leading-relaxed font-light text-pretty">
+              <p className="text-lg text-chalkboard/70 max-w-xl mb-10 leading-relaxed font-light text-pretty">
                 Founded by Finn Regan at age 14 — because he grew up watching teachers spend their own money on classrooms while no one said thank you. We exist to change that.
               </p>
               <div className="flex flex-wrap gap-3 items-center">
@@ -121,7 +125,7 @@ export default function App() {
                   Our Story
                 </Button>
               </div>
-              <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
+              <p className="mt-4 text-[0.6875rem] text-chalkboard/70 font-bold uppercase tracking-widest flex items-center gap-2">
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
                 501(c)(3) Nonprofit · EIN 93-4485967 · 80¢+ of every dollar to teachers
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
@@ -132,17 +136,17 @@ export default function App() {
               <div className="mt-10 grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
                 <div className="flex flex-col min-w-0">
                   <span className="text-apple font-bold text-xl sm:text-2xl leading-none">{STAT.teachers.value}</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.teachers.label}</span>
+                  <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.teachers.label}</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">{STAT.staff.value}</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.staff.label}</span>
+                  <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.staff.label}</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">{STAT.partnerSchools.value}</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.partnerSchools.label}</span>
+                  <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.partnerSchools.label}</span>
                 </div>
               </div>
             </motion.div>
@@ -179,7 +183,7 @@ export default function App() {
                 </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/75 via-chalkboard/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
-                  <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Finn &amp; Mrs. Freeman · Okemos High School</p>
+                  <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.2em] font-bold mb-1">Finn &amp; Mrs. Freeman · Okemos High School</p>
                   <p className="text-white font-serif text-2xl font-bold leading-tight">One of FMT's first and loudest supporters at OHS.</p>
                 </div>
               </div>
@@ -209,7 +213,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest"
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest"
               >
                 <Heart size={14} />
                 <span>Monthly Support</span>
@@ -217,10 +221,10 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Choose Your <span className="text-apple italic font-normal">Impact</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed mb-6">
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed mb-6">
                 Monthly giving is the most powerful way to support Michigan teachers — it lets us plan ahead, show up consistently, and make every staff meeting feel special.
               </p>
-              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/70 px-4 py-1.5 rounded-full text-[0.6875rem] font-bold uppercase tracking-widest">
                 <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
                 2026–27 School Year Goal: $20,000
               </div>
@@ -239,7 +243,7 @@ export default function App() {
               <h2 className="font-serif font-bold text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.05] tracking-tight mb-4 text-balance">
                 Our <span className="text-apple italic font-normal">partner schools</span>.
               </h2>
-              <p className="text-chalkboard/65 font-light leading-relaxed max-w-2xl">
+              <p className="text-chalkboard/70 font-light leading-relaxed max-w-2xl">
                 Three high schools, each with its own page — its own events, its own sponsors, and
                 its own teachers telling us what their rooms ran out of.
               </p>
@@ -267,7 +271,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
+                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
               >
                 <MapPin size={14} />
                 <span>Ingham County &amp; Growing</span>
@@ -275,7 +279,7 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
                 Our Impact Across <span className="text-pencil italic font-normal">Michigan</span>.
               </h2>
-              <p className="text-base text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
                 Explore the schools and districts we've supported. Every dot represents a classroom transformed by your generosity.
               </p>
             </div>
@@ -298,7 +302,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-apple/20"
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-apple/20"
               >
                 <BookOpen size={14} />
                 <span>Classroom Initiatives</span>
@@ -306,7 +310,7 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Classroom <span className="text-apple italic font-normal">Projects</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
                 Vote for the projects you believe in and help teachers reach their specific goals. Every vote brings them closer to a fully funded classroom.
               </p>
             </div>
@@ -325,15 +329,15 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-ink px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
+                className="inline-flex items-center gap-2 bg-pencil/20 text-ink px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
               >
                 <Trophy size={14} />
                 <span>Excellence in Education</span>
               </motion.div>
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
-                Teacher <span className="text-pencil italic font-normal">Leaderboard</span>.
+                Teacher <span className="text-apple italic font-normal">Leaderboard</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
                 Recognizing the incredible engagement and dedication of our Michigan educators who go above and beyond for their students.
               </p>
             </div>
@@ -373,7 +377,7 @@ export default function App() {
                 <span className="block font-serif font-bold text-2xl leading-snug mb-1">
                   Wear it. <span className="text-pencil italic font-normal">Fund it.</span>
                 </span>
-                <span className="block text-white/65 text-sm font-light leading-relaxed">
+                <span className="block text-white/70 text-sm font-light leading-relaxed">
                   Tees, crewnecks and hoodies — printed in town, hand-pressed by our students.
                   What's left after materials buys classroom supplies. Teachers pay our cost.
                 </span>
@@ -404,7 +408,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-ruler/20"
+                className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-ruler/20"
               >
                 <Calendar size={14} />
                 <span>Community Engagement</span>
@@ -412,7 +416,7 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Upcoming <span className="text-ruler italic font-normal">Events</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
                 Join us for fundraisers, teacher appreciation days, and community showcases that celebrate the impact of education.
               </p>
             </div>
@@ -432,7 +436,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
+                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
               >
                 <Heart size={14} />
                 <span>Wall of Fame</span>
@@ -440,7 +444,7 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
                 Our <span className="text-pencil italic font-normal">Supporters</span>.
               </h2>
-              <p className="text-base text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
                 A public thank you to the individuals and organizations making a difference in Michigan classrooms every single day.
               </p>
             </div>
@@ -462,7 +466,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-apple/20"
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-apple/20"
               >
                 <Sparkles size={14} />
                 <span>Impact Stories</span>
@@ -470,7 +474,7 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Voices from the <span className="text-apple italic font-normal">Classroom</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
                 Real stories from educators whose classrooms were changed by your generosity. Every story is a testament to the power of community.
               </p>
             </div>
@@ -498,7 +502,7 @@ export default function App() {
                 <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-2xl rotate-3 shrink-0">
                   <picture>
                     <source srcSet="/images/fmt-logo-96.avif 96w, /images/fmt-logo-192.avif 192w" sizes="48px" type="image/avif" />
-                    <img src="/images/fmt-logo-96.png" srcSet="/images/fmt-logo-96.png 96w, /images/fmt-logo-192.png 192w" sizes="48px" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <img src="/images/fmt-logo-96.png" srcSet="/images/fmt-logo-96.png 96w, /images/fmt-logo-192.png 192w" sizes="48px" alt="" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   </picture>
                 </div>
                 <span className="font-serif text-xl sm:text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>
@@ -506,19 +510,19 @@ export default function App() {
               <p className="font-hand text-2xl text-pencil mb-4 -rotate-1">
                 Teachers deserve better; let's make it happen.
               </p>
-              <p className="text-white/50 max-w-md mb-10 text-lg font-light leading-relaxed">
+              <p className="text-white/70 max-w-md mb-10 text-lg font-light leading-relaxed">
                 A student-led 501(c)(3) funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
               </p>
               <div className="flex gap-6">
-                <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>
-                <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Instagram</a>
-                <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">LinkedIn</a>
+                <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>
+                <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Instagram</a>
+                <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">LinkedIn</a>
               </div>
             </div>
 
             <div>
-              <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Navigation</h4>
-              <ul className="space-y-5 text-white/60 font-medium">
+              <h2 className="font-bold mb-8 uppercase tracking-[0.2em] text-[0.625rem] text-pencil font-sans">Navigation</h2>
+              <ul className="space-y-5 text-white/70 font-medium">
                 <li><a href="/about" className="hover:text-white transition-colors">About Us</a></li>
                 <li><a href="/for-teachers" className="hover:text-white transition-colors">For Teachers</a></li>
                 <li><a href="#mission" className="hover:text-white transition-colors">Our Mission</a></li>
@@ -528,15 +532,15 @@ export default function App() {
                 <li><a href="/sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
                 <li><a href="/schools" className="hover:text-white transition-colors">Partner Schools</a></li>
                 <li><a href="/for-schools" className="hover:text-white transition-colors">Bring FMT to your school</a></li>
-                <li><a href="/shop" className="hover:text-white transition-colors inline-flex items-center gap-2">Shop Merch <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-1.5 py-0.5 rounded-full">New</span></a></li>
+                <li><a href="/shop" className="hover:text-white transition-colors inline-flex items-center gap-2">Shop Merch <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-pencil bg-pencil/15 px-1.5 py-0.5 rounded-full">New</span></a></li>
                 <li><a href="/returnables" className="hover:text-white transition-colors">Donate Returnables</a></li>
                 <li><a href="#donors" className="hover:text-white transition-colors">Supporter Wall</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Connect</h4>
-              <ul className="space-y-5 text-white/60 font-medium">
+              <h2 className="font-bold mb-8 uppercase tracking-[0.2em] text-[0.625rem] text-pencil font-sans">Connect</h2>
+              <ul className="space-y-5 text-white/70 font-medium">
                 <li>Okemos, Michigan</li>
                 <li><a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white transition-colors">hello@fundingmichiganteachers.org</a></li>
                 <li className="pt-6">
@@ -552,10 +556,10 @@ export default function App() {
             </div>
           </div>
 
-          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/60 text-xs">
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/70 text-xs">
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
               <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
-              <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
+              <span className="font-mono uppercase tracking-widest text-[0.625rem] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
             </div>
             <div className="flex items-center gap-6">
               <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>

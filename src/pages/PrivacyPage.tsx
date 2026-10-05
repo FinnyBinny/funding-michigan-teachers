@@ -30,14 +30,14 @@ export default function PrivacyPage() {
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <SiteHeader />
 
-      <main className="relative z-10 flex-1 px-4 sm:px-6 pt-28 sm:pt-32 pb-20">
+      <main id="main" className="relative z-10 flex-1 px-4 sm:px-6 pt-28 sm:pt-32 pb-20">
         <motion.article
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: EASE }}
           className="max-w-2xl mx-auto"
         >
-          <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/50 mb-4">
+          <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-4">
             Last updated September 2026
           </p>
           <h1 className="font-serif font-bold text-[clamp(2rem,6vw,3rem)] leading-[1.05] tracking-[-0.02em] mb-6">

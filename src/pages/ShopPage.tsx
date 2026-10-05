@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
@@ -10,6 +11,7 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
 import { track } from '../lib/analytics';
+import { useModalDialog } from '../lib/useModalDialog';
 import { STRIPE_PUBLISHABLE_KEY } from '../lib/donate';
 import { MERCH_PHOTOS } from '../data/merchPhotos';
 import {
@@ -77,7 +79,7 @@ function ProductPhoto({ product, className = '', priority = false }: { product: 
   const [failed, setFailed] = useState(false);
   if (!photo || failed) {
     return (
-      <div className={`flex items-center justify-center text-center p-4 font-serif font-bold text-chalkboard/40 ${className}`}>
+      <div className={`flex items-center justify-center text-center p-4 font-serif font-bold text-chalkboard/70 ${className}`}>
         {product.name}
       </div>
     );
@@ -112,11 +114,8 @@ function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onC
       setError("Couldn't load the secure checkout. Check your connection, or any script blocker."));
   }, []);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalDialog(dialogRef, onClose);
 
   const fetchClientSecret = useCallback(async () => {
     setError(null);
@@ -136,7 +135,7 @@ function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onC
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
@@ -145,6 +144,7 @@ function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onC
       <motion.div
         initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, ease: EASE }}
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="merch-checkout-title"
@@ -153,7 +153,7 @@ function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onC
         <div className="bg-chalkboard px-6 py-4 flex items-center justify-between shrink-0">
           <div>
             <p id="merch-checkout-title" className="text-white font-bold text-sm">Pay {formatPrice(total)}</p>
-            <p className="text-white/60 text-[10px] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
+            <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
               <Shield size={10} strokeWidth={1.5} aria-hidden="true" />
               Secure checkout by Stripe
             </p>
@@ -184,7 +184,8 @@ function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onC
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }
 
@@ -227,7 +228,7 @@ function ProductCard({ product, index, pick, educator, onPick, onAdd }: {
       <div className="relative aspect-[4/5] bg-paper">
         <ProductPhoto product={product} className="w-full h-full" priority={index === 0} />
         {shownIn && (
-          <span className="absolute left-3 bottom-3 bg-white/90 backdrop-blur-sm text-chalkboard text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full">
+          <span className="absolute left-3 bottom-3 bg-white/90 backdrop-blur-sm text-chalkboard text-[0.625rem] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full">
             Shown in {shownIn}
           </span>
         )}
@@ -246,7 +247,7 @@ function ProductCard({ product, index, pick, educator, onPick, onAdd }: {
         {/* Native radios, drawn as swatches: arrow keys move between them and
             a screen reader hears "Navy, radio button, 3 of 3". */}
         <fieldset className="mb-4">
-          <legend className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
+          <legend className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">
             Color: <span className="text-chalkboard">{color.name}</span>
           </legend>
           <div className="flex gap-2.5">
@@ -272,7 +273,7 @@ function ProductCard({ product, index, pick, educator, onPick, onAdd }: {
         </fieldset>
 
         <fieldset className="mb-5">
-          <legend className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">Size</legend>
+          <legend className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">Size</legend>
           <div className="grid grid-cols-5 gap-1.5">
             {MERCH_SIZES.map((sz) => (
               <label key={sz} className="cursor-pointer">
@@ -440,7 +441,7 @@ export default function ShopPage() {
     return (
       <div className="min-h-[100dvh] bg-paper flex flex-col">
         <SiteHeader />
-        <main className="flex-1 flex items-center justify-center px-4 py-24">
+        <main id="main" className="flex-1 flex items-center justify-center px-4 py-24">
           <div className="max-w-md text-center" role="status">
             {confirmation === 'checking' && (
               <>
@@ -491,7 +492,7 @@ export default function ShopPage() {
       {/* Announces each add, for anyone who cannot see the order update. */}
       <p className="sr-only" role="status" aria-live="polite">{announce}</p>
 
-      <main className="relative z-10 flex-1 px-4 sm:px-6 pt-28 sm:pt-36 pb-28 xl:pb-20">
+      <main id="main" className="relative z-10 flex-1 px-4 sm:px-6 pt-28 sm:pt-36 pb-28 xl:pb-20">
         <div className="pointer-events-none absolute top-0 left-0 w-[560px] h-[560px] bg-pencil/[0.08] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/4" />
 
         <div className="max-w-7xl mx-auto relative">
@@ -500,7 +501,7 @@ export default function ShopPage() {
             transition={{ duration: 0.7, ease: EASE }}
             className="max-w-2xl mb-10 sm:mb-12"
           >
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/60 mb-4">
+            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-4">
               Printed locally · Pressed by students
             </p>
             <h1 className="font-serif font-bold text-[clamp(2.25rem,6vw,3.5rem)] leading-[1.03] tracking-[-0.02em] mb-4 text-balance">
@@ -543,13 +544,13 @@ export default function ShopPage() {
                     Your order
                   </h2>
                   {itemCount > 0 && (
-                    <span className="text-xs font-bold text-chalkboard/60">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
+                    <span className="text-xs font-bold text-chalkboard/70">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
                   )}
                 </div>
 
                 {cart.length === 0 ? (
                   <div className="py-8 text-center border-t border-chalkboard/10">
-                    <ShoppingBag size={22} className="mx-auto text-chalkboard/30 mb-3" aria-hidden="true" />
+                    <ShoppingBag size={22} className="mx-auto text-chalkboard/70 mb-3" aria-hidden="true" />
                     <p className="text-sm text-chalkboard/70 leading-relaxed">
                       Nothing here yet. Pick a color and size, then <strong className="font-bold text-chalkboard">Add to order</strong>.
                     </p>
@@ -564,7 +565,7 @@ export default function ShopPage() {
                         return (
                           <li key={`${l.productId}-${l.size}-${l.colorId}`} className="flex items-center gap-3 py-3 border-b border-chalkboard/10">
                             <span className="w-12 h-14 shrink-0 bg-paper rounded-lg overflow-hidden block">
-                              <ProductPhoto product={prod} className="w-full h-full text-[8px]" />
+                              <ProductPhoto product={prod} className="w-full h-full text-[0.625rem]" />
                             </span>
                             <span className="flex-1 min-w-0">
                               <span className="block text-sm font-bold leading-snug">{prod.name}</span>
@@ -586,7 +587,7 @@ export default function ShopPage() {
                             </span>
                             <span className="flex flex-col items-end gap-1 shrink-0">
                               <span className="text-sm font-bold tabular-nums">{formatPrice(unit * l.qty)}</span>
-                              <button onClick={() => setQty(i, 0)} className="text-xs text-chalkboard/60 hover:text-apple underline underline-offset-2">
+                              <button onClick={() => setQty(i, 0)} className="text-xs text-chalkboard/70 hover:text-apple underline underline-offset-2">
                                 Remove<span className="sr-only"> {prod.name}, {col.name}, {l.size}</span>
                               </button>
                             </span>
@@ -596,7 +597,7 @@ export default function ShopPage() {
                     </ul>
 
                     <fieldset className="mb-5">
-                      <legend className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">Pickup or delivery</legend>
+                      <legend className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2">Pickup or delivery</legend>
                       <div className="grid grid-cols-2 gap-2">
                         {([
                           { id: 'pickup' as const, icon: MapPin, title: 'Pickup', price: 'Free', body: 'At your school or one of our events.' },
@@ -655,7 +656,7 @@ export default function ShopPage() {
                             <span className="block text-xs text-chalkboard/70">{code.label}</span>
                           </span>
                           <button onClick={() => { setCode(null); setCodeState('idle'); }} aria-label="Remove code"
-                            className="p-1.5 rounded-lg text-chalkboard/50 hover:text-apple transition-colors">
+                            className="p-1.5 rounded-lg text-chalkboard/70 hover:text-apple transition-colors">
                             <X size={14} />
                           </button>
                         </div>
@@ -666,7 +667,7 @@ export default function ShopPage() {
                         </button>
                       ) : (
                         <div id="merch-code-row">
-                          <label htmlFor="merch-code" className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 block">
+                          <label htmlFor="merch-code" className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 block">
                             Code from your school or Teacher of the Month
                           </label>
                           <div className="flex gap-2">
@@ -731,7 +732,7 @@ export default function ShopPage() {
                       </button>
                     )}
 
-                    <p className="text-xs text-chalkboard/65 leading-relaxed mt-4">
+                    <p className="text-xs text-chalkboard/70 leading-relaxed mt-4">
                       {effectiveEducator
                         ? "You're paying our cost, so FMT makes nothing on this order — which is the point."
                         : IMPACT_NOTE}{' '}

@@ -11,6 +11,7 @@ import type { FoodPartner } from '../data/initialData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
+import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
 
 function navigate(path: string) {
@@ -43,7 +44,7 @@ export default function SponsorsPage() {
 
       <SiteHeader />
 
-      <main>
+      <main id="main">
 
         {/* Page Hero */}
         <section className="py-12 sm:py-16 md:py-20 px-6 classroom-grid relative overflow-hidden">
@@ -53,7 +54,7 @@ export default function SponsorsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <div className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-ruler/20">
+              <div className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-ruler/20">
                 <Building2 size={13} />
                 <span>Corporate Partnerships</span>
               </div>
@@ -61,10 +62,10 @@ export default function SponsorsPage() {
                 Partner with<br />
                 <span className="text-apple italic font-normal">FMT</span>.
               </h1>
-              <p className="text-lg text-chalkboard/60 max-w-2xl mx-auto leading-relaxed font-light mb-10">
+              <p className="text-lg text-chalkboard/70 max-w-2xl mx-auto leading-relaxed font-light mb-10">
                 Corporate sponsors are the backbone of what we do. Put your business behind Michigan's most dedicated educators — and earn real, visible recognition for it.
               </p>
-              <p className="text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <p className="text-[0.6875rem] text-chalkboard/70 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
                 501(c)(3) Nonprofit · EIN 93-4485967 · 80¢+ of every dollar to teachers
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
@@ -76,6 +77,7 @@ export default function SponsorsPage() {
         {/* Sponsor Tiers */}
         <section className="pt-2 pb-12 sm:pb-16 px-6">
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
+            <h2 id="levels-heading" className="sr-only">Sponsorship levels</h2>
             <CorporateSponsors
               onDonate={handleDonate}
               onContact={() => {
@@ -94,7 +96,7 @@ export default function SponsorsPage() {
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="inline-flex items-center gap-2 bg-ruler/10 text-ruler ring-1 ring-ruler/20 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-6 uppercase tracking-[0.24em]"
+                  className="inline-flex items-center gap-2 bg-ruler/10 text-ruler ring-1 ring-ruler/20 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-6 uppercase tracking-[0.24em]"
                 >
                   <Building2 size={11} />
                   Our Corporate Partners
@@ -102,7 +104,7 @@ export default function SponsorsPage() {
                 <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 leading-tight tracking-[-0.01em]">
                   Standing with us <span className="text-ruler italic font-normal">today</span>.
                 </h2>
-                <p className="text-chalkboard/60 max-w-xl mx-auto font-light leading-relaxed">
+                <p className="text-chalkboard/70 max-w-xl mx-auto font-light leading-relaxed">
                   These businesses chose to back Michigan teachers in a visible, public way. They didn't have to — they did.
                 </p>
               </div>
@@ -118,11 +120,11 @@ export default function SponsorsPage() {
                   const body = (
                     <div className="bg-white rounded-[1.5rem] ring-1 ring-chalkboard/[0.08] group-hover:ring-chalkboard/20 transition-colors p-6 h-full flex flex-col shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
                       <div className="flex items-center justify-between gap-3 mb-4">
-                        <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-2.5 py-1 rounded-full">
+                        <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-2.5 py-1 rounded-full">
                           {sponsor.tier}
                         </span>
                         {sponsor.website && (
-                          <ExternalLink size={13} className="text-chalkboard/50 group-hover:text-chalkboard transition-colors" aria-hidden="true" />
+                          <ExternalLink size={13} className="text-chalkboard/70 group-hover:text-chalkboard transition-colors" aria-hidden="true" />
                         )}
                       </div>
                       {sponsor.logo && (
@@ -133,7 +135,7 @@ export default function SponsorsPage() {
                       <p className="font-serif font-bold text-xl text-chalkboard leading-tight">{name}</p>
                       {detail && <p className="text-xs text-muted mt-1">{detail}</p>}
                       {sponsor.description && (
-                        <p className="text-chalkboard/75 text-[13px] leading-relaxed mt-3">{sponsor.description}</p>
+                        <p className="text-chalkboard/75 text-[0.8125rem] leading-relaxed mt-3">{sponsor.description}</p>
                       )}
                     </div>
                   );
@@ -179,7 +181,7 @@ export default function SponsorsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 uppercase tracking-widest border border-pencil/30"
+                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-6 uppercase tracking-widest border border-pencil/30"
               >
                 <Heart size={13} />
                 <span>In-Kind Partners</span>
@@ -206,7 +208,7 @@ export default function SponsorsPage() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-4 leading-tight tracking-[-0.01em]">
                 Let's <span className="text-apple italic font-normal">talk</span>.
               </h2>
-              <p className="text-chalkboard/60 max-w-xl mx-auto font-light leading-relaxed">
+              <p className="text-chalkboard/70 max-w-xl mx-auto font-light leading-relaxed">
                 Tell us a little about your business and we'll reach out within a few days — no commitment, no pressure.
               </p>
             </div>
@@ -270,9 +272,9 @@ function InKindLedger({ partners }: { partners: FoodPartner[] }) {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-pencil">{partner.month}</p>
+                <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-pencil">{partner.month}</p>
                 <p className="text-white font-bold leading-snug mt-0.5">{name}</p>
-                {aside && <p className="text-white/60 text-xs mt-0.5">{aside}</p>}
+                {aside && <p className="text-white/70 text-xs mt-0.5">{aside}</p>}
                 <p className="text-white/80 text-sm leading-relaxed mt-1.5">{partner.detail}</p>
               </div>
             </li>
@@ -295,17 +297,40 @@ function InKindLedger({ partners }: { partners: FoodPartner[] }) {
   );
 }
 
+/** Replaces the sponsor form once the enquiry has been delivered. */
+function SponsorThanks() {
+  const headingRef = useFocusOnMount<HTMLHeadingElement>();
+  return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-xl mx-auto bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-2"
+      >
+        <div className="bg-white rounded-[calc(2rem-0.5rem)] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+          <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/10 ring-1 ring-apple/20 flex items-center justify-center">
+            <CheckCircle2 size={24} className="text-apple" />
+          </div>
+          <h3 ref={headingRef} tabIndex={-1} className="font-serif font-bold text-2xl text-chalkboard mb-2 outline-none">Got it — thank you.</h3>
+          <p className="text-chalkboard/70 text-sm font-light leading-relaxed max-w-sm mx-auto">
+            We'll reach out within a few days to talk through what a partnership could look like for your business.
+          </p>
+        </div>
+      </motion.div>
+  );
+}
+
 /**
  * Sponsor interest form — submits via Web3Forms (email notification) and
  * Supabase contact_submissions (type: 'sponsor'); falls back to mailto so
  * no inquiry is ever lost. Mirrors the pilot-school form on /for-schools.
  */
 function SponsorInterestForm() {
-  const inp = 'w-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-chalkboard outline-none placeholder:text-chalkboard/45 transition-all';
-  const lbl = 'block text-left text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-1.5';
+  const inp = 'w-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-chalkboard outline-none placeholder:text-chalkboard/65 transition-all';
+  const lbl = 'block text-left text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-1.5';
 
   const [form, setForm] = useState({ business: '', name: '', email: '', phone: '', message: '' });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,36 +368,18 @@ function SponsorInterestForm() {
       if (!error) submitted = true;
     }
 
-    if (!submitted) {
-      // Last-resort fallback — open a prefilled email so nothing is lost
-      const subject = encodeURIComponent(`Corporate Sponsorship Inquiry — ${form.business}`);
-      const body = encodeURIComponent(`Business: ${form.business}\nContact: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\n\n${form.message}`);
-      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
-    }
+    if (submitted) track('sponsor_inquiry_submitted');
+    setStatus(submitted ? 'success' : 'error');
+  };
 
-    track('sponsor_inquiry_submitted');
-    setStatus('success');
+  const mailto = () => {
+    const subject = encodeURIComponent(`Corporate Sponsorship Inquiry — ${form.business}`);
+    const body = encodeURIComponent(`Business: ${form.business}\nContact: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\n\n${form.message}`);
+    return `mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`;
   };
 
   if (status === 'success') {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="max-w-xl mx-auto bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-2"
-      >
-        <div className="bg-white rounded-[calc(2rem-0.5rem)] p-10 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-          <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/10 ring-1 ring-apple/20 flex items-center justify-center">
-            <CheckCircle2 size={24} className="text-apple" />
-          </div>
-          <h3 className="font-serif font-bold text-2xl text-chalkboard mb-2">Got it — thank you.</h3>
-          <p className="text-chalkboard/55 text-sm font-light leading-relaxed max-w-sm mx-auto">
-            We'll reach out within a few days to talk through what a partnership could look like for your business.
-          </p>
-        </div>
-      </motion.div>
-    );
+    return <SponsorThanks />;
   }
 
   return (
@@ -422,6 +429,7 @@ function SponsorInterestForm() {
               <Heart size={14} className="fill-current" />
             </span>
           </button>
+          {status === 'error' && <div className="mt-4"><SendFailed mailto={mailto()} /></div>}
         </div>
       </div>
     </motion.form>
