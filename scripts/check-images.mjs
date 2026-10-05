@@ -12,7 +12,7 @@
  *   - no file may carry GPS location data;
  *   - no file may still carry a rotate-me note (orientation other than 1);
  *     bake it in with sharp(...).rotate() (scripts/optimize-images.mjs does);
- *   - an AVIF twin must have the same shape as its JPEG (X.avif vs X-opt.jpg).
+ *   - an AVIF twin must have the same shape as its JPEG or WebP (X.avif vs X-opt.jpg, X.webp).
  *
  * Run: node scripts/check-images.mjs
  */
@@ -39,7 +39,7 @@ for (const [f, m] of meta) {
 for (const [f, m] of meta) {
   if (!f.endsWith('.avif')) continue;
   const stem = f.replace(/\.avif$/, '');
-  const twin = [`${stem}-opt.jpg`, `${stem}.jpg`].find((t) => meta.has(t));
+  const twin = [`${stem}-opt.jpg`, `${stem}.jpg`, `${stem}.webp`].find((t) => meta.has(t));
   if (!twin) continue;
   const t = meta.get(twin);
   const a = m.width / m.height;
@@ -53,4 +53,4 @@ if (problems.length) {
   console.error('Images that should not ship:\n  ' + problems.join('\n  '));
   process.exit(1);
 }
-console.log(`Checked ${files.length} images: all upright, no GPS data, every AVIF matches its JPEG.`);
+console.log(`Checked ${files.length} images: all upright, no GPS data, every AVIF matches its JPEG or WebP.`);

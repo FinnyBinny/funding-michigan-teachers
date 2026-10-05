@@ -200,40 +200,40 @@ export default function ReturnablesPage() {
             >
               <button
                 onClick={() => goToForm('hero')}
-                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-7 sm:pl-8 pr-2.5 py-2.5 rounded-full font-bold text-sm uppercase tracking-[0.12em] sm:tracking-[0.18em] whitespace-nowrap shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[52px]"
+                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-7 sm:pl-9 pr-2.5 py-3 rounded-full font-bold text-base sm:text-lg uppercase tracking-[0.1em] sm:tracking-[0.16em] whitespace-nowrap shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[60px]"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
                 Donate My Returnables
-                <span className="w-9 h-9 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-y-0.5 transition-transform">
-                  <ArrowDown size={15} />
+                <span className="w-10 h-10 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-y-0.5 transition-transform">
+                  <ArrowDown size={17} />
                 </span>
               </button>
 
               <div className="flex flex-wrap items-center justify-center gap-x-5">
                 <button
                   onClick={() => goDonate('hero')}
-                  className="text-sm font-bold text-chalkboard/70 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
+                  className="text-base sm:text-lg font-bold text-chalkboard/75 hover:text-apple underline underline-offset-4 decoration-chalkboard/25 hover:decoration-apple min-h-[44px] px-2 transition-colors"
                 >
                   Don't have cans? Make a donation
                 </button>
                 <a
                   href={classroomLink.href}
                   onClick={goClassroom('hero')}
-                  className="inline-flex items-center text-sm font-bold text-chalkboard/70 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
+                  className="inline-flex items-center text-base sm:text-lg font-bold text-chalkboard/75 hover:text-apple underline underline-offset-4 decoration-chalkboard/25 hover:decoration-apple min-h-[44px] px-2 transition-colors"
                 >
                   Teacher? Collect in your classroom
                 </a>
               </div>
             </motion.div>
 
-            {/* Real crushed cans, standing on one ground line. Each one arrives
-                once and stays put; see ReturnableCans.tsx for why the sizes
-                are what they are. */}
-            <ReturnableCansRow className="mt-12 sm:mt-14" />
+            {/* A small accent row of drawn cans and bottles, evenly spaced on
+                one ground line. Each arrives once and stays put; see
+                ReturnableCans.tsx for how the sizes stay consistent. */}
+            <ReturnableCansRow className="mt-8 sm:mt-10" />
           </section>
 
           {/* ═══ 2. HOW IT WORKS ═══ */}
-          <section className="mt-20 sm:mt-24">
+          <section className="mt-14 sm:mt-16">
             <h2 className="text-center font-serif font-bold text-3xl sm:text-4xl leading-tight tracking-[-0.01em] mb-3">
               Your empties can do something{' '}
               <span className="text-apple italic font-normal">pretty great</span>.
@@ -296,7 +296,7 @@ export default function ReturnablesPage() {
               <a
                 href={classroomLink.href}
                 onClick={goClassroom('teacher-card')}
-                className="group self-start sm:self-auto inline-flex items-center gap-3 bg-chalkboard text-white pl-6 pr-2 py-2 rounded-full font-bold text-sm whitespace-nowrap active:scale-[0.98] min-h-[48px] transition-transform"
+                className="group self-start sm:self-auto inline-flex items-center gap-3 bg-chalkboard text-white pl-6 pr-2 py-2.5 rounded-full font-bold text-base sm:text-lg whitespace-nowrap active:scale-[0.98] min-h-[56px] transition-transform"
               >
                 Sign up your classroom
                 <span className="w-8 h-8 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
@@ -360,7 +360,7 @@ export default function ReturnablesPage() {
               </p>
               <button
                 onClick={() => goDonate('secondary_section')}
-                className="group inline-flex items-center gap-2.5 bg-chalkboard text-white pl-7 pr-2 py-2 rounded-full font-bold text-sm uppercase tracking-[0.18em] hover:bg-apple min-h-[48px]"
+                className="group inline-flex items-center gap-2.5 bg-chalkboard text-white pl-7 pr-2 py-2.5 rounded-full font-bold text-base uppercase tracking-[0.14em] hover:bg-apple min-h-[56px]"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
                 Make a Donation
@@ -414,17 +414,17 @@ export default function ReturnablesPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
                 onClick={() => goToForm('final')}
-                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-8 pr-2.5 py-2.5 rounded-full font-bold text-sm uppercase tracking-[0.18em] shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[52px]"
+                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-7 sm:pl-9 pr-2.5 py-3 rounded-full font-bold text-base sm:text-lg uppercase tracking-[0.1em] sm:tracking-[0.16em] whitespace-nowrap shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[60px]"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
                 Donate My Returnables
-                <span className="w-9 h-9 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-y-0.5 transition-transform">
-                  <ArrowDown size={15} />
+                <span className="w-10 h-10 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-y-0.5 transition-transform">
+                  <ArrowDown size={17} />
                 </span>
               </button>
               <button
                 onClick={() => goDonate('final')}
-                className="w-full sm:w-auto flex items-center justify-center bg-white ring-1 ring-chalkboard/15 hover:ring-chalkboard/30 px-7 py-3 rounded-full font-bold text-sm uppercase tracking-[0.18em] text-chalkboard/70 hover:text-chalkboard min-h-[52px] transition-all"
+                className="w-full sm:w-auto flex items-center justify-center bg-white ring-1 ring-chalkboard/15 hover:ring-chalkboard/30 px-7 py-3 rounded-full font-bold text-base uppercase tracking-[0.12em] text-chalkboard/75 hover:text-chalkboard min-h-[60px] transition-all"
               >
                 Make a Monetary Donation
               </button>
@@ -870,7 +870,7 @@ function PickupForm({ source }: { source: string }) {
           <button
             type="submit"
             disabled={status === 'loading'}
-            className="group w-full flex items-center justify-center gap-3 bg-apple text-white py-4 rounded-2xl font-bold text-sm uppercase tracking-[0.18em] shadow-[0_15px_40px_rgba(192,57,43,0.3)] active:scale-[0.99] disabled:opacity-60 min-h-[56px] transition-all"
+            className="group w-full flex items-center justify-center gap-3 bg-apple text-white py-4 rounded-2xl font-bold text-base sm:text-lg uppercase tracking-[0.14em] shadow-[0_15px_40px_rgba(192,57,43,0.3)] active:scale-[0.99] disabled:opacity-60 min-h-[60px] transition-all"
           >
             {status === 'loading' ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
             <span>Request My Pickup</span>
