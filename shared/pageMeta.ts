@@ -47,7 +47,7 @@ export const PAGE_META: Record<string, RouteMeta> = {
   '/for-teachers': {
     title: 'Request Classroom Supplies | Funding Michigan Teachers',
     description:
-      'Teach at Okemos, East Lansing or Haslett? Tell us what your classroom ran out of and we restock it. No application, no committee, no grant cycle.',
+      'Teach at Okemos, East Lansing or Haslett? Tell us what your classroom needs, from tissues to a whole project. No application, no committee, no grant cycle.',
   },
   '/privacy': {
     title: 'Privacy Policy | Funding Michigan Teachers',

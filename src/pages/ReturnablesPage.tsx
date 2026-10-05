@@ -135,6 +135,15 @@ export default function ReturnablesPage() {
     navigate('/donate');
   };
 
+  // A teacher signs their classroom up on For Teachers, where the form lives
+  // with everything else FMT offers teachers. These links are how a teacher
+  // on this page finds it.
+  const classroomLink = navLinkProps('/for-teachers#returnables');
+  const goClassroom = (where: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
+    track('returnables_cta_clicked', { location: where, kind: 'classroom' });
+    classroomLink.onClick(e);
+  };
+
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative">
       {/* Floating glass nav island — same as every other sub-page */}
@@ -200,12 +209,21 @@ export default function ReturnablesPage() {
                 </span>
               </button>
 
-              <button
-                onClick={() => goDonate('hero')}
-                className="text-sm font-bold text-chalkboard/70 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
-              >
-                Don't have cans? Make a donation
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-x-5">
+                <button
+                  onClick={() => goDonate('hero')}
+                  className="text-sm font-bold text-chalkboard/70 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
+                >
+                  Don't have cans? Make a donation
+                </button>
+                <a
+                  href={classroomLink.href}
+                  onClick={goClassroom('hero')}
+                  className="inline-flex items-center text-sm font-bold text-chalkboard/70 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
+                >
+                  Teacher? Collect in your classroom
+                </a>
+              </div>
             </motion.div>
 
             {/* Real crushed cans, standing on one ground line. Each one arrives
@@ -257,6 +275,37 @@ export default function ReturnablesPage() {
             </div>
           </section>
 
+          {/* ═══ 2b. FOR TEACHERS ═══ */}
+          <section aria-labelledby="classroom-heading" className="mt-12 sm:mt-14 max-w-4xl mx-auto">
+            <div className="bg-white rounded-[1.75rem] border border-chalkboard/5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--color-campaign-teal)]/15 text-[var(--color-campaign-teal)] flex items-center justify-center shrink-0">
+                <School size={22} strokeWidth={1.5} aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-1">
+                  For teachers
+                </p>
+                <h2 id="classroom-heading" className="font-serif font-bold text-xl sm:text-2xl leading-tight mb-1.5">
+                  Collect returnables in your classroom
+                </h2>
+                <p className="text-sm text-chalkboard/70 font-light leading-relaxed">
+                  Your room saves its cans and bottles, and our student volunteers pick them up.
+                  No bin? We can bring a collection box.
+                </p>
+              </div>
+              <a
+                href={classroomLink.href}
+                onClick={goClassroom('teacher-card')}
+                className="group self-start sm:self-auto inline-flex items-center gap-3 bg-chalkboard text-white pl-6 pr-2 py-2 rounded-full font-bold text-sm whitespace-nowrap active:scale-[0.98] min-h-[48px] transition-transform"
+              >
+                Sign up your classroom
+                <span className="w-8 h-8 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                  <ArrowRight size={14} aria-hidden="true" />
+                </span>
+              </a>
+            </div>
+          </section>
+
           {/* ═══ 3. PICKUP FORM ═══ */}
           <section ref={formRef} id="pickup" className="mt-20 sm:mt-24 scroll-mt-24">
             <div className="text-center mb-8">
@@ -265,13 +314,6 @@ export default function ReturnablesPage() {
               </h2>
               <p className="text-chalkboard/70 font-light leading-relaxed max-w-xl mx-auto">
                 Tell us a little about your returnables and we'll coordinate the pickup with you.
-              </p>
-              <p className="mt-3 text-sm text-chalkboard/70 font-light">
-                Teacher?{' '}
-                <a {...navLinkProps('/for-teachers#returnables')} className="font-bold text-apple underline underline-offset-2">
-                  Sign your classroom up instead
-                </a>
-                {' '}— we can bring a collection box.
               </p>
             </div>
             <PickupForm source={source} />

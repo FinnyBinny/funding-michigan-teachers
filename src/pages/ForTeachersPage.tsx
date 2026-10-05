@@ -26,9 +26,12 @@ const QUICK_FILLS = [
 ];
 
 const REASSURANCE = [
-  { icon: Package, title: 'No application', body: 'No forms to chase, no committee, no grant cycle. You tell us what ran out; we work on getting it.' },
+  { icon: Package, title: 'No application', body: 'No forms to chase, no committee, no grant cycle. You tell us what you need; we work on getting it.' },
   { icon: Heart, title: 'Nothing comes out of your pocket', body: "That's the entire point of this organization. If you're buying it yourself, we haven't done our job." },
-  { icon: Award, title: 'Ask small', body: "A box of tissues is a real request. Most of what teachers buy themselves is small, boring, and constant — that's exactly what we want to cover." },
+  // Not "ask small": classroom projects (a dissection lab, a greenhouse) are
+  // as much the point as tissues. Small asks are only the fastest to fill.
+  // No teacher is named here; names wait on permission (see PERMISSIONS).
+  { icon: Award, title: 'Small or big', body: "A box of tissues is a real request, and so is new lab equipment or a greenhouse restock. Small asks get filled fastest. Bigger ones we take to local businesses and donors: that's how one botany garden got a new cart and shelving from Home Depot." },
 ];
 
 /**
@@ -49,10 +52,13 @@ const REASSURANCE = [
  *
  * It is a field on this form rather than a form of its own: a teacher who
  * needs tissues in October and a cart in January is filling in the same four
- * boxes, and a second page would be the same questions twice.
+ * boxes, and a second page would be the same questions twice. The same goes
+ * for a bigger classroom project: its own option, so it can be told apart
+ * from a restock in the inbox, but the same questions.
  */
 const REQUEST_KINDS = [
   { id: 'anytime', label: 'Something we ran out of (any time)' },
+  { id: 'project', label: 'A bigger classroom project — a lab, a garden, a reading corner' },
   { id: 'mid-year-refill', label: 'Mid-Year Refill — the January restock' },
 ] as const;
 
@@ -241,7 +247,9 @@ export default function ForTeachersPage() {
     });
 
     sent = await submitToFormBold(FORMBOLD.supplies, {
-      Form: form.kind === 'mid-year-refill' ? 'Mid-Year Refill request' : 'Teacher supply request',
+      Form: form.kind === 'mid-year-refill'
+        ? 'Mid-Year Refill request'
+        : form.kind === 'project' ? 'Classroom project request' : 'Teacher supply request',
       // The subject is what gets scanned in an inbox, so it leads with which
       // programme this is — a January refill is planned and budgeted
       // differently from a one-off restock.
@@ -340,8 +348,9 @@ export default function ForTeachersPage() {
               Stop buying it <span className="text-apple italic font-normal">yourself</span>.
             </h1>
             <p className="text-xl text-chalkboard/70 font-light leading-relaxed">
-              Tell us what your classroom has run out of. We'll work on getting it to you — no
-              application, no cost, no catch. This is the whole reason we exist.
+              Tell us what your classroom needs, from a box of tissues to a whole project. We'll
+              work on getting it to you — no application, no cost, no catch. This is the whole
+              reason we exist.
             </p>
           </motion.div>
         </section>
