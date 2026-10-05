@@ -215,7 +215,9 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
     const ours = ifNoneMatch.split(',').map(etagValue).find((v) => v.endsWith(`.${tag}`));
     if (ours) {
       const asset = ours.slice(0, -(tag.length + 1));
-      headers.set('If-None-Match', `"${asset}", W/"${asset}"`);
+      // One value, as the asset service sends it. It did not answer 304 to a
+      // list of strong and weak forms.
+      headers.set('If-None-Match', `"${asset}"`);
     }
   }
 
