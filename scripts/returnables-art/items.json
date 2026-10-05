@@ -1,0 +1,175 @@
+[
+ {
+  "kind": "bottle",
+  "tint": "#a9dcb8",
+  "color": "#e9a91a",
+  "light": "#f7c548",
+  "band": "#1b7a3c",
+  "ink": "#1d3a0e",
+  "cap": "#1b7a3c",
+  "seed": 97,
+  "dents": 3,
+  "dentDepth": 11,
+  "creases": 4.6,
+  "flat": 0.38,
+  "crush": 0.12,
+  "twist": -0.3,
+  "lean": -3,
+  "yaw": 10,
+  "name": "bottle-green",
+  "at": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "can",
+  "size": "tall",
+  "color": "#e5660f",
+  "light": "#f4973a",
+  "band": "#ffd27a",
+  "seed": 23,
+  "crush": 0.1,
+  "twist": -0.15,
+  "bend": -0.05,
+  "dents": 2,
+  "dentDepth": 10,
+  "buckle": 3,
+  "lean": 3,
+  "yaw": -8,
+  "name": "can-tall-orange",
+  "at": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "can",
+  "color": "#c4232c",
+  "light": "#df3d47",
+  "band": "#ffffff",
+  "seed": 11,
+  "crush": 0.24,
+  "twist": 0.3,
+  "bend": 0.08,
+  "dents": 1,
+  "lobes": 6,
+  "buckle": 8,
+  "lean": -4,
+  "yaw": 20,
+  "name": "can-red",
+  "at": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "can",
+  "size": "mini",
+  "color": "#93b51c",
+  "light": "#c3dc55",
+  "band": "#ffffff",
+  "ink": "#1d3a0e",
+  "seed": 67,
+  "crush": 0.08,
+  "twist": 0.2,
+  "bend": 0.05,
+  "dents": 2,
+  "dentDepth": 8,
+  "oval": 0.2,
+  "buckle": 2.5,
+  "lean": 5,
+  "yaw": 8,
+  "name": "can-mini-lime",
+  "at": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "can",
+  "size": "slim",
+  "color": "#25303b",
+  "light": "#3d4b59",
+  "band": "#2a9d8f",
+  "seed": 61,
+  "crush": 0.08,
+  "twist": 0.2,
+  "bend": 0.06,
+  "dents": 2,
+  "buckle": 3,
+  "lean": -2,
+  "yaw": 15,
+  "name": "can-slim-dark",
+  "at": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "can",
+  "color": "#1a479c",
+  "light": "#356ccc",
+  "band": "#a8d4ff",
+  "seed": 53,
+  "crush": 0.22,
+  "twist": -0.3,
+  "bend": 0.2,
+  "dents": 2,
+  "lobes": 6,
+  "buckle": 6,
+  "lean": -3,
+  "yaw": -12,
+  "name": "can-blue",
+  "at": [
+   0,
+   0
+  ]
+ },
+ {
+  "kind": "can",
+  "color": "#b6bdc6",
+  "light": "#e2e7ec",
+  "band": "#2a9d8f",
+  "ink": "#24323b",
+  "metalness": 0.95,
+  "roughness": 0.24,
+  "seed": 37,
+  "crush": 0.34,
+  "twist": 0.15,
+  "bend": 0.2,
+  "dents": 1,
+  "lobes": 5,
+  "buckle": 9,
+  "lie": false,
+  "yaw": 10,
+  "name": "can-silver",
+  "at": [
+   0,
+   0
+  ],
+  "lean": -2
+ },
+ {
+  "kind": "bottle",
+  "tint": "#cfdde6",
+  "color": "#c4232c",
+  "light": "#df3d47",
+  "band": "#ffffff",
+  "cap": "#c62828",
+  "seed": 81,
+  "dents": 3,
+  "dentDepth": 12,
+  "creases": 4.6,
+  "flat": 0.34,
+  "crush": 0.14,
+  "twist": 0.3,
+  "lean": 3,
+  "yaw": -15,
+  "name": "bottle-clear",
+  "at": [
+   0,
+   0
+  ]
+ }
+]

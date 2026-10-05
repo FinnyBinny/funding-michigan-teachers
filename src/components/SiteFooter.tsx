@@ -76,16 +76,16 @@ export default function SiteFooter() {
               <a
                 key={item.path}
                 {...navLinkProps(item.path)}
-                className="hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold"
+                className="inline-flex items-center min-h-6 hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold"
               >
                 {item.label}
               </a>
             ))}
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-            <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold">Instagram</a>
-            <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold">Facebook</a>
-            <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold">LinkedIn</a>
+            <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="inline-flex items-center min-h-6 hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold">Instagram</a>
+            <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="inline-flex items-center min-h-6 hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold">Facebook</a>
+            <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="inline-flex items-center min-h-6 hover:text-white transition-colors uppercase tracking-widest text-[0.625rem] font-bold">LinkedIn</a>
           </div>
         </div>
       </div>
