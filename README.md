@@ -34,6 +34,9 @@ npx wrangler dev     # run the real Worker (routing, 301s, API) against dist/
 | Supabase URL + anon key | Baked into `src/lib/supabase.ts` (public by design, protected by Row Level Security). |
 | Stripe publishable key | Baked into `src/lib/donate.ts` (public by design). |
 | Google Analytics | `GA_MEASUREMENT_ID` in `src/lib/analytics.ts`. Empty = analytics off. |
+| `BLOOMERANG_API_KEY` | Same screen as Stripe, as a **Secret**. See *Bloomerang* below. |
+| `STRIPE_WEBHOOK_SECRET` | Same screen, as a **Secret**: the signing secret (`whsec_…`) of the Stripe webhook below. |
+| `MERCH_CODES` | Same screen, as a **Secret**. Format and rotation advice in `shared/merch.ts`. |
 
 **Vite inlines `VITE_*` variables at build time**, so anything the browser needs must be a
 *build* variable or a baked-in constant — a Cloudflare *runtime* variable never reaches the
@@ -41,12 +44,54 @@ bundle. This is why the two public keys above are committed rather than read fro
 
 ## Database
 
-`SUPABASE_REFRESH.sql` is the only file that needs running — paste it into the Supabase SQL
-Editor. It creates every table, sets Row Level Security (public reads; writes require a
-signed-in admin), and refreshes seeded content. It is idempotent.
+`SUPABASE_REFRESH.sql` creates every table and refreshes seeded content — paste it into the
+Supabase SQL Editor. It is idempotent.
+
+Then run `SUPABASE_LOCKDOWN.sql` (edit the admin email in step 1 first). On its own the
+refresh lets **any** signed-in Supabase user read every form submission and edit every
+content table; the lockdown limits both to the admins it lists. Then, in Supabase →
+Authentication, turn **off** "Allow new users to sign up" and delete any user who is not an
+FMT admin.
 
 Admin access lives at `/access` and uses Supabase Auth. Create the login under
 Supabase → Authentication → Users.
+
+## Bloomerang
+
+Every form posts to the Worker's `/api/crm`, which files the person in Bloomerang with a
+private API key; completed Stripe payments reach it through `/api/stripe-webhook`. Neither
+ever blocks a form or a payment: the CRM copy is extra.
+
+**Setup**
+1. In Bloomerang, signed in as an active Administrator: profile icon → Edit My User →
+   API Keys 2.0 → Generate. Save it in Cloudflare as the Secret `BLOOMERANG_API_KEY` (a
+   plain Variable is kept now, but a Secret is the right home for a key that can read
+   the whole CRM).
+2. In Stripe → Developers → Webhooks → Add endpoint:
+   `https://www.fundingmichiganteachers.org/api/stripe-webhook`, event
+   `checkout.session.completed`. Save its signing secret as `STRIPE_WEBHOOK_SECRET`.
+
+**Where records appear:** on the person's timeline as an *interaction* ("Website — contact
+form", "Website — donation"), not under Communications → Forms.
+
+**Checking it works (5 minutes):** open the site, press F12 → Network, tick Preserve log,
+filter `crm`, and send the contact form with your own email.
+
+| Response | Meaning |
+|---|---|
+| 200 `{"filed":true}` | Filed. Search the email in Bloomerang. |
+| 503 `not-configured` | `BLOOMERANG_API_KEY` is missing on the Worker. |
+| 502 `search` / `constituent` | Bloomerang refused the key or the data. The reason is in Cloudflare → the Worker → Observability, search `[crm]`. |
+| 502 `partial` | The person was saved, the note was not. |
+| 403 | The request did not come from the site's own pages. |
+| no `crm` request at all | The deployed version is older than the Worker path. Redeploy. |
+
+Then filter `WebsiteVisit`: a 200 means the visit tracker ran. Bloomerang ties visits to a
+person only when it can identify them, mainly after they click a link in an email sent from
+Bloomerang, so send thank-yous and the Impact Report from Bloomerang.
+
+**Data kept out on purpose:** returnables pickups are filed with name, email, phone and
+town only. Street addresses and "bags on the porch" notes stay with the pickup request.
 
 ## Images
 

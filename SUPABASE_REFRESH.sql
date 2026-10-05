@@ -3,7 +3,12 @@
 -- Run this ENTIRE file once in the Supabase SQL Editor:
 --   supabase.com → your project → SQL Editor → New query → paste → Run
 --
--- THIS IS THE ONLY FILE YOU NEED TO RUN. It creates every table the site
+-- THEN RUN SUPABASE_LOCKDOWN.sql (October 2026). This file lets ANY signed-in
+-- Supabase user read every form submission and edit every content table;
+-- the lockdown limits both to the admins it lists, and its header says how
+-- to turn off public sign-ups.
+--
+-- THIS FILE CREATES EVERYTHING ELSE. It creates every table the site
 -- uses (including project_votes for classroom-project voting and
 -- contact_submissions for form backups), then fixes the content. The older
 -- SUPABASE_SETUP.sql / SUPABASE_SEED.sql / FORMS_SETUP.sql files are kept

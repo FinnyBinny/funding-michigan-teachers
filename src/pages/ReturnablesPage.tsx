@@ -179,7 +179,7 @@ export default function ReturnablesPage() {
             >
               Your empty cans and bottles can do more than sit in the garage. Donate your
               Michigan returnables and we'll turn those 10¢ deposits into real support for
-              local teachers and classrooms.
+              local teachers and classrooms. Free pickup in {CAMPAIGN.serviceArea}.
             </motion.p>
 
             <motion.div
@@ -190,7 +190,7 @@ export default function ReturnablesPage() {
             >
               <button
                 onClick={() => goToForm('hero')}
-                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-8 pr-2.5 py-2.5 rounded-full font-bold text-sm uppercase tracking-[0.18em] shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[52px]"
+                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-7 sm:pl-8 pr-2.5 py-2.5 rounded-full font-bold text-sm uppercase tracking-[0.12em] sm:tracking-[0.18em] whitespace-nowrap shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[52px]"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
                 Donate My Returnables
@@ -425,22 +425,15 @@ function FaqList() {
                 />
               </button>
             </h3>
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  id={`faq-panel-${i}`}
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EASE }}
-                  className="overflow-hidden"
-                >
-                  <p className="px-5 pb-5 text-sm text-chalkboard/70 font-light leading-relaxed">
-                    {item.a}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Always in the page, hidden when closed: rendered only while
+                open, the answers were invisible to search engines (crawlers
+                do not click), including the only mention of the pickup area,
+                and aria-controls pointed at nothing. */}
+            <div id={`faq-panel-${i}`} hidden={!isOpen}>
+              <p className="px-5 pb-5 text-sm text-chalkboard/75 font-light leading-relaxed">
+                {item.a}
+              </p>
+            </div>
           </div>
         );
       })}
