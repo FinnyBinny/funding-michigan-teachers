@@ -82,6 +82,10 @@ export default function PrivacyPage() {
                   details are used only to plan and complete the pickup.
                 </li>
                 <li>
+                  <strong className="text-chalkboard">Classroom returnables sign-ups</strong>: your name, email,
+                  school and room, whether you would like a collection box, and any note you add.
+                </li>
+                <li>
                   <strong className="text-chalkboard">Donations</strong>: processed by Stripe. Your card details
                   go to Stripe and never reach us. We receive your name, email, the amount, where you chose
                   to send it, whether it is monthly, and whether you covered the card fee, so we can thank

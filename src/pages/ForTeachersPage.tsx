@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Send, Loader2, CheckCircle2, Award, Package, Heart } from 'lucide-react';
+import { Send, Loader2, CheckCircle2, Award, Package, Heart, Recycle } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
@@ -10,9 +10,15 @@ import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
+import { navLinkProps } from '../lib/navigate';
+import { cn } from '../lib/utils';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
+
+/** Shared by both forms on this page. */
+const FIELD = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 focus:border-apple/40 outline-none transition-all placeholder:text-chalkboard/65';
+const LABEL = 'block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 ml-1';
 
 /** The things we fill fastest — naming them lowers the bar to asking. */
 const QUICK_FILLS = [
@@ -176,7 +182,14 @@ export default function ForTeachersPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'mailto'>('idle');
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // /for-teachers#returnables (linked from the returnables page) lands on
+    // the classroom sign-up; the page renders after the browser's own jump
+    // to the anchor, so do it here.
+    if (window.location.hash === '#returnables') {
+      requestAnimationFrame(() => document.getElementById('returnables')?.scrollIntoView());
+    } else {
+      window.scrollTo(0, 0);
+    }
     setPageMeta(metaForPath('/for-teachers'));
   }, []);
 
@@ -303,8 +316,8 @@ export default function ForTeachersPage() {
     return `mailto:${EMAIL}?subject=${subject}&body=${body}`;
   };
 
-  const field = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 focus:border-apple/40 outline-none transition-all placeholder:text-chalkboard/65';
-  const label = 'block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 ml-1';
+  const field = FIELD;
+  const label = LABEL;
 
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
@@ -371,28 +384,11 @@ export default function ForTeachersPage() {
           </div>
         </section>
 
-        {/* What turns up. This photo's one featured slot on the site. */}
-        <section className="px-4 sm:px-6 pt-12">
-          <figure className="max-w-3xl mx-auto">
-            <picture>
-              <source srcSet="/images/IMG_3714(CFA).avif" type="image/avif" />
-              <img
-                src="/images/IMG_3714(CFA)-opt.jpg"
-                alt="Trays of cookies and coupon cards on a staff-room table, beside a whiteboard note reading Thank you for all you do, help yourself to one cookie, signed Funding Michigan Teachers"
-                width={675}
-                height={900}
-                loading="lazy"
-                decoding="async"
-                className="w-full aspect-[4/3] object-cover object-[50%_40%] rounded-[1.5rem] ring-1 ring-chalkboard/10"
-              />
-            </picture>
-            <figcaption className="mt-3 text-sm text-chalkboard/70">
-              The first staff meeting of the 2025–26 school year: cookies and meal coupons from Chick-fil-A, and a note from us.
-            </figcaption>
-          </figure>
-        </section>
+        {/* Photo slot. The cookie-table photo that sat here was taken down at
+            the founder's request (October 2026); a replacement is coming. Put
+            it here as a <figure>, between "How asking works" and the form. */}
 
-        {/* The form — the page's single action */}
+        {/* The form — the page's main action */}
         <section id="request" className="px-4 sm:px-6 py-14">
           <div className="max-w-3xl mx-auto">
             <h2 className="font-serif font-bold text-2xl sm:text-3xl mb-2">What does your classroom need?</h2>
@@ -646,6 +642,8 @@ export default function ForTeachersPage() {
             )}
           </div>
         </section>
+
+        <ClassroomReturnables />
       </main>
 
       <SiteFooter />
@@ -675,6 +673,276 @@ function RequestReceived({ onAnother }: { onAnother: () => void }) {
         className="mt-5 text-sm font-bold text-apple hover:text-apple/80 transition-colors"
       >
         Send another request
+      </button>
+    </motion.div>
+  );
+}
+
+/**
+ * Classroom returnables sign-up.
+ *
+ * A teacher signs their room up to save Michigan 10¢ cans and bottles; FMT's
+ * student volunteers pick them up and the deposits go back to teachers, the
+ * same program as the home pickups on /returnables.
+ *
+ * Its own short form rather than an option on the supply request above,
+ * which would have to hide most of its questions. Whether FMT brings a
+ * collection box is a required yes or no rather than a checkbox: an unticked
+ * box could mean "no" or "didn't see it", and FMT has to know which before
+ * the first pickup. Delivered like every form here: FormBold to the
+ * returnables inbox, Supabase as the backup copy, and Bloomerang for the
+ * record.
+ */
+type BoxChoice = '' | 'yes' | 'no';
+
+const BOX_CHOICES = [
+  { value: 'yes', title: 'Yes, please bring one', hint: "We'll bring it to your room" },
+  { value: 'no', title: 'No, we have our own bin', hint: "We'll come by for the cans and bottles" },
+] as const;
+
+const EMPTY_SIGNUP = { name: '', email: '', school: '', schoolOther: '', room: '', box: '' as BoxChoice, notes: '' };
+
+function ClassroomReturnables() {
+  const [form, setForm] = useState(EMPTY_SIGNUP);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'mailto'>('idle');
+  const [boxRequested, setBoxRequested] = useState(false);
+  const set = (patch: Partial<typeof EMPTY_SIGNUP>) => setForm((f) => ({ ...f, ...patch }));
+
+  const schoolName = form.school === OTHER_SCHOOL ? form.schoolOther.trim() : form.school;
+  const wantsBox = form.box === 'yes';
+  const boxLine = wantsBox ? 'Yes, bring one' : 'No, they have their own bin';
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus('loading');
+    let sent = false;
+
+    // Not awaited and never surfaced, as with the supply request: the
+    // deliveries below decide what the teacher is told.
+    void fileWithBloomerang('classroomReturnables', {
+      name: form.name,
+      email: form.email,
+      note: [
+        `Classroom returnables sign-up — ${schoolName}, room ${form.room}`,
+        `Collection box: ${boxLine}`,
+        form.notes && `\n${form.notes}`,
+        '\nFiled from fundingmichiganteachers.org/for-teachers',
+      ].filter(Boolean).join('\n'),
+    });
+
+    sent = await submitToFormBold(FORMBOLD.returnables, {
+      Form: 'Classroom returnables sign-up',
+      // Leads with the box, because that is the one thing to prepare before
+      // the first pickup.
+      subject: `Classroom returnables${wantsBox ? ' + collection box' : ''} — ${form.name} (${schoolName}, room ${form.room})`,
+      name: form.name,
+      email: form.email,
+      school: schoolName,
+      room: form.room,
+      collectionBox: boxLine,
+      notes: form.notes,
+    });
+
+    if (supabase) {
+      const { error } = await supabase.from('contact_submissions').insert({
+        name: form.name,
+        email: form.email,
+        message: form.notes,
+        type: 'returnables-classroom',
+        extra: { school: schoolName, room: form.room, collectionBox: form.box },
+      });
+      if (!error) sent = true;
+    }
+
+    if (sent) {
+      track('returnables_form_submitted', { source: 'for-teachers', kind: 'classroom', collection_box: form.box });
+      setBoxRequested(wantsBox);
+      setStatus('success');
+      setForm(EMPTY_SIGNUP);
+      return;
+    }
+    setStatus('mailto');
+  };
+
+  const mailtoHref = () => {
+    const subject = encodeURIComponent(`Classroom returnables sign-up — ${form.name} (${schoolName})`);
+    const body = encodeURIComponent(
+      `Teacher: ${form.name}\nSchool: ${schoolName}\nRoom: ${form.room}\nEmail: ${form.email}\n` +
+      `Collection box: ${boxLine}${form.notes ? `\n\nNotes:\n${form.notes}` : ''}`,
+    );
+    return `mailto:${EMAIL}?subject=${subject}&body=${body}`;
+  };
+
+  return (
+    <section id="returnables" aria-labelledby="returnables-heading" className="px-4 sm:px-6 py-14 bg-white/60 scroll-mt-24">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-apple/10 text-apple flex items-center justify-center shrink-0">
+            <Recycle size={18} strokeWidth={1.6} aria-hidden="true" />
+          </div>
+          <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70">
+            Returnables program
+          </p>
+        </div>
+        <h2 id="returnables-heading" className="font-serif font-bold text-2xl sm:text-3xl mb-2">
+          Collect returnables in your classroom
+        </h2>
+        <p className="text-chalkboard/70 font-light mb-8 text-sm leading-relaxed">
+          Your room saves its Michigan 10¢ cans and bottles. Our student volunteers pick them up and
+          return them, and every dime goes to classroom supplies, staff meals and teacher
+          appreciation. No bin? We can bring a collection box.{' '}
+          <a {...navLinkProps('/returnables')} className="text-apple underline underline-offset-2">
+            How the program works
+          </a>
+        </p>
+
+        {status === 'success' ? (
+          <ClassroomSignedUp box={boxRequested} onAnother={() => setStatus('idle')} />
+        ) : (
+          <form onSubmit={handleSubmit} className="bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-8 space-y-5">
+            <div className="grid sm:grid-cols-2 gap-4 items-end">
+              <div>
+                <label htmlFor="rc-name" className={LABEL}>Your name</label>
+                <input
+                  id="rc-name" name="name" required autoComplete="name"
+                  value={form.name} onChange={(e) => set({ name: e.target.value })}
+                  className={FIELD}
+                />
+              </div>
+              <div>
+                <label htmlFor="rc-school" className={LABEL}>School</label>
+                <select
+                  id="rc-school" name="organization" required
+                  value={form.school} onChange={(e) => set({ school: e.target.value })}
+                  className={FIELD}
+                >
+                  <option value="" disabled>Pick your school</option>
+                  {SCHOOLS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <option value={OTHER_SCHOOL}>{OTHER_SCHOOL}</option>
+                </select>
+              </div>
+            </div>
+
+            {form.school === OTHER_SCHOOL && (
+              <div>
+                <label htmlFor="rc-school-other" className={LABEL}>Which school?</label>
+                <input
+                  id="rc-school-other" name="schoolOther" required
+                  value={form.schoolOther} onChange={(e) => set({ schoolOther: e.target.value })}
+                  className={FIELD}
+                />
+                <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
+                  We pick up across the Greater Lansing area. Further away? Sign up anyway and we'll
+                  tell you what we can do.
+                </p>
+              </div>
+            )}
+
+            <div className="grid sm:grid-cols-2 gap-4 items-end">
+              <div>
+                <label htmlFor="rc-email" className={LABEL}>Email</label>
+                <input
+                  id="rc-email" name="email" type="email" required autoComplete="email"
+                  value={form.email} onChange={(e) => set({ email: e.target.value })}
+                  className={FIELD} placeholder="you@school.org"
+                />
+              </div>
+              <div>
+                <label htmlFor="rc-room" className={LABEL}>Room number (or where to find you)</label>
+                <input
+                  id="rc-room" name="room" required
+                  value={form.room} onChange={(e) => set({ room: e.target.value })}
+                  className={FIELD} placeholder="212, or Media center"
+                />
+              </div>
+            </div>
+
+            <fieldset>
+              <legend className={LABEL}>Do you need a collection box?</legend>
+              <div className="grid sm:grid-cols-2 gap-2.5">
+                {BOX_CHOICES.map((c) => (
+                  <label
+                    key={c.value}
+                    className={cn(
+                      'flex items-start gap-3 rounded-xl px-4 py-3 ring-1 cursor-pointer transition-all min-h-[56px]',
+                      form.box === c.value ? 'bg-apple/5 ring-apple/40' : 'bg-paper ring-chalkboard/10 hover:ring-chalkboard/20',
+                    )}
+                  >
+                    <input
+                      type="radio" name="rc-box" value={c.value} required
+                      checked={form.box === c.value}
+                      onChange={() => set({ box: c.value })}
+                      className="mt-1 w-4 h-4 accent-apple shrink-0"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold text-chalkboard leading-snug">{c.title}</span>
+                      <span className="block text-xs text-chalkboard/70 font-light">{c.hint}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <div>
+              <label htmlFor="rc-notes" className={LABEL}>Anything we should know?</label>
+              <textarea
+                id="rc-notes" name="notes" rows={2}
+                value={form.notes} onChange={(e) => set({ notes: e.target.value })}
+                className={`${FIELD} resize-none`}
+                placeholder="Optional. The best day or time for pickups, or where the box should go."
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="w-full bg-apple text-white py-3.5 rounded-xl font-bold text-base hover:bg-apple/90 transition-all active:scale-[0.98] flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              {status === 'loading' ? <Loader2 className="animate-spin" size={20} /> : (
+                <>
+                  <span>Sign up my classroom</span>
+                  <Recycle size={17} aria-hidden="true" />
+                </>
+              )}
+            </button>
+            {status === 'mailto' && <SendFailed mailto={mailtoHref()} />}
+
+            <p className="text-xs text-chalkboard/70 font-light text-center leading-relaxed">
+              Read by our student team and kept with your sign-up so we can set up pickups.
+              See our <a href="/privacy" className="text-apple underline">privacy policy</a>, or email{' '}
+              <a href={`mailto:${EMAIL}`} className="text-apple underline">{EMAIL}</a>.
+            </p>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Replaces the sign-up form once it has been delivered. */
+function ClassroomSignedUp({ box, onAnother }: { box: boolean; onAnother: () => void }) {
+  const headingRef = useFocusOnMount<HTMLHeadingElement>();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white ring-1 ring-apple/25 rounded-[1.75rem] p-8 text-center"
+    >
+      <div className="w-12 h-12 rounded-2xl bg-apple/10 text-apple flex items-center justify-center mx-auto mb-4">
+        <CheckCircle2 size={22} aria-hidden="true" />
+      </div>
+      <h3 ref={headingRef} tabIndex={-1} className="font-serif font-bold text-xl mb-2 outline-none">
+        Your classroom is signed up.
+      </h3>
+      <p className="text-sm text-chalkboard/75 font-light leading-relaxed">
+        We'll email you to set up the first pickup{box ? ' and bring your collection box' : ''}.
+        Until then, start saving anything marked MI 10¢.
+      </p>
+      <button
+        onClick={onAnother}
+        className="mt-5 text-sm font-bold text-apple hover:text-apple/80 transition-colors"
+      >
+        Sign up another classroom
       </button>
     </motion.div>
   );

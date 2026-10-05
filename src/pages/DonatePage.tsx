@@ -8,7 +8,6 @@ import {
 import { cn } from '../lib/utils';
 import { isAnyStripeConfigured, isEmbeddedStripeConfigured, openDonation, type DonationFrequency } from '../lib/donate';
 import ImpactVisualizer from '../components/ImpactVisualizer';
-import SupplyBasket from '../components/SupplyBasket';
 import EmbeddedDonateCheckout from '../components/EmbeddedDonateCheckout';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
@@ -419,23 +418,6 @@ export default function DonatePage() {
                 ? <span id="donate-other-error" className="text-apple font-bold">{otherError}</span>
                 : selectedTile?.impact ?? ''}
             </p>
-
-            {/* The supply basket: supplies drop in, tumble and settle as the
-                amount goes up. It sits right under the tiles so each choice
-                can be seen landing; inside the visualizer further down, it
-                was out of sight of the tiles. Decorative, so hidden from
-                screen readers: the amount is on the tiles and the button. */}
-            <div className="max-w-md mx-auto mb-6" aria-hidden="true">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
-                  Your supply basket
-                </span>
-                <span className="font-hand text-sm text-chalkboard/70 -rotate-1">
-                  {amount >= 250 ? 'overflowing!!' : amount >= 100 ? 'filling up fast' : 'watch it fill…'}
-                </span>
-              </div>
-              <SupplyBasket amount={amount} />
-            </div>
 
             {/* Cover the fee. The exact dollar amount is shown, so a pre-ticked
                 box is a visible choice rather than a surprise on the receipt.
