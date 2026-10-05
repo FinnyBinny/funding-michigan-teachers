@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'motion/react';
+import SupplyBasket from './SupplyBasket';
 import {
   Pencil, NotebookPen, Paintbrush, BookOpen, UtensilsCrossed,
   FlaskConical, GraduationCap, Sparkles,
@@ -82,7 +83,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
 
             {/* LEFT — the dial */}
             <div className="p-7 md:p-8 flex flex-col justify-center bg-paper/40 border-b lg:border-b-0 lg:border-r border-chalkboard/5">
-              <div className="inline-flex items-center gap-2 w-fit bg-apple/10 text-apple ring-1 ring-apple/20 px-3 py-1 rounded-full text-[0.625rem] font-bold mb-7 uppercase tracking-[0.24em]">
+              <div className="inline-flex items-center gap-2 w-fit bg-apple/10 text-apple ring-1 ring-apple/20 px-3 py-1 rounded-full text-[0.625rem] font-bold mb-5 uppercase tracking-[0.24em]">
                 <Sparkles size={11} strokeWidth={1.5} />
                 See your impact
               </div>
@@ -97,7 +98,7 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                   {frequency === 'monthly' ? '/ month' : 'one-time'}
                 </span>
               </div>
-              <p className="font-hand text-lg text-chalkboard/70 mb-8 -rotate-1">…turns into real things, fast</p>
+              <p className="font-hand text-lg text-chalkboard/70 mb-5 -rotate-1">…turns into real things, fast</p>
 
               {/* Slider */}
               <input
@@ -117,9 +118,24 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                 <span>$300+</span>
               </div>
 
-              {/* Classroom-grant readout. The supply basket that used to sit
-                  here is on the donate page now, under the amount tiles. */}
-              <div className="mt-8 pt-6 border-t border-chalkboard/8">
+              {/* The supply basket, right under the slider: slide and watch
+                  supplies drop in. Kept tight to the slider so the two fit on
+                  one phone screen together. Decorative, so hidden from screen
+                  readers; the slider announces the amount. */}
+              <div className="mt-5" aria-hidden="true">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
+                    Your supply basket
+                  </span>
+                  <span className="font-hand text-sm text-chalkboard/70 -rotate-1">
+                    {amount >= GRANT_SIZE ? 'overflowing!!' : amount >= 100 ? 'filling up fast' : 'slide to fill it…'}
+                  </span>
+                </div>
+                <SupplyBasket amount={amount} />
+              </div>
+
+              {/* Classroom-grant readout */}
+              <div className="mt-5 pt-5 border-t border-chalkboard/8">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
                     <GraduationCap size={13} strokeWidth={1.5} className="text-apple" />

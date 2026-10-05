@@ -5,17 +5,25 @@ import { SUPPLY_DOODLES } from './supplyDoodles';
 /**
  * The donate-page supply basket, powered by a real 2D physics engine
  * (matter-js, dynamically imported so it only loads where the basket
- * renders). Supplies are rigid bodies: they drop in from above the rim,
- * collide, tumble, and settle into a natural pile — and when the amount
- * goes down, the removed items fade away in place while the rest of the
- * pile resettles under gravity.
+ * renders). Supplies are rigid bodies: they drop in from the open air above
+ * the rim, collide, tumble, and settle into a natural pile — and when the
+ * amount goes down, the removed items fade away in place while the rest of
+ * the pile resettles under gravity.
+ *
+ * Two things make the drop visible rather than a pile that simply grows:
+ * the world has HEADROOM of open air above the basket for supplies to fall
+ * through, and new supplies wait until the basket is on screen. The page
+ * starts at $25 with the basket below the fold, so without the wait its
+ * first supplies landed before anyone could see them fall.
  */
 
 const MAX_CHIPS = 36;      // $300 → a heaping pile that crests over the rim
 const PER_DOLLARS = 8;     // one supply lands per ~$8
+const HEADROOM = 56;       // open air above the rim that supplies fall through
+const BASKET_H = 140;      // the basket itself
 const BASKET_CLASSES =
-  'relative h-[150px] rounded-t-xl rounded-b-[1.75rem] ring-1 ring-pencil-dark/25 bg-gradient-to-b from-pencil/5 to-pencil/20';
-const WEAVE = { backgroundImage: 'repeating-linear-gradient(-45deg, rgba(60,40,10,0.03) 0 8px, transparent 8px 16px)' };
+  'absolute inset-x-0 bottom-0 rounded-t-xl rounded-b-[1.75rem] ring-1 ring-pencil-dark/25 bg-gradient-to-b from-pencil/5 to-pencil/20';
+const WEAVE = { height: BASKET_H, backgroundImage: 'repeating-linear-gradient(-45deg, rgba(60,40,10,0.03) 0 8px, transparent 8px 16px)' };
 
 export function targetCountFor(amount: number): number {
   return Math.min(MAX_CHIPS, Math.max(1, Math.ceil(amount / PER_DOLLARS)));
@@ -41,11 +49,27 @@ export default function SupplyBasket({ amount }: { amount: number }) {
   return reduceMotion ? <StaticBasket target={target} /> : <PhysicsBasket target={target} />;
 }
 
+/** The basket and its rim, drawn inside the taller physics world. */
+function BasketShell() {
+  return <div className={BASKET_CLASSES} style={WEAVE} />;
+}
+
+/** The rim's inner shadow, drawn over the supplies so they drop in behind it. */
+function Rim() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 h-2 rounded-t-xl bg-pencil-dark/15"
+      style={{ top: HEADROOM }}
+    />
+  );
+}
+
 function PhysicsBasket({ target }: { target: number }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [chips, setChips] = useState<Chip[]>([]);
   const chipsRef = useRef<Chip[]>([]);
   const [ready, setReady] = useState(false);
+  const [inView, setInView] = useState(false);
 
   const matterRef = useRef<typeof import('matter-js') | null>(null);
   const engineRef = useRef<import('matter-js').Engine | null>(null);
@@ -53,6 +77,21 @@ function PhysicsBasket({ target }: { target: number }) {
   const bodiesRef = useRef(new Map<number, import('matter-js').Body>());
   const elsRef = useRef(new Map<number, HTMLDivElement>());
   const timersRef = useRef<number[]>([]);
+
+  // On screen? Half the basket in view, below the fixed site header.
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box || typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.5, rootMargin: '-72px 0px 0px 0px' },
+    );
+    io.observe(box);
+    return () => io.disconnect();
+  }, []);
 
   // Boot the physics world once
   useEffect(() => {
@@ -133,6 +172,9 @@ function PhysicsBasket({ target }: { target: number }) {
     let next = chipsRef.current;
 
     if (target > alive.length) {
+      // Off screen, new supplies wait, so they are seen falling in rather
+      // than found already piled up.
+      if (!inView) return;
       const additions: Chip[] = [];
       let id = chipsRef.current.length ? Math.max(...chipsRef.current.map((c) => c.id)) + 1 : 0;
       while (additions.length < target - alive.length) additions.push({ id: id++ });
@@ -146,7 +188,9 @@ function PhysicsBasket({ target }: { target: number }) {
           const side = d.px * 0.84;
           const body = M.Bodies.rectangle(
             W * (0.14 + 0.72 * pseudo(chip.id, 3)),
-            -50 - 26 * pseudo(chip.id, 5),
+            // Released near the top of the headroom, so each one falls
+            // through the open air and past the rim.
+            d.px / 2 + 2 + 8 * pseudo(chip.id, 5),
             side,
             side,
             {
@@ -181,23 +225,28 @@ function PhysicsBasket({ target }: { target: number }) {
         }, 380);
         timersRef.current.push(timer);
       });
+      // A gentle slosh so the pile jostles as it settles lower.
+      for (const [bid, body] of bodiesRef.current) {
+        M.Body.setVelocity(body, {
+          x: body.velocity.x + (pseudo(bid, 11) - 0.5) * 1.4,
+          y: body.velocity.y - 1.3 * pseudo(bid, 13),
+        });
+      }
+    } else {
+      return;
     }
 
-    // A gentle slosh so the pile jostles like liquid whenever the amount moves
-    for (const [id, body] of bodiesRef.current) {
-      M.Sleeping.set(body, false);
-      M.Body.setVelocity(body, {
-        x: body.velocity.x + (pseudo(id, 11) - 0.5) * 1.4,
-        y: body.velocity.y - 1.3 * pseudo(id, 13),
-      });
-    }
+    // Wake the pile: a sleeping body would otherwise hang in the air when
+    // the one under it is removed.
+    for (const body of bodiesRef.current.values()) M.Sleeping.set(body, false);
 
     chipsRef.current = next;
     setChips(next);
-  }, [target, ready]);
+  }, [target, ready, inView]);
 
   return (
-    <div ref={boxRef} className={BASKET_CLASSES} style={WEAVE} aria-hidden="true">
+    <div ref={boxRef} className="relative" style={{ height: HEADROOM + BASKET_H }} aria-hidden="true">
+      <BasketShell />
       {chips.map((chip) => {
         const d = doodleFor(chip.id);
         const { Art } = d;
@@ -221,16 +270,17 @@ function PhysicsBasket({ target }: { target: number }) {
           </div>
         );
       })}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-2 rounded-t-xl bg-pencil-dark/15" />
+      <Rim />
     </div>
   );
 }
 
-/** prefers-reduced-motion fallback: a still pile that only cross-fades. */
+/** prefers-reduced-motion fallback: a still pile, no falling. */
 function StaticBasket({ target }: { target: number }) {
   const chips = Array.from({ length: target }, (_, i) => i);
   return (
-    <div className={BASKET_CLASSES} style={WEAVE} aria-hidden="true">
+    <div className="relative" style={{ height: HEADROOM + BASKET_H }} aria-hidden="true">
+      <BasketShell />
       <div className="absolute inset-x-3 bottom-2 flex flex-wrap-reverse content-end justify-center gap-1">
         {chips.map((id) => {
           const d = doodleFor(id);
@@ -246,7 +296,7 @@ function StaticBasket({ target }: { target: number }) {
           );
         })}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-2 rounded-t-xl bg-pencil-dark/15" />
+      <Rim />
     </div>
   );
 }

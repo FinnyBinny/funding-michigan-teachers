@@ -15,6 +15,7 @@ import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
 import SiteFooter from '../components/SiteFooter';
+import { navLinkProps } from '../lib/navigate';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -264,6 +265,13 @@ export default function ReturnablesPage() {
               </h2>
               <p className="text-chalkboard/70 font-light leading-relaxed max-w-xl mx-auto">
                 Tell us a little about your returnables and we'll coordinate the pickup with you.
+              </p>
+              <p className="mt-3 text-sm text-chalkboard/70 font-light">
+                Teacher?{' '}
+                <a {...navLinkProps('/for-teachers#returnables')} className="font-bold text-apple underline underline-offset-2">
+                  Sign your classroom up instead
+                </a>
+                {' '}— we can bring a collection box.
               </p>
             </div>
             <PickupForm source={source} />
@@ -603,7 +611,7 @@ function PickupForm({ source }: { source: string }) {
       note: `Returnables pickup requested (${form.city}${form.quantity ? `, ${form.quantity}` : ''}).${form.newsletter ? ' Asked for updates.' : ''}`,
     });
 
-    if (submitted) track('returnables_form_submitted', { source, access: form.access, quantity: form.quantity });
+    if (submitted) track('returnables_form_submitted', { source, kind: 'pickup', access: form.access, quantity: form.quantity });
     setStatus(submitted ? 'success' : 'error');
   };
 
