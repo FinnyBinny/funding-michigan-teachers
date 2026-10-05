@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import {
   X, Plus, Minus, MapPin, Truck, CheckCircle2, AlertCircle, GraduationCap, Ticket, Loader2,
@@ -13,8 +12,9 @@ import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
 import { track } from '../lib/analytics';
 import { useModalDialog } from '../lib/useModalDialog';
-import { STRIPE_PUBLISHABLE_KEY } from '../lib/donate';
+import { takeCheckoutSessionId, countConversionOnce } from '../lib/checkoutReturn';
 import { MERCH_PHOTOS } from '../data/merchPhotos';
+import { getStripe } from '../lib/stripe';
 import {
   MERCH, MERCH_COLORS, MERCH_SIZES, priceOrder, formatPrice, findProduct,
   FREE_DELIVERY_OVER, DELIVERY_FEE,
@@ -22,7 +22,6 @@ import {
 } from '../../shared/merch';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
-const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 const ORDER_EMAIL = 'hello@fundingmichiganteachers.org';
 
 /**
@@ -109,6 +108,8 @@ function MerchCheckout({ lines, fulfilment, code, educator, coverFee, total, onC
   total: number; onClose: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  // Loaded now, when the dialog opens, not when the page did.
+  const stripePromise = useMemo(() => getStripe(), []);
 
   useEffect(() => {
     stripePromise?.catch(() =>
@@ -334,7 +335,7 @@ export default function ShopPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     setPageMeta(metaForPath('/shop'));
-    const sessionId = new URLSearchParams(window.location.search).get('stripe_session_id');
+    const sessionId = takeCheckoutSessionId();
     if (sessionId) {
       setConfirmation('checking');
       fetch(`/api/checkout-session-status?session_id=${encodeURIComponent(sessionId)}`)
@@ -342,7 +343,13 @@ export default function ShopPage() {
         .then((data: { status?: string; paymentStatus?: string; amountTotal?: number }) => {
           const ok = data.status === 'complete' || data.paymentStatus === 'paid';
           setConfirmation(ok ? 'confirmed' : 'failed');
-          if (ok) track('merch_purchase_completed', { value: data.amountTotal ? data.amountTotal / 100 : undefined });
+          if (ok && countConversionOnce(sessionId)) {
+            track('merch_purchase_completed', {
+              value: data.amountTotal ? data.amountTotal / 100 : undefined,
+              currency: 'USD',
+              transaction_id: sessionId,
+            });
+          }
         })
         .catch(() => setConfirmation('failed'));
     }
@@ -507,6 +514,9 @@ export default function ShopPage() {
               Swift Prints makes our film here in town, and our students heat-press every shirt one
               at a time. What's left after materials buys pencils, markers and tissues for classrooms
               that ran out.
+            </p>
+            <p className="text-sm text-chalkboard/70 mt-3">
+              A purchase, not a donation, so it isn't tax-deductible.
             </p>
           </motion.header>
 

@@ -13,6 +13,7 @@ import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
 import { track } from '../lib/analytics';
+import { takeCheckoutSessionId, countConversionOnce } from '../lib/checkoutReturn';
 import SiteFooter from '../components/SiteFooter';
 import { useProjects } from '../hooks/useLocalData';
 import {
@@ -64,7 +65,7 @@ export default function DonatePage() {
     setPageMeta(metaForPath('/donate'));
     const params = new URLSearchParams(window.location.search);
 
-    const sessionId = params.get('stripe_session_id');
+    const sessionId = takeCheckoutSessionId();
     if (sessionId) {
       setSuccess('checking');
       fetch(`/api/checkout-session-status?session_id=${encodeURIComponent(sessionId)}`)
@@ -73,8 +74,17 @@ export default function DonatePage() {
           const ok = data.status === 'complete' || data.paymentStatus === 'paid' || data.paymentStatus === 'no_payment_required';
           setSuccess(ok ? 'confirmed' : 'failed');
           // Counted on Stripe's confirmation, never on the click — a click is
-          // intent, this is a gift that actually cleared.
-          if (ok) track('donation_completed', { amount: data.amountTotal ? data.amountTotal / 100 : undefined, mode: data.mode });
+          // intent, this is a gift that actually cleared — and once per gift,
+          // not on every reload. value/currency/transaction_id are the GA4
+          // fields Google Ads reads when this is imported as a conversion.
+          if (ok && countConversionOnce(sessionId)) {
+            track('donation_completed', {
+              value: data.amountTotal ? data.amountTotal / 100 : undefined,
+              currency: 'USD',
+              transaction_id: sessionId,
+              mode: data.mode,
+            });
+          }
         })
         .catch(() => setSuccess('failed'));
       return;
@@ -143,7 +153,7 @@ export default function DonatePage() {
               </div>
               <h1 className="font-serif font-bold text-3xl mb-3">Thank you.</h1>
               <p className="text-chalkboard/70 leading-relaxed mb-8">
-                Your gift is on its way to a Michigan classroom. A receipt is on its way to your inbox — 100% tax-deductible, EIN 93-4485967.
+                Your gift is on its way to a Michigan classroom, and a receipt is on its way to your inbox. Funding Michigan Teachers is a 501(c)(3), EIN 93-4485967. You received no goods or services for this gift, which is tax-deductible to the extent allowed by law.
               </p>
               <button
                 onClick={() => navigate('/')}
@@ -231,9 +241,9 @@ export default function DonatePage() {
                   <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-5">Why donate here</p>
                   <ul className="space-y-3.5">
                     {[
-                      { i: Shield, t: '501(c)(3) tax-deductible', s: 'EIN 93-4485967 — receipt emailed instantly' },
+                      { i: Shield, t: 'Tax-deductible', s: '501(c)(3), EIN 93-4485967, to the extent allowed by law' },
                       { i: Sparkles, t: 'Direct to teachers', s: 'Funds classrooms, meals, and appreciation events' },
-                      { i: CreditCard, t: 'Bank-level security', s: 'Processed by Stripe with full PCI compliance' },
+                      { i: CreditCard, t: 'Paid through Stripe', s: 'Your card number goes to Stripe; we never see or store it' },
                     ].map((row) => (
                       <li key={row.t} className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-xl bg-apple/10 text-apple flex items-center justify-center shrink-0 mt-0.5">
@@ -412,6 +422,14 @@ export default function DonatePage() {
             </button>
           </motion.div>
 
+          {/* A monthly donor should know before giving how to stop. */}
+          {frequency === 'monthly' && (
+            <p className="text-center text-xs text-chalkboard/70 -mt-2 mb-6">
+              Change or cancel a monthly gift any time: email{' '}
+              <a href="mailto:hello@fundingmichiganteachers.org?subject=My%20monthly%20gift" className="text-apple underline">hello@fundingmichiganteachers.org</a>.
+            </p>
+          )}
+
           {/* Payment method indicators */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -427,8 +445,6 @@ export default function DonatePage() {
             <span>Google Pay</span>
             <span className="w-1 h-1 rounded-full bg-chalkboard/15" />
             <span>Card</span>
-            <span className="w-1 h-1 rounded-full bg-chalkboard/15" />
-            <span>Bank</span>
           </motion.div>
 
           {/* If checkout is ever unconfigured, visitors get a human path —

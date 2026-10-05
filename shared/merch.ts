@@ -177,7 +177,8 @@ export function priceOrder(lines: CartLine[], o: PricingOptions): PricedOrder {
         name,
         description: educator
           ? 'Educator pricing: sold at our cost, no margin to FMT.'
-          : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
+          // On the buyer's receipt. A purchase, so not presented as a gift.
+          : 'Merchandise from Funding Michigan Teachers. Not a tax-deductible donation.',
         unitAmount: unit,
         quantity: l.qty - freeHere,
       });

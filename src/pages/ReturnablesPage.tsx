@@ -598,12 +598,16 @@ function PickupForm({ source }: { source: string }) {
     }
 
     // Filed with the CRM as well, so a household that gives is one record
-    // with its history. Not awaited; the visitor is told the delivery result.
+    // with its history. Deliberately without the street address or the
+    // "bags on the porch / nobody home" details: those are for planning one
+    // pickup and stay in the FormBold email and Supabase, not in a donor
+    // database kept for years. Not awaited; the visitor is told the delivery
+    // result.
     void fileWithBloomerang('returnables', {
       name: form.name,
       email: form.email,
       phone: form.phone,
-      note: `Returnables pickup: ${fullAddress}; ${form.quantity}; ${accessSummary}; preferred ${form.date} ${form.window}. ${form.notes}`.trim(),
+      note: `Returnables pickup requested (${form.city}${form.quantity ? `, ${form.quantity}` : ''}).${form.newsletter ? ' Asked for updates.' : ''}`,
     });
 
     if (submitted) track('returnables_form_submitted', { source, access: form.access, quantity: form.quantity });

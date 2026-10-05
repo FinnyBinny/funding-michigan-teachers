@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { X, AlertCircle, Shield } from 'lucide-react';
 import { STRIPE_PUBLISHABLE_KEY, type DonationFrequency } from '../lib/donate';
 import { coverFee as grossUp, dollars } from '../../shared/donations';
 import { useModalDialog } from '../lib/useModalDialog';
+import { getStripe } from '../lib/stripe';
 
-const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 interface EmbeddedDonateCheckoutProps {
   amount: number;
@@ -32,6 +31,8 @@ export default function EmbeddedDonateCheckout({
   amount, frequency, designation, designationLabel, coverFee, onClose,
 }: EmbeddedDonateCheckoutProps) {
   const [error, setError] = useState<string | null>(null);
+  // Loaded now, when the dialog opens, not when the page did.
+  const stripePromise = useMemo(() => getStripe(), []);
   const giftCents = Math.round(amount * 100);
   // Display only. The Worker computes the fee itself from the same function
   // and never takes a total from this page.

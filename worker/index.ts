@@ -160,6 +160,17 @@ function withHeroPreload(request: Request, res: Response): Response {
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
 
+/** True when a request's Origin is the host it was sent to. */
+function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get('Origin');
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === new URL(request.url).host;
+  } catch {
+    return false;
+  }
+}
+
 /** djb2, as base36: a short, stable tag for a route in an ETag. */
 function routeTag(input: string): string {
   let h = 5381;
@@ -507,8 +518,8 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
     return json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error('Stripe checkout session creation failed:', err);
-    const message = err instanceof Error ? err.message : 'Unknown error creating checkout session';
-    return json({ error: message }, 500);
+    // Stripe's own message stays in the Worker log; the page gets a plain one.
+    return json({ error: 'Checkout could not start. Please try again, or email hello@fundingmichiganteachers.org.' }, 500);
   }
 }
 
@@ -662,8 +673,8 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
     return json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error('Merch checkout session failed:', err);
-    const message = err instanceof Error ? err.message : 'Unknown error creating checkout session';
-    return json({ error: message }, 500);
+    // Stripe's own message stays in the Worker log; the page gets a plain one.
+    return json({ error: 'Checkout could not start. Please try again, or email hello@fundingmichiganteachers.org.' }, 500);
   }
 }
 
@@ -694,8 +705,21 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
     return json({ error: 'Invalid request body' }, 400);
   }
 
-  const email = String(body.email ?? '').trim();
+  const email = String(body.email ?? '').trim().slice(0, 254);
   if (!email.includes('@')) return json({ error: 'A valid email is required' }, 400);
+  // Bounded, so nobody can push megabytes into a donor record.
+  body.name = String(body.name ?? '').slice(0, 200);
+  body.phone = String(body.phone ?? '').slice(0, 40);
+  body.note = String(body.note ?? '').slice(0, 4000);
+  body.form = String(body.form ?? 'Website form').slice(0, 120);
+
+  // What went wrong is written to the Worker log (Cloudflare dashboard →
+  // the Worker → Logs), not sent back: the response used to carry the CRM
+  // account ID and Bloomerang's raw error text to whoever called this.
+  const fail = (stage: string, detail: unknown, status = 502) => {
+    console.error('[crm] not filed', { stage, detail });
+    return json({ filed: false, stage }, status);
+  };
 
   // Resolved once per request, not once per call: this handler makes up to
   // three Bloomerang requests, and under Secrets Store each .get() is a real
@@ -704,7 +728,8 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
   if (!apiKey) {
     // Not configured yet. Not an error worth alarming anyone about — the
     // submission reached FMT by email regardless.
-    return json({ filed: false, reason: 'BLOOMERANG_API_KEY is not set on the Worker' }, 503);
+    console.error('[crm] BLOOMERANG_API_KEY is not set on the Worker');
+    return json({ filed: false, stage: 'not-configured' }, 503);
   }
 
   const api = async (path: string, init?: RequestInit) => {
@@ -746,15 +771,11 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
           ...(body.phone ? { PrimaryPhone: { Type: 'Home', Number: body.phone } } : {}),
         }),
       });
-      if (!created.ok) {
-        return json({ filed: false, stage: 'constituent', status: created.status, detail: created.raw }, 502);
-      }
+      if (!created.ok) return fail('constituent', { status: created.status, raw: created.raw });
       accountId = (created.body as { Id?: number } | null)?.Id;
     }
 
-    if (!accountId) {
-      return json({ filed: false, stage: 'constituent', detail: 'no account id returned' }, 502);
-    }
+    if (!accountId) return fail('constituent', 'no account id returned');
 
     // 3. Record what they actually sent.
     const interaction = await api('interaction', {
@@ -770,17 +791,14 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
     });
 
     if (!interaction.ok) {
-      // The person is in the CRM even if the note did not attach, which is
-      // worth saying rather than reporting a flat failure.
-      return json(
-        { filed: 'partial', accountId, stage: 'interaction', status: interaction.status, detail: interaction.raw },
-        502,
-      );
+      // The person is in the CRM even if the note did not attach.
+      console.error('[crm] constituent filed, note not attached', { status: interaction.status, raw: interaction.raw });
+      return json({ filed: 'partial', stage: 'interaction' }, 502);
     }
 
-    return json({ filed: true, accountId });
+    return json({ filed: true });
   } catch (err) {
-    return json({ filed: false, detail: err instanceof Error ? err.message : 'unknown error' }, 502);
+    return fail('network', err instanceof Error ? err.message : 'unknown error');
   }
 }
 
@@ -852,6 +870,14 @@ export default {
         return shellWithStatus(request, env, 403);
       }
       return Response.redirect(new URL('/restricted', url).toString(), 302);
+    }
+
+    // Every POST to the API must come from this site's own pages. It is not
+    // a lock (a script can fake the header), but it stops another website
+    // from using a visitor's browser to file people into the CRM or open
+    // checkout sessions. Rate limits belong in the Cloudflare dashboard.
+    if (path.startsWith('/api/') && request.method === 'POST' && !sameOrigin(request)) {
+      return json({ error: 'Forbidden' }, 403);
     }
 
     if (path === '/api/create-checkout-session' && request.method === 'POST') {

@@ -5,7 +5,7 @@ import { ThumbsUp, Heart, School, Loader2, CheckCircle2, Send, X, AlertCircle } 
 import { cn } from '../lib/utils';
 import { useProjects, readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
 import { PROJECTS } from '../data/initialData';
-import { supabase, getVoterId } from '../lib/supabase';
+import { supabase, getVoterId, peekVoterId } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { useModalDialog } from '../lib/useModalDialog';
@@ -38,7 +38,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
   // Load votes from Supabase on mount
   useEffect(() => {
     if (!supabase) return;
-    const voterId = getVoterId();
+    const voterId = peekVoterId();
 
     (async () => {
       try {

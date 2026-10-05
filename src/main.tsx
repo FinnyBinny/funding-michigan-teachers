@@ -9,6 +9,7 @@ import SiteHeader from './components/SiteHeader';
 import { isKnownRoute } from '../shared/routes';
 import { findSchool, schoolSlugFromPath } from '../shared/schools';
 import { initAnalytics } from './lib/analytics';
+import { stripCheckoutReturn } from './lib/checkoutReturn';
 import './index.css';
 
 // Every page except the homepage is code-split: the homepage bundle is what
@@ -293,6 +294,8 @@ function Router() {
   );
 }
 
+// Before analytics reads the URL: take Stripe's session ID out of it.
+stripCheckoutReturn();
 initAnalytics();
 
 // reducedMotion="user": every Motion animation on the site respects the
