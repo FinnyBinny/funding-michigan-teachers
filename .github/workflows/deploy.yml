@@ -99,6 +99,12 @@ jobs:
       - name: Test shop pricing
         run: npx tsx scripts/test-merch-pricing.mts
 
+      # Filing in Bloomerang: the Stripe webhook (signed test events) and the
+      # form path, with Bloomerang mocked. Exact-email matching, no forged
+      # events, no cross-site posts.
+      - name: Test CRM filing
+        run: npx tsx scripts/test-crm.mts
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty

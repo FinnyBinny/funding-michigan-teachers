@@ -23,6 +23,7 @@ import {
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const ORDER_EMAIL = 'hello@fundingmichiganteachers.org';
+const CART_KEY = 'fmt:shop-cart';
 
 /**
  * "Cover the card fee" starts ticked, as on the donate page — the founder's
@@ -238,7 +239,7 @@ function ProductCard({ product, index, pick, educator, onPick, onAdd }: {
 
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 id={`product-${product.id}`} className="font-serif font-bold text-lg leading-snug">{product.name}</h2>
+          <h2 id={`product-${product.id}`} className="font-serif font-bold text-lg leading-snug min-h-[2.75em]">{product.name}</h2>
           <p className="font-serif font-bold text-xl tabular-nums shrink-0">{formatPrice(price)}</p>
         </div>
         <p className="text-sm text-chalkboard/70 mt-1 mb-4 leading-snug">
@@ -315,7 +316,21 @@ type Confirmation = null | 'checking' | 'confirmed' | 'failed';
 export default function ShopPage() {
   const [pickers, setPickers] = useState<Record<string, Picker>>(() =>
     Object.fromEntries(MERCH.map((p) => [p.id, { size: 'M' as MerchSize, colorId: defaultColorId(p.id) }])));
-  const [cart, setCart] = useState<CartLine[]>([]);
+  // Kept for this browser tab, so a refresh or a look at another page does
+  // not empty the order.
+  const [cart, setCart] = useState<CartLine[]>(() => {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(CART_KEY) ?? '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    try { sessionStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch { /* storage blocked */ }
+  }, [cart]);
+  const [justAdded, setJustAdded] = useState(false);
+  const addedTimer = useRef<number | undefined>(undefined);
   const [fulfilment, setFulfilment] = useState<Fulfilment>('pickup');
   const [educator, setEducator] = useState(false);
   const [coverFee, setCoverFee] = useState(COVER_FEE_DEFAULT);
@@ -343,6 +358,9 @@ export default function ShopPage() {
         .then((data: { status?: string; paymentStatus?: string; amountTotal?: number }) => {
           const ok = data.status === 'complete' || data.paymentStatus === 'paid';
           setConfirmation(ok ? 'confirmed' : 'failed');
+          if (ok) {
+            try { sessionStorage.removeItem(CART_KEY); } catch { /* nothing saved */ }
+          }
           if (ok && countConversionOnce(sessionId)) {
             track('merch_purchase_completed', {
               value: data.amountTotal ? data.amountTotal / 100 : undefined,
@@ -383,6 +401,9 @@ export default function ShopPage() {
       return [...prev, { productId: product.id, size: pick.size, colorId: pick.colorId, qty: 1 }];
     });
     setAnnounce(`Added ${product.name}, ${color.name}, size ${pick.size}, to your order.`);
+    setJustAdded(true);
+    window.clearTimeout(addedTimer.current);
+    addedTimer.current = window.setTimeout(() => setJustAdded(false), 1800);
     track('merch_added_to_order', { item: product.id });
   };
 
@@ -581,12 +602,12 @@ export default function ShopPage() {
                               </span>
                               <span className="mt-1.5 inline-flex items-center gap-0.5 bg-paper rounded-lg p-0.5">
                                 <button onClick={() => setQty(i, l.qty - 1)} aria-label={`One fewer ${prod.name}, ${col.name}, ${l.size}`}
-                                  className="w-7 h-7 rounded-md hover:bg-chalkboard/10 flex items-center justify-center">
+                                  className="w-9 h-9 rounded-md hover:bg-chalkboard/10 flex items-center justify-center">
                                   <Minus size={12} aria-hidden="true" />
                                 </button>
                                 <span className="w-6 text-center text-xs font-bold tabular-nums" aria-label={`Quantity ${l.qty}`}>{l.qty}</span>
                                 <button onClick={() => setQty(i, l.qty + 1)} disabled={l.qty >= 10} aria-label={`One more ${prod.name}, ${col.name}, ${l.size}`}
-                                  className="w-7 h-7 rounded-md hover:bg-chalkboard/10 flex items-center justify-center disabled:opacity-30">
+                                  className="w-9 h-9 rounded-md hover:bg-chalkboard/10 flex items-center justify-center disabled:opacity-30">
                                   <Plus size={12} aria-hidden="true" />
                                 </button>
                               </span>
@@ -638,19 +659,6 @@ export default function ShopPage() {
                       </span>
                     </label>
 
-                    {feeIfCovered > 0 ? (
-                      <label className="flex items-start gap-3 mb-4 cursor-pointer">
-                        <input
-                          type="checkbox" id="merch-cover-fee" name="coverFee"
-                          checked={coverFee} onChange={(e) => setCoverFee(e.target.checked)}
-                          className="mt-0.5 w-4 h-4 accent-[#c0392b] shrink-0"
-                        />
-                        <span className="text-sm text-chalkboard/80 leading-snug">
-                          Add {formatPrice(feeIfCovered)} to cover the card processing fee, so the full price reaches FMT.
-                        </span>
-                      </label>
-                    ) : null}
-
                     {/* Codes: partner schools and Teacher of the Month winners
                         get one; the server decides what it unlocks. */}
                     <div className="mb-5">
@@ -659,7 +667,9 @@ export default function ShopPage() {
                           <Ticket size={14} className="text-apple shrink-0" aria-hidden="true" />
                           <span className="flex-1 min-w-0">
                             <span className="block text-xs font-bold tracking-wide">{code.value}</span>
-                            <span className="block text-xs text-chalkboard/70">{code.label}</span>
+                            <span className="block text-xs text-chalkboard/70">
+                              {code.kind === 'free-tee' && priced.freeTeeSavings === 0 ? 'Add a t-shirt to your order to use this code.' : code.label}
+                            </span>
                           </span>
                           <button onClick={() => { setCode(null); setCodeState('idle'); }} aria-label="Remove code"
                             className="p-1.5 rounded-lg text-chalkboard/70 hover:text-apple transition-colors">
@@ -699,7 +709,22 @@ export default function ShopPage() {
                       )}
                     </div>
 
-                    <dl className="space-y-1.5 text-sm border-t border-chalkboard/10 pt-4 mb-5">
+                    {/* Right above the totals it changes, so the buyer sees the
+                        choice and its effect together. Optional, itemized. */}
+                    {feeIfCovered > 0 && (
+                      <label className="flex items-start gap-3 mb-3 cursor-pointer border-t border-chalkboard/10 pt-4">
+                        <input
+                          type="checkbox" id="merch-cover-fee" name="coverFee"
+                          checked={coverFee} onChange={(e) => setCoverFee(e.target.checked)}
+                          className="mt-0.5 w-4 h-4 accent-[#c0392b] shrink-0"
+                        />
+                        <span className="text-sm text-chalkboard/80 leading-snug">
+                          Optional: add {formatPrice(feeIfCovered)} so the full price reaches FMT. It covers what the card company charges us.
+                        </span>
+                      </label>
+                    )}
+
+                    <dl className={`space-y-1.5 text-sm pt-2 mb-5 ${feeIfCovered > 0 ? '' : 'border-t border-chalkboard/10 pt-4'}`}>
                       <div className="flex justify-between text-chalkboard/75">
                         <dt>Items</dt>
                         <dd className="tabular-nums">{formatPrice(priced.merchandise + priced.freeTeeSavings)}</dd>
@@ -716,7 +741,7 @@ export default function ShopPage() {
                       </div>
                       {priced.fee > 0 && (
                         <div className="flex justify-between text-chalkboard/75">
-                          <dt>Card fee, covered by you</dt>
+                          <dt>Card fee (optional), covered by you</dt>
                           <dd className="tabular-nums">{formatPrice(priced.fee)}</dd>
                         </div>
                       )}
@@ -740,7 +765,7 @@ export default function ShopPage() {
 
                     <p className="text-xs text-chalkboard/70 leading-relaxed mt-4">
                       {effectiveEducator
-                        ? "You're paying our cost, so FMT makes nothing on this order — which is the point."
+                        ? 'Educator pricing: FMT keeps little or nothing on this order, which is the point.'
                         : IMPACT_NOTE}{' '}
                       Merch is a purchase, not a donation, so it isn't tax-deductible. Card payments by Stripe.
                     </p>
@@ -775,7 +800,7 @@ export default function ShopPage() {
             >
               <span className="flex items-center gap-2 text-sm font-bold">
                 <ShoppingBag size={15} aria-hidden="true" />
-                {itemCount} {itemCount === 1 ? 'item' : 'items'} · {formatPrice(priced.total)}
+                {justAdded ? 'Added' : `${itemCount} ${itemCount === 1 ? 'item' : 'items'} · ${formatPrice(priced.total - priced.fee)}`}
               </span>
               <span className="bg-white text-chalkboard text-xs font-bold uppercase tracking-[0.14em] rounded-full px-4 py-2.5">
                 Review order

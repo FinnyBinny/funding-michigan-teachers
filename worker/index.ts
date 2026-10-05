@@ -109,6 +109,12 @@ export interface Env {
    * regenerating a key that was never the problem.
    */
   BLOOMERANG_API_KEY?: SecretValue;
+  /**
+   * Stripe webhook signing secret (whsec_…), set as a Secret. It proves a
+   * call to /api/stripe-webhook really came from Stripe. Absent, the webhook
+   * answers 503 and nothing else is affected.
+   */
+  STRIPE_WEBHOOK_SECRET?: SecretValue;
 }
 
 /**
@@ -641,15 +647,26 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
 
   // A compact packing list, because Stripe truncates long metadata values and
   // the line items alone do not say which press setting each shirt needs.
-  const packing = lines
-    .map((l) => {
-      const p = findProduct(l.productId)!;
-      const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
-      return `${l.qty}x ${p.name}/${c.name}/${l.size}`;
-    })
-    .join('; ')
-    .concat(educator || code?.kind === 'educator' ? ' (educator pricing)' : '')
-    .slice(0, 480);
+  const packingLines = lines.map((l) => {
+    const p = findProduct(l.productId)!;
+    const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
+    return `${l.qty}x ${p.name}/${c.name}/${l.size}`;
+  });
+  const suffix = educator || code?.kind === 'educator' ? ' (educator pricing)' : '';
+  // Stripe caps metadata values at 500 characters. A cut list would silently
+  // drop shirts, so it says how many it left off.
+  let packing = packingLines.join('; ') + suffix;
+  if (packing.length > 480) {
+    let kept = 0;
+    let text = '';
+    for (const line of packingLines) {
+      const next = text ? `${text}; ${line}` : line;
+      if (next.length > 420) break;
+      text = next;
+      kept++;
+    }
+    packing = `${text}; …and ${packingLines.length - kept} more, see line items${suffix}`;
+  }
   const metadata = {
     order_type: 'merch',
     fulfilment,
@@ -722,13 +739,23 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
  * browser console can say so.
  */
 async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
-  let body: { form?: string; name?: string; email?: string; phone?: string; note?: string };
+  let body: CrmInput;
   try {
     body = await request.json();
   } catch {
     return json({ error: 'Invalid request body' }, 400);
   }
+  return fileInCrm(env, body);
+}
 
+interface CrmInput { form?: string; name?: string; email?: string; phone?: string; note?: string }
+
+/**
+ * Finds or creates the person in Bloomerang and records what happened as an
+ * interaction on their timeline. Used by the site's forms (/api/crm) and by
+ * the Stripe webhook for completed gifts and orders.
+ */
+async function fileInCrm(env: Env, body: CrmInput): Promise<Response> {
   const email = String(body.email ?? '').trim().slice(0, 254);
   if (!email.includes('@')) return json({ error: 'A valid email is required' }, 400);
   // Bounded, so nobody can push megabytes into a donor record.
@@ -778,10 +805,17 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
   const lastName = parts.length ? parts[parts.length - 1] : '';
 
   try {
-    // 1. Is this person already in the CRM?
-    const found = await api(`constituents/search?search=${encodeURIComponent(email)}&take=1`);
-    let accountId: number | undefined =
-      (found.body as { Results?: { Id?: number }[] } | null)?.Results?.[0]?.Id;
+    // 1. Is this person already in the CRM? Bloomerang's search is a loose
+    // text search, so take several results and accept only an exact email
+    // match: reusing the first hit could attach a teacher's request to
+    // someone else's record.
+    const found = await api(`constituents/search?search=${encodeURIComponent(email)}&take=25`);
+    if (!found.ok) return fail('search', { status: found.status, raw: found.raw });
+    type Hit = { Id?: number; PrimaryEmail?: { Value?: string } | null };
+    const hits = (found.body as { Results?: Hit[] } | null)?.Results ?? [];
+    let accountId: number | undefined = hits.find(
+      (h) => h.PrimaryEmail?.Value?.trim().toLowerCase() === email.toLowerCase(),
+    )?.Id;
 
     // 2. Create them if not.
     if (!accountId) {
@@ -806,11 +840,15 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
       method: 'POST',
       body: JSON.stringify({
         AccountId: accountId,
-        Channel: 'Email',
+        // A form on the website, sent by them: Website, inbound. It was filed
+        // as an Email FMT had sent.
+        Channel: 'Website',
+        IsInbound: true,
         Purpose: 'Other',
         Subject: String(body.form ?? 'Website form'),
         Note: String(body.note ?? ''),
-        Date: new Date().toISOString().slice(0, 10),
+        // Michigan's date, not UTC's: an evening submission was dated tomorrow.
+        Date: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Detroit' }).format(new Date()),
       }),
     });
 
@@ -824,6 +862,75 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
   } catch (err) {
     return fail('network', err instanceof Error ? err.message : 'unknown error');
   }
+}
+
+/**
+ * Stripe → Bloomerang. When a checkout completes, the donor or buyer is
+ * filed in the CRM with what they gave or bought.
+ *
+ * Without this, the people FMT most needs to thank and ask again, its
+ * donors, never reached Bloomerang at all: only form submissions did.
+ *
+ * Recorded as an interaction ("Website — donation: $25 to the Okemos
+ * Mid-Year Refill"), not a Bloomerang gift transaction: a transaction needs
+ * the ids of FMT's Bloomerang funds, which are not known here yet. Once they
+ * are, this is the place to add a POST to v2/transaction.
+ *
+ * Setup: Stripe Dashboard → Developers → Webhooks → Add endpoint
+ * https://www.fundingmichiganteachers.org/api/stripe-webhook, event
+ * checkout.session.completed; copy its signing secret into the Worker as the
+ * Secret STRIPE_WEBHOOK_SECRET.
+ */
+async function stripeWebhook(request: Request, env: Env): Promise<Response> {
+  const secret = await readSecret(env.STRIPE_WEBHOOK_SECRET);
+  if (!secret || !env.STRIPE_SECRET_KEY) {
+    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY is not set');
+    return json({ error: 'Not configured' }, 503);
+  }
+  const signature = request.headers.get('Stripe-Signature');
+  if (!signature) return json({ error: 'Missing signature' }, 400);
+
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  const payload = await request.text();
+  let event: Stripe.Event;
+  try {
+    event = await stripe.webhooks.constructEventAsync(
+      payload, signature, secret, undefined, Stripe.createSubtleCryptoProvider(),
+    );
+  } catch {
+    // Not from Stripe, or tampered with.
+    return json({ error: 'Invalid signature' }, 400);
+  }
+
+  if (event.type !== 'checkout.session.completed') return json({ received: true });
+
+  const session = event.data.object as Stripe.Checkout.Session;
+  const email = session.customer_details?.email;
+  if (!email) return json({ received: true, filed: false });
+
+  const meta = session.metadata ?? {};
+  const isOrder = meta.order_type === 'merch';
+  const money = (cents: number | null | undefined) => `$${((cents ?? 0) / 100).toFixed(2)}`;
+  const giftCents = Number(meta.gift_amount_cents) || session.amount_total || 0;
+  const note = isOrder
+    ? `Shop order, ${money(session.amount_total)}: ${meta.packing ?? ''} (${meta.fulfilment ?? 'pickup'}).`
+    : [
+        `${session.mode === 'subscription' ? 'Monthly gift' : 'Gift'} of ${money(giftCents)}`,
+        meta.designation_label ? ` to ${meta.designation_label}` : '',
+        Number(meta.fee_covered_cents) > 0 ? `, plus ${money(Number(meta.fee_covered_cents))} to cover the card fee` : '',
+        `. Stripe ${session.id}.`,
+      ].join('');
+
+  const res = await fileInCrm(env, {
+    form: isOrder ? 'Website — shop order' : 'Website — donation',
+    name: session.customer_details?.name ?? '',
+    email,
+    phone: session.customer_details?.phone ?? '',
+    note,
+  });
+  // Always 200 to Stripe once the event is genuine: a CRM that is down is
+  // logged (fileInCrm does) rather than retried into duplicate records.
+  return json({ received: true, filed: res.ok });
 }
 
 async function checkoutSessionStatus(request: Request, env: Env): Promise<Response> {
@@ -899,6 +1006,12 @@ export default {
         return shellWithStatus(request, env, 403);
       }
       return Response.redirect(new URL('/restricted', url).toString(), 302);
+    }
+
+    // Stripe calls this one itself, so it sits before the same-origin gate;
+    // its signature is what proves where it came from.
+    if (path === '/api/stripe-webhook' && request.method === 'POST') {
+      return stripeWebhook(request, env);
     }
 
     // Every POST to the API must come from this site's own pages. It is not

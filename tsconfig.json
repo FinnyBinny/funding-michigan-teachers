@@ -23,5 +23,5 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["worker/**", "scripts/test-donation-session.mts"]
+  "exclude": ["worker/**", "scripts/test-donation-session.mts", "scripts/test-crm.mts"]
 }

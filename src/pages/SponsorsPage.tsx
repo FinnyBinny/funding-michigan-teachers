@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Heart, Building2, ExternalLink, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { Heart, Building2, ExternalLink, Send, Loader2, CheckCircle2, Gift } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
@@ -45,7 +45,7 @@ export default function SponsorsPage() {
       <main id="main">
 
         {/* Page Hero */}
-        <section className="py-12 sm:py-16 md:py-20 px-6 classroom-grid relative overflow-hidden">
+        <section className="pt-28 sm:pt-36 pb-12 sm:pb-16 px-6 classroom-grid relative overflow-hidden">
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -53,20 +53,19 @@ export default function SponsorsPage() {
               transition={{ duration: 0.6 }}
             >
               <div className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-ruler/20">
-                <Building2 size={13} />
-                <span>Corporate Partnerships</span>
+                <Building2 size={13} aria-hidden="true" />
+                <span>For Businesses</span>
               </div>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[0.95] mb-6 text-balance">
-                Partner with<br />
-                <span className="text-apple italic font-normal">FMT</span>.
+                Put your business behind{' '}
+                <span className="text-apple italic font-normal">local teachers</span>.
               </h1>
               <p className="text-lg text-chalkboard/70 max-w-2xl mx-auto leading-relaxed font-light mb-10">
-                Corporate sponsors are the backbone of what we do. Put your business behind Michigan's most dedicated educators — and earn real, visible recognition for it.
+                Local businesses feed and thank the staff at three mid-Michigan high schools. Back a staff
+                meeting, a school or a whole year, and we make sure the people you helped know it was you.
               </p>
-              <p className="text-[0.6875rem] text-chalkboard/70 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                <span className="inline-block w-4 h-px bg-chalkboard/20" />
+              <p className="text-[0.6875rem] text-chalkboard/70 font-bold uppercase tracking-widest">
                 501(c)(3) Nonprofit · EIN 93-4485967 · 80¢+ of every dollar to teachers
-                <span className="inline-block w-4 h-px bg-chalkboard/20" />
               </p>
             </motion.div>
           </div>
@@ -76,12 +75,7 @@ export default function SponsorsPage() {
         <section className="pt-2 pb-12 sm:pb-16 px-6">
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
             <h2 id="levels-heading" className="sr-only">Sponsorship levels</h2>
-            <CorporateSponsors
-              onDonate={handleDonate}
-              onContact={() => {
-                document.getElementById('sponsor-form')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            />
+            <CorporateSponsors onDonate={handleDonate} />
           </div>
         </section>
 
@@ -119,7 +113,7 @@ export default function SponsorsPage() {
                     <div className="bg-white rounded-[1.5rem] ring-1 ring-chalkboard/[0.08] group-hover:ring-chalkboard/20 transition-colors p-6 h-full flex flex-col shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
                       <div className="flex items-center justify-between gap-3 mb-4">
                         <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-2.5 py-1 rounded-full">
-                          {sponsor.tier}
+                          {levelLabel(sponsor)}
                         </span>
                         {sponsor.website && (
                           <ExternalLink size={13} className="text-chalkboard/70 group-hover:text-chalkboard transition-colors" aria-hidden="true" />
@@ -207,7 +201,8 @@ export default function SponsorsPage() {
                 Let's <span className="text-apple italic font-normal">talk</span>.
               </h2>
               <p className="text-chalkboard/70 max-w-xl mx-auto font-light leading-relaxed">
-                Tell us a little about your business and we'll reach out within a few days — no commitment, no pressure.
+                Pick a level, or tell us what you have in mind: a specific school, a branded supply
+                drive, food for a staff meeting. We'll reach out within a few days. No commitment.
               </p>
             </div>
             <SponsorInterestForm />
@@ -220,6 +215,23 @@ export default function SponsorsPage() {
 
     </div>
   );
+}
+
+/**
+ * The level shown on a sponsor's card. A level is a promise at a price
+ * ($250 and up); a smaller gift, such as a $25 gift certificate, is thanked
+ * as a gift rather than shown under a level it did not reach.
+ */
+const LEVEL_MINIMUMS: Record<string, number> = {
+  'Pencil Partner': 250,
+  'Campus Champion': 500,
+  "Principal's Circle": 1000,
+  'Founding Patron': 2500,
+};
+function levelLabel(sponsor: { tier: string; amount?: number | null }): string {
+  const min = LEVEL_MINIMUMS[sponsor.tier];
+  if (min && typeof sponsor.amount === 'number' && sponsor.amount > 0 && sponsor.amount < min) return 'In-kind gift';
+  return sponsor.tier;
 }
 
 /** Rows a phone shows before "Show all". */
@@ -264,8 +276,8 @@ function InKindLedger({ partners }: { partners: FoodPartner[] }) {
                     />
                   </picture>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center font-serif font-bold text-3xl text-pencil/80" aria-hidden="true">
-                    {name.charAt(0)}
+                  <div className="w-full h-full flex items-center justify-center text-white/45" aria-hidden="true">
+                    <Gift size={22} strokeWidth={1.5} />
                   </div>
                 )}
               </div>
@@ -327,7 +339,7 @@ function SponsorInterestForm() {
   const inp = 'w-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-chalkboard outline-none placeholder:text-chalkboard/65 transition-all';
   const lbl = 'block text-left text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-1.5';
 
-  const [form, setForm] = useState({ business: '', name: '', email: '', phone: '', message: '' });
+  const [form, setForm] = useState({ business: '', name: '', email: '', phone: '', level: 'Not sure yet', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -342,7 +354,7 @@ function SponsorInterestForm() {
       name: form.name,
       email: form.email,
       phone: form.phone,
-      note: `Sponsorship enquiry from ${form.business} — ${form.message}`,
+      note: `Sponsorship enquiry from ${form.business} (level: ${form.level}) — ${form.message}`,
     });
 
     if (await submitToFormBold(FORMBOLD.sponsor, {
@@ -351,6 +363,7 @@ function SponsorInterestForm() {
       Business: form.business,
       'Contact Name': form.name,
       Phone: form.phone,
+      Level: form.level,
       Message: form.message,
       email: form.email,
     })) submitted = true;
@@ -361,7 +374,7 @@ function SponsorInterestForm() {
         email: form.email,
         message: form.message,
         type: 'sponsor',
-        extra: { business: form.business, phone: form.phone },
+        extra: { business: form.business, phone: form.phone, level: form.level },
       });
       if (!error) submitted = true;
     }
@@ -372,7 +385,7 @@ function SponsorInterestForm() {
 
   const mailto = () => {
     const subject = encodeURIComponent(`Corporate Sponsorship Inquiry — ${form.business}`);
-    const body = encodeURIComponent(`Business: ${form.business}\nContact: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\n\n${form.message}`);
+    const body = encodeURIComponent(`Business: ${form.business}\nContact: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email}\nLevel: ${form.level}\n\n${form.message}`);
     return `mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`;
   };
 
@@ -409,6 +422,14 @@ function SponsorInterestForm() {
             <label htmlFor="sp-phone" className={lbl}>Phone (optional)</label>
             <input id="sp-phone" autoComplete="tel" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inp} placeholder="(517) 555-0100" />
           </div>
+        </div>
+        <div>
+          <label htmlFor="sp-level" className={lbl}>Level you're considering</label>
+          <select id="sp-level" value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className={inp}>
+            {['Not sure yet', 'Pencil Partner ($250)', 'Campus Champion ($500)', "Principal's Circle ($1,000)", 'Founding Patron ($2,500)', 'Food or goods for a staff meeting', 'Something else'].map((l) => (
+              <option key={l} value={l}>{l}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label htmlFor="sp-message" className={lbl}>What are you interested in?</label>

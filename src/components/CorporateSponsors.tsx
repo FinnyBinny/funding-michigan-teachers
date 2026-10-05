@@ -1,6 +1,6 @@
 import { STAT } from '../data/impactStats';
 import { motion } from 'motion/react';
-import { Building2, Check, Star, Award, Crown, Handshake, Mail } from 'lucide-react';
+import { Building2, Check, Star, Award, Crown } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 /**
@@ -78,11 +78,10 @@ const SPONSOR_TIERS = [
 const WHY_STATS = [STAT.staff, STAT.support, STAT.partnerSchools];
 
 interface CorporateSponsorsProps {
-  onContact: () => void;
   onDonate: (amount: number) => void;
 }
 
-export default function CorporateSponsors({ onContact, onDonate }: CorporateSponsorsProps) {
+export default function CorporateSponsors({ onDonate }: CorporateSponsorsProps) {
   return (
     <div>
 
@@ -162,46 +161,9 @@ export default function CorporateSponsors({ onContact, onDonate }: CorporateSpon
       </div>
 
       <p className="text-center text-xs text-muted leading-relaxed max-w-2xl mx-auto mb-10 md:mb-14">
-        Food, gift cards and supplies count toward a level at fair market value. Funding Michigan Teachers is a
+        Food, gift cards and supplies count toward a level at fair market value. Funding Michigan Teachers is a{' '}
         <span className="whitespace-nowrap">501(c)(3)</span>, EIN 93-4485967; sponsorships are tax-deductible to the extent the law allows.
       </p>
-
-      {/* Custom Package CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="bg-chalkboard rounded-[2.5rem] p-7 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8"
-      >
-        <div className="text-center md:text-left">
-          <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-5 uppercase tracking-widest border border-pencil/20">
-            <Handshake size={13} aria-hidden="true" />
-            <span>Custom Packages Available</span>
-          </div>
-          <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3 leading-tight">
-            Need something <span className="text-pencil italic font-normal">tailored</span>?
-          </h3>
-          <p className="text-white/70 max-w-lg leading-relaxed font-light">
-            We're happy to build a sponsorship around your goals — a specific school,
-            a branded supply drive, or food for a staff meeting. Reach out and let's talk.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 shrink-0 w-full md:w-auto">
-          <button
-            onClick={onContact}
-            className="flex items-center justify-center gap-3 bg-apple text-white px-8 py-4 rounded-2xl font-bold hover:bg-apple/90 transition-all active:scale-95 shadow-xl cursor-pointer whitespace-nowrap w-full sm:w-auto"
-          >
-            <Mail size={18} aria-hidden="true" />
-            Get in Touch
-          </button>
-          <button
-            onClick={() => onDonate(500)}
-            className="flex items-center justify-center gap-3 bg-white/10 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/10 cursor-pointer whitespace-nowrap w-full sm:w-auto"
-          >
-            Donate Directly
-          </button>
-        </div>
-      </motion.div>
 
     </div>
   );

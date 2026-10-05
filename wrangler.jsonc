@@ -5,6 +5,17 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "worker/index.ts",
 
+  // Keep variables set in the dashboard when this file is deployed. Without
+  // it, a key added as a plain Variable instead of a Secret is deleted by
+  // the next git deploy, and the CRM quietly stops receiving forms.
+  "keep_vars": true,
+
+  // Keep the Worker's logs, so a form that did not reach Bloomerang can be
+  // looked up afterwards: Workers & Pages → funding-michigan-teachers →
+  // Observability, search "[crm]". The reason is logged there, not sent to
+  // the visitor.
+  "observability": { "enabled": true },
+
   // ── There is deliberately no "vars" block ─────────────────────────────────
   //
   // This file is committed, so anything in "vars" is published to GitHub.
