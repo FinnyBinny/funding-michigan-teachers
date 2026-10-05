@@ -8,7 +8,7 @@ import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { track, captureSource } from '../lib/analytics';
-import { MetalCan, PlasticBottle, ReturnablesStillLife } from '../components/campaignDoodles';
+import { ReturnableCansRow, ReturnableCansTrio } from '../components/ReturnableCans';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
@@ -215,16 +215,10 @@ export default function ReturnablesPage() {
               </button>
             </motion.div>
 
-            {/* A still life rather than a parade: the objects grouped the way
-                they would be photographed, arriving once and then staying put. */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
-              className="mt-12 sm:mt-14 flex justify-center text-[14px] sm:text-[17px]"
-            >
-              <ReturnablesStillLife />
-            </motion.div>
+            {/* Real crushed cans, standing on one ground line. Each one arrives
+                once and stays put; see ReturnableCans.tsx for why the sizes
+                are what they are. */}
+            <ReturnableCansRow className="mt-12 sm:mt-14" />
           </section>
 
           {/* ═══ 2. HOW IT WORKS ═══ */}
@@ -298,23 +292,7 @@ export default function ReturnablesPage() {
                   container adds to the campaign.
                 </p>
 
-                <div className="flex items-end justify-center gap-3 sm:gap-4 mt-9" aria-hidden="true">
-                  {[
-                    <MetalCan key="a" color="#D9483B" className="h-14 sm:h-16 w-auto" />,
-                    <PlasticBottle key="b" className="h-[4.4rem] sm:h-20 w-auto" />,
-                    <MetalCan key="c" color="#2E9E93" className="h-14 sm:h-16 w-auto" />,
-                  ].map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 12 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.08, duration: 0.5, ease: EASE }}
-                    >
-                      {item}
-                    </motion.div>
-                  ))}
-                </div>
+                <ReturnableCansTrio className="mt-9" />
               </div>
               <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 bg-[var(--color-campaign-teal)]/10 rounded-full blur-[100px]" />
             </div>
