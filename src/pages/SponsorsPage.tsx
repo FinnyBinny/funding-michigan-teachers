@@ -12,7 +12,7 @@ import type { FoodPartner } from '../data/initialData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
-import { SendFailed, useFocusOnMount } from '../components/FormStatus';
+import { SendFailed, PrivacyNote, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
 
 function navigate(path: string) {
@@ -449,6 +449,7 @@ function SponsorInterestForm() {
             </span>
           </button>
           {status === 'error' && <div className="mt-4"><SendFailed mailto={mailto()} /></div>}
+          <div className="mt-4"><PrivacyNote /></div>
         </div>
       </div>
     </motion.form>

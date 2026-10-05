@@ -48,7 +48,8 @@ export default function AccessibilityPage() {
               <h2 className="font-bold text-chalkboard text-lg mb-2">The standard we work to</h2>
               <p>
                 We test this site against the Web Content Accessibility Guidelines (WCAG) 2.2 at
-                Level AA, the standard most U.S. organizations and courts look to. We are a small,
+                Level AA. It includes WCAG 2.1 AA, the version the U.S. Department of Justice adopted for
+                public websites and the one courts most often refer to. We are a small,
                 student-run nonprofit and cannot promise every page meets every criterion at every
                 moment, but it is the bar we hold ourselves to and check against.
               </p>

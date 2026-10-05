@@ -4,7 +4,7 @@ import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
-import { SendFailed } from './FormStatus';
+import { SendFailed, PrivacyNote } from './FormStatus';
 import { track } from '../lib/analytics';
 
 export default function ContactForm() {
@@ -164,6 +164,7 @@ export default function ContactForm() {
               </>
             )}
           </button>
+          <PrivacyNote />
         </form>
         
         {/* Present before anything is announced, so it is read out. */}

@@ -35,3 +35,17 @@ export function useFocusOnMount<T extends HTMLElement>() {
   }, []);
   return ref;
 }
+
+/**
+ * One line under a form's submit button: who receives what it sends, and a
+ * link to the privacy policy. Forms used to say nothing, or "Goes straight
+ * to Finn" when three services received the data.
+ */
+export function PrivacyNote({ onDark = false, what = 'to reply and keep a record in our donor database' }: { onDark?: boolean; what?: string }) {
+  return (
+    <p className={`text-xs leading-relaxed ${onDark ? 'text-white/70' : 'text-chalkboard/70'}`}>
+      We use this {what}.{' '}
+      <a href="/privacy" className="underline underline-offset-2">Privacy policy</a>
+    </p>
+  );
+}

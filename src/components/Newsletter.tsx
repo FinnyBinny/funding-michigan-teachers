@@ -105,8 +105,9 @@ export default function Newsletter() {
               {status === 'error' && <div className="mt-6"><SendFailed mailto={mailto()} onDark /></div>}
 
               <p className="mt-8 text-[0.625rem] text-white/70 text-center uppercase tracking-widest leading-relaxed">
-                By subscribing, you agree to receive our monthly newsletter. <br />
-                You can unsubscribe at any time.
+                By subscribing, you agree to receive our Impact Report by email, and we keep your
+                address in our donor database. <br />
+                Unsubscribe at any time. <a href="/privacy" className="underline underline-offset-2">Privacy policy</a>
               </p>
             </div>
           </motion.div>

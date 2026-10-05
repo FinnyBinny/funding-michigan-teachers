@@ -167,6 +167,43 @@ function withHeroPreload(request: Request, res: Response): Response {
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
 
+/**
+ * Security headers on every page. There were none.
+ *
+ * Enforced: no framing by other sites (clickjacking), no MIME sniffing, a
+ * referrer that leaves out paths and query strings, HTTPS only, and no camera,
+ * microphone or location.
+ *
+ * The full Content-Security-Policy is REPORT-ONLY for now: it names every
+ * origin the site loads from (Stripe, Google Analytics, Bloomerang, Supabase,
+ * FormBold), and the browser console says if anything else tries. Once a
+ * week on the live site shows no reports, including a real checkout with
+ * Apple Pay, rename the header to Content-Security-Policy to enforce it. It
+ * is also what PCI's SAQ A asks of a page that embeds a payment form.
+ */
+const CSP = [
+  "default-src 'self'",
+  // 'unsafe-inline' only for the Bloomerang tag's onerror attribute.
+  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.js.stripe.com https://www.googletagmanager.com https://api.bloomerang.co",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self'",
+  "connect-src 'self' https://zvzlgawpezovdwmnvwlg.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://api.bloomerang.co https://formbold.com",
+  "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+  "frame-ancestors 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
+const SECURITY_HEADERS: Record<string, string> = {
+  'Content-Security-Policy': "frame-ancestors 'self'",
+  'Content-Security-Policy-Report-Only': CSP,
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
+
 /** True when a request's Origin is the host it was sent to. */
 function sameOrigin(request: Request): boolean {
   const origin = request.headers.get('Origin');
@@ -248,6 +285,7 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
   const out = new Headers(res.headers);
   out.delete('ETag');
   out.delete('Content-Length');
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) out.set(name, value);
   if (status !== 200) {
     out.set('Cache-Control', 'no-store');
   } else if (assetEtag) {

@@ -9,6 +9,7 @@ import { supabase, getVoterId, peekVoterId } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { useModalDialog } from '../lib/useModalDialog';
+import { PrivacyNote } from './FormStatus';
 
 
 const INPUT_CLS = 'w-full bg-paper border border-chalkboard/30 rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:text-chalkboard/65';
@@ -380,6 +381,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                     {' '}— your answers are already filled in.
                   </p>
                 )}
+                <PrivacyNote what="to review your project and reply" />
               </form>
               )}
           </ProjectDialog>

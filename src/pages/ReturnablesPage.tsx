@@ -836,7 +836,8 @@ function PickupForm({ source }: { source: string }) {
           <p className="mt-4 flex items-start gap-2 text-xs text-chalkboard/70 font-light leading-relaxed">
             <ShieldCheck size={14} className="text-[var(--color-campaign-teal)] shrink-0 mt-0.5" strokeWidth={1.5} aria-hidden="true" />
             We use your information to arrange this pickup and keep a record of your gift. We only email
-            you about anything else if you tick the box above. Your address is never shown publicly.
+            you about anything else if you tick the box above. Your address is never shown publicly.{' '}
+            <a href="/privacy" className="underline underline-offset-2">Privacy policy</a>
           </p>
         </div>
       </div>

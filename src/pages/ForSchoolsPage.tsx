@@ -14,7 +14,7 @@ import { useTeachersOfMonth, useFoodPartners } from '../hooks/useLocalData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
-import { SendFailed, useFocusOnMount } from '../components/FormStatus';
+import { SendFailed, PrivacyNote, useFocusOnMount } from '../components/FormStatus';
 import { STAT, TAW_CARD_VALUE } from '../data/impactStats';
 import { track } from '../lib/analytics';
 
@@ -893,6 +893,7 @@ function PilotInterestForm() {
           </a>
         </div>
         {status === 'error' && <SendFailed mailto={mailto()} onDark />}
+        <PrivacyNote onDark />
       </div>
     </motion.form>
   );

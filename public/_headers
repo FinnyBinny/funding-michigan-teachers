@@ -2,6 +2,10 @@
 # reads this file; it is not served). Without it every file got the default,
 # which makes the browser revalidate on each visit.
 
+# Every static file: never let a browser guess a different type.
+/*
+  X-Content-Type-Options: nosniff
+
 # Vite names every bundle after its contents, so a changed file is a new
 # URL: these can be cached for a year and never rechecked.
 /assets/*
