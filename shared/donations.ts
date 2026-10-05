@@ -15,6 +15,12 @@ import { SCHOOLS, findSchool } from './schools';
 // Lives in shared/fees.ts so the shop can use it without the school registry.
 export { CARD_FEE, coverFee, dollars } from './fees';
 
+// ── Amount limits ───────────────────────────────────────────────────────────
+// The page validates the typed amount against these and the Worker refuses
+// anything outside them. In dollars.
+export const MIN_GIFT = 1;
+export const MAX_GIFT = 100000;
+
 // ── Designation ─────────────────────────────────────────────────────────────
 
 /**

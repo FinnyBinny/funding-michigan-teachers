@@ -32,7 +32,9 @@ export default function SponsorsPage() {
   // All donations route through /donate, which hosts the embedded Stripe
   // checkout panel — one consistent, on-page payment flow site-wide.
   const handleDonate = (amount?: number) => {
-    navigate(amount && amount > 0 ? `/donate?amount=${amount}` : '/donate');
+    // A sponsorship level is a yearly amount, paid once. /donate used to open
+    // these on monthly, so "$250 a year" became $250 a month.
+    navigate(amount && amount > 0 ? `/donate?amount=${amount}&frequency=once` : '/donate');
   };
 
   return (

@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { submitToFormBold, FORMBOLD } from '../lib/forms';
-import { joinMailingList } from '../lib/bloomerang';
-import { track } from '../lib/analytics';
+import { subscribeToImpactReport } from '../lib/newsletter';
 import { SendFailed } from './FormStatus';
 
 export default function Newsletter() {
@@ -14,35 +11,11 @@ export default function Newsletter() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
-    let submitted = false;
-
-    // Bloomerang's mailing-list widget, not a constituent interaction. It is
-    // built to accept a signup that is only an email address, which is all
-    // this box asks for — the reason an earlier version of this could not
-    // reach the CRM at all.
-    void joinMailingList({ email });
-
-    // FormBold delivers the email notification
-    if (await submitToFormBold(FORMBOLD.newsletter, {
-      Form: 'Newsletter signup',
-      subject: 'Newsletter Signup — Funding Michigan Teachers',
-      email,
-    })) submitted = true;
-
-    // Also save to Supabase for records
-    if (supabase) {
-      const { error } = await supabase.from('contact_submissions').insert({
-        name: 'Newsletter Signup',
-        email,
-        type: 'newsletter',
-      });
-      if (!error) submitted = true;
-    }
+    const submitted = await subscribeToImpactReport(email, 'homepage');
 
     // The confirmation stays up: it used to vanish after five seconds, too
     // quickly for some people to read, and screen readers never heard it.
     if (submitted) {
-      track('newsletter_signup');
       setStatus('success');
     } else {
       setStatus('error');

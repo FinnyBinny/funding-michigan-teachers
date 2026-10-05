@@ -14,6 +14,7 @@
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
 import {
+  MIN_GIFT, MAX_GIFT,
   coverFee, decodeDesignation, designationFromLegacyFund, encodeDesignation, schoolFundLabel,
   type Designation,
 } from '../shared/donations';
@@ -411,7 +412,10 @@ export function donationSessionParams(o: {
     fee_covered_cents: String(fee),
     ...(teacher ? { teacher } : {}),
   };
-  const description = `${every} — ${label}${teacher ? ` (${teacher})` : ''}${fee ? ` · donor covered ${(fee / 100).toFixed(2)} in fees` : ''}`;
+  const description = `${every} — ${label}${teacher ? ` (${teacher})` : ''}${fee ? ` · donor covered $${(fee / 100).toFixed(2)} in fees` : ''}`;
+  // The IRS asks for this on the acknowledgment of any gift of $250 or more;
+  // it is true of every gift here, so it is on every one.
+  const noGoods = 'No goods or services were provided in exchange for this gift.';
 
   return {
     ui_mode: 'embedded_page',
@@ -426,8 +430,8 @@ export function donationSessionParams(o: {
               ? frequency === 'monthly' ? 'Monthly donation to Funding Michigan Teachers' : 'Donation to Funding Michigan Teachers'
               : `${every} to ${label}`,
             description: teacher
-              ? `${teacher}'s classroom · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967`
-              : '501(c)(3) nonprofit · EIN 93-4485967 · at least 80¢ of every dollar goes to teachers',
+              ? `For ${teacher}'s classroom project · Funding Michigan Teachers, 501(c)(3), EIN 93-4485967. ${noGoods}`
+              : `Funding Michigan Teachers, 501(c)(3), EIN 93-4485967. ${noGoods}`,
           },
           unit_amount: giftCents,
           ...recurring,
@@ -460,11 +464,19 @@ export function donationSessionParams(o: {
       : { subscription_data: { description, metadata } }),
     custom_text: {
       submit: {
-        message: teacher
-          ? `Your gift goes to ${teacher}'s classroom.`
-          : general
-            ? 'At least 80¢ of every dollar goes directly to Michigan teachers.'
-            : `Your gift goes to the ${label}.`,
+        // A designated gift is a preference FMT honours, not a gift to a
+        // person: under IRS rules the charity must keep control of how it is
+        // used, or the gift is not deductible. See DonatePage's picker note.
+        message: [
+          teacher
+            ? `Your gift supports ${teacher}'s classroom project.`
+            : general
+              ? 'Your gift goes where Michigan teachers need it most.'
+              : `Your gift supports the ${label}.`,
+          frequency === 'monthly'
+            ? 'Change or cancel any time by emailing hello@fundingmichiganteachers.org.'
+            : '',
+        ].filter(Boolean).join(' '),
       },
     },
   };
@@ -491,10 +503,18 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
     return json({ error: 'Invalid request body' }, 400);
   }
 
-  const amount = Number(body.amount);
-  const frequency = body.frequency === 'monthly' ? 'monthly' : 'once';
+  const amount = body.amount;
+  if (body.frequency !== 'monthly' && body.frequency !== 'once') {
+    return json({ error: 'Invalid frequency' }, 400);
+  }
+  const frequency = body.frequency;
 
-  if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
+  // A number of whole cents within the limits the page also enforces.
+  if (
+    typeof amount !== 'number' || !Number.isFinite(amount) ||
+    amount < MIN_GIFT || amount > MAX_GIFT ||
+    Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6
+  ) {
     return json({ error: 'Invalid donation amount' }, 400);
   }
 
@@ -508,7 +528,9 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
   });
-  const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
+  // Where Stripe sends the visitor back: this site, read from the request
+  // itself. It used to copy the Origin header, which the caller controls.
+  const origin = new URL(request.url).origin;
 
   try {
     const session = await stripe.checkout.sessions.create(
@@ -604,7 +626,9 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
   });
-  const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
+  // Where Stripe sends the visitor back: this site, read from the request
+  // itself. It used to copy the Origin header, which the caller controls.
+  const origin = new URL(request.url).origin;
 
   const items = priced.items.map((it) => ({
     price_data: {
@@ -819,11 +843,16 @@ async function checkoutSessionStatus(request: Request, env: Env): Promise<Respon
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const gift = Number(session.metadata?.gift_amount_cents);
     return json({
       status: session.status,
       paymentStatus: session.payment_status,
       amountTotal: session.amount_total,
       mode: session.mode,
+      // The gift without any covered fee, so the thank-you page and ad
+      // conversions count what the donor gave, and where it went.
+      giftCents: Number.isFinite(gift) && gift > 0 ? gift : null,
+      designationLabel: session.metadata?.designation_label ?? null,
     });
   } catch (err) {
     console.error('Stripe session status lookup failed:', err);

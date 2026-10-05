@@ -36,7 +36,11 @@ export default function App() {
     setPageMeta(metaForPath('/'));
   }, []);
 
-  const handleDonate = (amount?: number, project?: { id?: number; title: string; teacher_name: string }) => {
+  const handleDonate = (
+    amount?: number,
+    project?: { id?: number; title: string; teacher_name: string },
+    frequency?: 'once' | 'monthly',
+  ) => {
     // 3-click donation flow:
     //   1. Click "Donate" (anywhere on the site) — lands on /donate, which
     //      hosts the embedded Stripe checkout panel (card form renders
@@ -50,6 +54,7 @@ export default function App() {
     const q = new URLSearchParams();
     if (amount && amount > 0) q.set('amount', String(amount));
     if (project?.id) q.set('designation', `project:${project.id}`);
+    if (frequency) q.set('frequency', frequency);
     const path = q.toString() ? `/donate?${q}` : '/donate';
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -225,7 +230,9 @@ export default function App() {
                 2026–27 School Year Goal: $20,000
               </div>
             </div>
-            <DonationTiers onDonate={handleDonate} />
+            {/* These are monthly giving tiers, so they open /donate on monthly;
+                everything else opens on one-time. */}
+            <DonationTiers onDonate={(a) => handleDonate(a, undefined, 'monthly')} />
           </div>
         </section>
 
