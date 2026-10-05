@@ -77,7 +77,7 @@ export default function ContactForm() {
           Let's <span className="text-apple italic font-normal">Connect</span>.
         </h2>
         <p className="text-base text-chalkboard/70 mb-8 font-light leading-relaxed max-w-md">
-          Have questions about our mission or want to get involved? We're here to help you make an impact.
+          Questions, ideas, or want to help? Send us a note and a student on our team will write back within a day or two.
         </p>
 
         <div className="grid gap-5">

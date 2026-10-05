@@ -46,7 +46,7 @@ export default function Newsletter() {
               Get the <span className="text-pencil italic font-normal">Impact</span> Report.
             </h2>
             <p className="text-base text-white/75 font-light leading-relaxed max-w-lg">
-              Monthly updates on exactly where your support goes — teacher appreciation events, funded classrooms, and the students who benefit. No filler. Just impact.
+              Where your support went: the appreciation events, the classrooms we restocked, and what teachers told us about it.
             </p>
           </motion.div>
 

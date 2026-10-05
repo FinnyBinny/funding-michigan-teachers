@@ -15,7 +15,7 @@ function findAnswer(query: string): string {
     f.question.toLowerCase().split(' ').some(word => word.length > 3 && q.includes(word))
   );
   if (match) return match.answer;
-  return "Great question! For more details, please reach out to us at hello@fundingmichiganteachers.org — we usually reply within a day or two.";
+  return "We don't have a ready answer for that one. Email hello@fundingmichiganteachers.org and a student on our team will reply, usually within a day or two.";
 }
 
 export default function FAQAssistant() {

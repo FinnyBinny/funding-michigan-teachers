@@ -263,7 +263,7 @@ export default function App() {
                 Voices from the <span className="text-apple italic font-normal">Classroom</span>.
               </h2>
               <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
-                Real stories from educators whose classrooms were changed by your generosity. Every story is a testament to the power of community.
+                In their own words: the teachers and staff at our partner schools.
               </p>
             </div>
             <TeacherStories />
