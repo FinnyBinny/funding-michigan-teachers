@@ -14,6 +14,11 @@
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
 import {
+  coverFee, decodeDesignation, designationFromLegacyFund, encodeDesignation, schoolFundLabel,
+  type Designation,
+} from '../shared/donations';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '../shared/supabasePublic';
+import {
   MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart, findCode,
   CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
@@ -224,6 +229,165 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+/** A placeholder card that invites teachers to submit a project; not a fund. */
+const PROJECT_PLACEHOLDER = 'Submit a Project';
+
+type ResolvedDesignation =
+  | { ok: true; d: Designation; label: string; teacher: string; verified: boolean }
+  | { ok: false; error: string };
+
+/**
+ * Turns what the browser sent into a designation the Worker trusts.
+ *
+ * A school fund is checked against the school registry. A classroom project
+ * is looked up by id in the projects table, and its title and teacher come
+ * from there — never from the request — so a forged id cannot put a made-up
+ * project on someone's receipt.
+ *
+ * If the database cannot be reached, the gift still goes through: it is
+ * recorded against the requested project id with designation_verified=false,
+ * so it can be routed by hand. Losing a donation to a lookup timeout would be
+ * the worse failure.
+ */
+async function resolveDesignation(
+  raw: unknown,
+  legacyFund: { title?: unknown } | null | undefined,
+): Promise<ResolvedDesignation> {
+  let d: Designation | null;
+  if (raw !== undefined && raw !== null) {
+    d = decodeDesignation(raw);
+    if (!d) return { ok: false, error: 'That fund is not one we recognise.' };
+  } else {
+    // Links from before designations existed: ?fund=Okemos Mid-Year Refill.
+    const title = typeof legacyFund?.title === 'string' ? legacyFund.title : null;
+    d = designationFromLegacyFund(title) ?? { kind: 'general' };
+  }
+
+  if (d.kind === 'general') {
+    return { ok: true, d, label: "Where it's needed most", teacher: '', verified: true };
+  }
+  if (d.kind === 'school') {
+    const label = schoolFundLabel(d.slug);
+    return label
+      ? { ok: true, d, label, teacher: '', verified: true }
+      : { ok: false, error: 'That school fund is not one we recognise.' };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2500);
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/projects?select=id,title,teacher_name&id=eq.${d.id}`,
+      {
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` },
+        signal: controller.signal,
+      },
+    );
+    if (!res.ok) throw new Error(`projects lookup ${res.status}`);
+    const rows = (await res.json()) as Array<{ title?: string; teacher_name?: string }>;
+    const row = rows[0];
+    if (!row?.title || row.teacher_name === PROJECT_PLACEHOLDER) {
+      return { ok: false, error: 'That classroom project is no longer accepting gifts.' };
+    }
+    return { ok: true, d, label: row.title.slice(0, 120), teacher: (row.teacher_name ?? '').slice(0, 80), verified: true };
+  } catch {
+    return { ok: true, d, label: `Classroom project #${d.id}`, teacher: '', verified: false };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Everything sent to Stripe for a donation, as a pure function of decisions
+ * already made and checked, so the money-handling shape can be tested without
+ * a network (scripts/test-donation-session.mts).
+ */
+export function donationSessionParams(o: {
+  giftCents: number;
+  feeCents: number;
+  frequency: 'once' | 'monthly';
+  label: string;
+  teacher: string;
+  verified: boolean;
+  designation: Designation;
+  origin: string;
+}): Stripe.Checkout.SessionCreateParams {
+  const { giftCents, frequency, label, teacher, verified, origin } = o;
+  const fee = o.feeCents;
+  const general = o.designation.kind === 'general';
+  const recurring = frequency === 'monthly' ? { recurring: { interval: 'month' as const } } : {};
+  const every = frequency === 'monthly' ? 'Monthly gift' : 'Gift';
+
+  // Recorded on the payment (and on the subscription, for monthly gifts) so a
+  // designated gift can be found, reported on and delivered to the right
+  // classroom from the Stripe dashboard alone.
+  const metadata: Record<string, string> = {
+    designation: encodeDesignation(o.designation),
+    designation_label: label,
+    designation_verified: String(verified),
+    gift_amount_cents: String(giftCents),
+    fee_covered_cents: String(fee),
+    ...(teacher ? { teacher } : {}),
+  };
+  const description = `${every} — ${label}${teacher ? ` (${teacher})` : ''}${fee ? ` · donor covered ${(fee / 100).toFixed(2)} in fees` : ''}`;
+
+  return {
+    ui_mode: 'embedded_page',
+    mode: frequency === 'monthly' ? 'subscription' : 'payment',
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: general
+              ? frequency === 'monthly' ? 'Monthly donation to Funding Michigan Teachers' : 'Donation to Funding Michigan Teachers'
+              : `${every} to ${label}`,
+            description: teacher
+              ? `${teacher}'s classroom · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967`
+              : '501(c)(3) nonprofit · EIN 93-4485967 · at least 80¢ of every dollar goes to teachers',
+          },
+          unit_amount: giftCents,
+          ...recurring,
+        },
+        quantity: 1,
+      },
+      // The covered fee is its own line, so the donor sees exactly what it
+      // is on the checkout and the receipt, and FMT's records keep the gift
+      // and the fee apart.
+      ...(fee
+        ? [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Card processing fee, covered by you',
+                description: 'So Funding Michigan Teachers receives your full gift',
+              },
+              unit_amount: fee,
+              ...recurring,
+            },
+            quantity: 1,
+          }]
+        : []),
+    ],
+    return_url: `${origin}/donate?stripe_session_id={CHECKOUT_SESSION_ID}`,
+    ...(frequency === 'once' ? { submit_type: 'donate' as const } : {}),
+    metadata,
+    ...(frequency === 'once'
+      ? { payment_intent_data: { description, metadata } }
+      : { subscription_data: { description, metadata } }),
+    custom_text: {
+      submit: {
+        message: teacher
+          ? `Your gift goes to ${teacher}'s classroom.`
+          : general
+            ? 'At least 80¢ of every dollar goes directly to Michigan teachers.'
+            : `Your gift goes to the ${label}.`,
+      },
+    },
+  };
+}
+
 async function createCheckoutSession(request: Request, env: Env): Promise<Response> {
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).' }, 500);
@@ -232,6 +396,11 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
   let body: {
     amount?: number;
     frequency?: 'once' | 'monthly';
+    /** 'general' | 'school:<slug>' | 'project:<id>' — see shared/donations.ts */
+    designation?: string;
+    /** Only a yes/no. The fee itself is always computed here. */
+    coverFee?: boolean;
+    /** Older links: { title } of a fund, mapped onto a designation. */
     fund?: { title?: string; teacher?: string } | null;
   };
   try {
@@ -247,59 +416,22 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
     return json({ error: 'Invalid donation amount' }, 400);
   }
 
-  // Designated gift to one teacher's classroom fund. Trimmed and length-capped
-  // because it comes from a query string and is shown on the Stripe receipt.
-  const clean = (s: unknown, max: number) =>
-    typeof s === 'string' ? s.trim().slice(0, max) : '';
-  const fundTitle = clean(body.fund?.title, 120);
-  const fundTeacher = clean(body.fund?.teacher, 80);
+  const designation = await resolveDesignation(body.designation, body.fund);
+  if ('error' in designation) return json({ error: designation.error }, 400);
+  const { label, teacher, verified } = designation;
+
+  const giftCents = Math.round(amount * 100);
+  const fee = body.coverFee === true ? coverFee(giftCents).feeCents : 0;
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
   });
   const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
-  const unitAmount = Math.round(amount * 100);
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded_page',
-      mode: frequency === 'monthly' ? 'subscription' : 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: fundTitle
-                ? `${frequency === 'monthly' ? 'Monthly gift' : 'Gift'} to ${fundTitle}`
-                : frequency === 'monthly'
-                  ? 'Monthly donation to Funding Michigan Teachers'
-                  : 'Donation to Funding Michigan Teachers',
-              description: fundTeacher
-                ? `${fundTeacher}'s classroom fund · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967 · at least 80¢ of every dollar goes to teachers`
-                : '501(c)(3) nonprofit · EIN 93-4485967 · at least 80¢ of every dollar goes to teachers',
-            },
-            unit_amount: unitAmount,
-            ...(frequency === 'monthly' ? { recurring: { interval: 'month' as const } } : {}),
-          },
-          quantity: 1,
-        },
-      ],
-      return_url: `${origin}/donate?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      ...(frequency === 'once' ? { submit_type: 'donate' as const } : {}),
-      // Recorded on the Stripe payment so designated gifts can be reported on
-      // and routed to the right classroom.
-      ...(fundTitle
-        ? { metadata: { designated_fund: fundTitle, teacher: fundTeacher } }
-        : {}),
-      custom_text: {
-        submit: {
-          message: fundTeacher
-            ? `Your gift goes to ${fundTeacher}'s classroom.`
-            : 'At least 80¢ of every dollar goes directly to Michigan teachers.',
-        },
-      },
-    });
+    const session = await stripe.checkout.sessions.create(
+      donationSessionParams({ giftCents, feeCents: fee, frequency, label, teacher, verified, designation: designation.d, origin }),
+    );
 
     return json({ clientSecret: session.client_secret });
   } catch (err) {

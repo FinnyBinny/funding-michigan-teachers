@@ -41,7 +41,7 @@ export default function App() {
     });
   }, []);
 
-  const handleDonate = (amount?: number, project?: { title: string; teacher_name: string }) => {
+  const handleDonate = (amount?: number, project?: { id?: number; title: string; teacher_name: string }) => {
     // 3-click donation flow:
     //   1. Click "Donate" (anywhere on the site) — lands on /donate, which
     //      hosts the embedded Stripe checkout panel (card form renders
@@ -49,14 +49,12 @@ export default function App() {
     //   2. Tap "Donate $X" — the embedded panel opens right there
     //   3. Apple Pay / Google Pay / card — Face ID or a few digits. Done.
     // A known amount is passed through as ?amount=X so /donate preselects it.
-    // A project carries through as ?fund=/?teacher= so /donate can show whose
-    // classroom the gift is for and name it on the Stripe receipt.
+    // A project carries through as ?designation=project:<id>. The Worker
+    // looks the id up itself before naming the project on the receipt, so
+    // the title never has to travel in the URL.
     const q = new URLSearchParams();
     if (amount && amount > 0) q.set('amount', String(amount));
-    if (project?.title) {
-      q.set('fund', project.title);
-      if (project.teacher_name) q.set('teacher', project.teacher_name);
-    }
+    if (project?.id) q.set('designation', `project:${project.id}`);
     const path = q.toString() ? `/donate?${q}` : '/donate';
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));

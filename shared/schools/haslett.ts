@@ -47,7 +47,7 @@ export const haslett: School = {
       title: 'Mid-Year Refill',
       body: 'Classroom supply budgets usually run out by winter. In January we restock the classrooms that ask, and every refill is delivered the week of January 12th.',
       ctaLabel: 'Donate to the Haslett refill',
-      ctaHref: '/donate?fund=Haslett%20Mid-Year%20Refill',
+      ctaHref: '/donate?designation=school:haslett',
       secondaryLabel: 'Teach here? Tell us what your room needs',
       secondaryHref: '/for-teachers?kind=mid-year-refill&school=Haslett%20High%20School',
     },

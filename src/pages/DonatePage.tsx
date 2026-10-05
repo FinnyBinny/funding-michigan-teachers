@@ -13,6 +13,11 @@ import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
 import { track } from '../lib/analytics';
 import SiteFooter from '../components/SiteFooter';
+import { useProjects } from '../hooks/useLocalData';
+import {
+  coverFee as grossUp, decodeDesignation, designationFromLegacyFund, dollars,
+  encodeDesignation, schoolFundLabel, schoolFunds,
+} from '../../shared/donations';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -37,9 +42,14 @@ export default function DonatePage() {
   const [amount, setAmount] = useState(25);
   const [frequency, setFrequency] = useState<DonationFrequency>('monthly');
   const [showCheckout, setShowCheckout] = useState(false);
-  // Set when arriving from a specific classroom project, so the gift is
-  // designated to that teacher's fund and named on the Stripe receipt.
-  const [fund, setFund] = useState<{ title: string; teacher: string } | null>(null);
+  // Where the gift goes: 'general', 'school:<slug>' or 'project:<id>'. The
+  // Worker checks every one of these against something it trusts before it
+  // names the fund on a receipt — see shared/donations.ts.
+  const [designation, setDesignation] = useState('general');
+  // Pre-ticked at the founder's choice; the donor sees the exact amount and
+  // can untick it. Display only — the Worker computes the fee itself.
+  const [coverFee, setCoverFee] = useState(true);
+  const projects = useProjects().filter((p) => p.teacher_name !== 'Submit a Project');
   const [success, setSuccess] = useState<SuccessState>(null);
 
   const embeddedReady = isEmbeddedStripeConfigured();
@@ -74,8 +84,15 @@ export default function DonatePage() {
       return;
     }
 
-    const fundTitle = params.get('fund');
-    if (fundTitle) setFund({ title: fundTitle, teacher: params.get('teacher') ?? '' });
+    // ?designation=school:okemos or ?project=3, and links from before
+    // designations existed: ?fund=Okemos Mid-Year Refill.
+    const fromParam = decodeDesignation(params.get('designation'));
+    const project = params.get('project');
+    const legacy = designationFromLegacyFund(params.get('fund'));
+    const chosen = fromParam && fromParam.kind !== 'general'
+      ? fromParam
+      : project && /^\d+$/.test(project) ? { kind: 'project' as const, id: Number(project) } : legacy;
+    if (chosen) setDesignation(encodeDesignation(chosen));
 
     const a = params.get('amount');
     const n = a ? parseInt(a, 10) : NaN;
@@ -83,6 +100,20 @@ export default function DonatePage() {
   }, []);
 
   const canDonate = amount > 0;
+  const giftCents = Math.round(amount * 100);
+  const feeCents = grossUp(giftCents).feeCents;
+  // Fee coverage only applies to the embedded checkout; the hosted-link
+  // fallback cannot carry it, so it shows the plain amount.
+  const totalCents = embeddedReady && coverFee ? giftCents + feeCents : giftCents;
+
+  /** What the gift is going to, in words, for the checkout header. */
+  const designationLabel = (() => {
+    const d = decodeDesignation(designation);
+    if (!d || d.kind === 'general') return 'Funding Michigan Teachers';
+    if (d.kind === 'school') return schoolFundLabel(d.slug) ?? 'Funding Michigan Teachers';
+    const p = projects.find((x) => x.id === d.id);
+    return p ? `${p.teacher_name}'s classroom` : 'a classroom project';
+  })();
 
   const handleDonateClick = () => {
     if (!canDonate) return;
@@ -222,37 +253,51 @@ export default function DonatePage() {
             </motion.div>
           </div>
 
-          {/* Designated-fund banner — shown when arriving from a project card */}
-          {fund && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: EASE }}
-              className="max-w-2xl mx-auto mb-8 bg-apple/[0.06] ring-1 ring-apple/25 rounded-2xl px-5 py-4 flex items-start gap-3.5"
+          {/* Where the gift goes. A native select: it is the most accessible
+              picker there is, and on a phone it opens the system list. */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: EASE }}
+            className="max-w-xl mx-auto mb-8"
+          >
+            <label
+              htmlFor="donate-designation"
+              className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/60 mb-2.5"
             >
-              <div className="w-9 h-9 rounded-xl bg-apple/12 text-apple flex items-center justify-center shrink-0">
-                <School size={17} strokeWidth={1.5} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple mb-0.5">
-                  Giving to a teacher's fund
-                </p>
-                <p className="text-sm font-bold text-chalkboard leading-snug">{fund.title}</p>
-                {fund.teacher && (
-                  <p className="text-xs text-chalkboard/55 font-light mt-0.5">{fund.teacher}</p>
-                )}
-              </div>
-              <button
-                onClick={() => {
-                  setFund(null);
-                  window.history.replaceState({}, '', '/donate');
-                }}
-                className="text-[10px] uppercase tracking-[0.16em] font-bold text-chalkboard/40 hover:text-chalkboard shrink-0 mt-1"
-              >
-                Give to all
-              </button>
-            </motion.div>
-          )}
+              <School size={13} strokeWidth={1.75} aria-hidden="true" />
+              Where should your gift go?
+            </label>
+            <select
+              id="donate-designation"
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
+              className="w-full bg-white ring-1 ring-chalkboard/15 focus:ring-2 focus:ring-apple/40 rounded-2xl px-5 py-3.5 text-base font-bold text-chalkboard outline-none"
+            >
+              <option value="general">Where it's needed most</option>
+              {/* A link can name a project before the list has loaded, or one
+                  that has since closed. Without this option the box would show
+                  "Where it's needed most" while the gift went to the project.
+                  The Worker checks the project exists before charging. */}
+              {designation.startsWith('project:') && !projects.some((p) => `project:${p.id}` === designation) && (
+                <option value={designation}>The classroom project you came from</option>
+              )}
+              {projects.length > 0 && (
+                <optgroup label="A teacher's classroom project">
+                  {projects.map((p) => (
+                    <option key={p.id} value={`project:${p.id}`}>
+                      {p.teacher_name} — {p.title}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              <optgroup label="A school's Mid-Year Refill (January)">
+                {schoolFunds().map((f) => (
+                  <option key={f.slug} value={`school:${f.slug}`}>{f.label}</option>
+                ))}
+              </optgroup>
+            </select>
+          </motion.div>
 
           {/* Frequency toggle */}
           <motion.div
@@ -323,6 +368,24 @@ export default function DonatePage() {
             })}
           </div>
 
+          {/* Cover the fee. The exact dollar amount is shown, so a pre-ticked box
+              is a visible choice rather than a surprise on the receipt. */}
+          {embeddedReady && canDonate && (
+            <label className="max-w-md mx-auto mb-6 flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={coverFee}
+                onChange={(e) => setCoverFee(e.target.checked)}
+                className="mt-0.5 w-5 h-5 shrink-0 accent-apple"
+              />
+              <span className="text-sm text-chalkboard/70 leading-snug">
+                Add <strong className="text-chalkboard">{dollars(feeCents)}</strong>
+                {frequency === 'monthly' ? ' a month' : ''} to cover the card processing fee, so Funding
+                Michigan Teachers receives your full {dollars(giftCents)}.
+              </span>
+            </label>
+          )}
+
           {/* PRIMARY CTA — opens embedded Stripe checkout inline (or falls back) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -341,7 +404,7 @@ export default function DonatePage() {
             >
               <Heart size={18} strokeWidth={1.5} className="fill-current" />
               <span className="uppercase tracking-[0.18em] text-sm">
-                Donate ${amount}{frequency === 'monthly' ? '/mo' : ''}
+                Donate {dollars(totalCents)}{frequency === 'monthly' ? '/mo' : ''}
               </span>
               <span className="w-11 h-11 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] transition-all">
                 <ArrowRight size={16} strokeWidth={1.5} />
@@ -440,7 +503,9 @@ export default function DonatePage() {
           <EmbeddedDonateCheckout
             amount={amount}
             frequency={frequency}
-            fund={fund}
+            designation={designation}
+            designationLabel={designationLabel}
+            coverFee={coverFee}
             onClose={() => setShowCheckout(false)}
           />
         )}

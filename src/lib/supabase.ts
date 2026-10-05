@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../shared/supabasePublic';
 
 /**
  * Supabase connection.
@@ -18,8 +19,9 @@ import { createClient } from '@supabase/supabase-js';
  * vanished from the deployed site while still appearing to work locally. The
  * VITE_* overrides below still apply if they are ever set at build time.
  */
-const FALLBACK_URL = 'https://zvzlgawpezovdwmnvwlg.supabase.co';
-const FALLBACK_ANON_KEY = 'sb_publishable_N3fEhiPqKwmodLPXxyI9iQ_y-UiCVtI';
+// Shared with the Worker, which reads project names from the same project.
+const FALLBACK_URL = SUPABASE_URL;
+const FALLBACK_ANON_KEY = SUPABASE_PUBLISHABLE_KEY;
 
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) || FALLBACK_URL;

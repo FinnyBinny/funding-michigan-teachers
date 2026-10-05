@@ -85,6 +85,11 @@ jobs:
       - name: Check theme colors clear WCAG AA in every theme
         run: node scripts/check-theme-contrast.mjs
 
+      # What the Worker sends Stripe for a donation — amounts, the covered
+      # fee line, recurring flags and the fund metadata. Money code is tested.
+      - name: Test donation checkout parameters
+        run: npx tsx scripts/test-donation-session.mts
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty
