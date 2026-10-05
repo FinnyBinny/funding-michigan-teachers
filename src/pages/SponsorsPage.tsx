@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Heart, ArrowLeft, Building2, ExternalLink, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { Heart, Building2, ExternalLink, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import CorporateSponsors from '../components/CorporateSponsors';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
 import SiteFooter from '../components/SiteFooter';
 import { useFoodPartners, useSponsors } from '../hooks/useLocalData';
+import { splitBusinessName } from '../lib/utils';
+import type { FoodPartner } from '../data/initialData';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
@@ -72,7 +74,7 @@ export default function SponsorsPage() {
         </section>
 
         {/* Sponsor Tiers */}
-        <section className="py-12 sm:py-16 px-6">
+        <section className="pt-2 pb-12 sm:pb-16 px-6">
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
             <CorporateSponsors
               onDonate={handleDonate}
@@ -105,50 +107,65 @@ export default function SponsorsPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-                {sponsors.map((sponsor, i) => (
-                  <motion.a
-                    key={sponsor.id ?? sponsor.name}
-                    href={sponsor.website || '#'}
-                    target={sponsor.website ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                    initial={{ opacity: 0, y: 24, filter: 'blur(6px)' }}
-                    whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                    viewport={{ once: true, margin: '-60px' }}
-                    transition={{ duration: 0.7, delay: i * 0.06, ease: [0.32, 0.72, 0, 1] }}
-                    className="group block"
-                  >
-                    {/* Outer bezel */}
-                    <div className="bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[1.75rem] p-1.5 group-hover:ring-chalkboard/15 transition-all">
-                      {/* Inner core */}
-                      <div className="bg-white rounded-[calc(1.75rem-0.375rem)] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-5">
-                          <span className="text-[9px] uppercase tracking-[0.22em] font-bold text-apple bg-apple/10 px-2.5 py-1 rounded-full">
-                            {sponsor.tier}
-                          </span>
-                          {sponsor.website && (
-                            <ExternalLink size={13} className="text-chalkboard/30 group-hover:text-chalkboard transition-colors" />
-                          )}
-                        </div>
-                        {sponsor.logo ? (
-                          <div className="bg-chalkboard/[0.03] rounded-xl h-20 flex items-center justify-center mb-4 p-3">
-                            <img src={sponsor.logo} alt={sponsor.name} className="max-h-full max-w-full object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                        ) : (
-                          <div className="h-20 mb-4 flex items-center">
-                            <p className="font-serif font-bold text-2xl text-chalkboard leading-tight tracking-[-0.01em]">{sponsor.name}</p>
-                          </div>
-                        )}
-                        {sponsor.logo && (
-                          <p className="font-serif font-bold text-lg text-chalkboard mb-2">{sponsor.name}</p>
-                        )}
-                        {sponsor.description && (
-                          <p className="text-chalkboard/55 text-xs leading-relaxed font-light mt-auto">{sponsor.description}</p>
+              <div
+                className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5"
+                role="region"
+                tabIndex={0}
+                aria-label="Corporate partners"
+              >
+                {sponsors.map((sponsor, i) => {
+                  const { name, detail } = splitBusinessName(sponsor.name);
+                  const body = (
+                    <div className="bg-white rounded-[1.5rem] ring-1 ring-chalkboard/[0.08] group-hover:ring-chalkboard/20 transition-colors p-6 h-full flex flex-col shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+                      <div className="flex items-center justify-between gap-3 mb-4">
+                        <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-2.5 py-1 rounded-full">
+                          {sponsor.tier}
+                        </span>
+                        {sponsor.website && (
+                          <ExternalLink size={13} className="text-chalkboard/50 group-hover:text-chalkboard transition-colors" aria-hidden="true" />
                         )}
                       </div>
+                      {sponsor.logo && (
+                        <div className="bg-chalkboard/[0.03] rounded-xl h-20 flex items-center justify-center mb-4 p-3">
+                          <img src={sponsor.logo} alt="" className="max-h-full max-w-full object-contain" />
+                        </div>
+                      )}
+                      <p className="font-serif font-bold text-xl text-chalkboard leading-tight">{name}</p>
+                      {detail && <p className="text-xs text-muted mt-1">{detail}</p>}
+                      {sponsor.description && (
+                        <p className="text-chalkboard/75 text-[13px] leading-relaxed mt-3">{sponsor.description}</p>
+                      )}
                     </div>
-                  </motion.a>
-                ))}
+                  );
+                  const motionProps = {
+                    initial: { opacity: 0, y: 24 },
+                    whileInView: { opacity: 1, y: 0 },
+                    // Bottom inset only: on a phone these sit in a sideways
+                    // row, and an all-sides inset kept the card peeking in
+                    // from the right invisible.
+                    viewport: { once: true, margin: '0px 0px -60px 0px' },
+                    transition: { duration: 0.6, delay: i * 0.06, ease: [0.32, 0.72, 0, 1] as const },
+                  };
+                  // Only a sponsor with a website is a link; the rest are not
+                  // pretend links to "#".
+                  return sponsor.website ? (
+                    <motion.a
+                      key={sponsor.id ?? sponsor.name}
+                      href={sponsor.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${name} (opens their website in a new tab)`}
+                      className="group block"
+                      {...motionProps}
+                    >
+                      {body}
+                    </motion.a>
+                  ) : (
+                    <motion.div key={sponsor.id ?? sponsor.name} className="group" {...motionProps}>
+                      {body}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -170,47 +187,13 @@ export default function SponsorsPage() {
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4 leading-tight">
                 Businesses Already <span className="text-pencil italic font-normal">Showing Up</span>.
               </h2>
-              <p className="text-white/55 max-w-xl mx-auto font-light leading-relaxed">
-                Every month during the school year, local Okemos businesses donate food for teacher staff meetings.
-                This is what community support actually looks like.
+              <p className="text-white/70 max-w-xl mx-auto font-light leading-relaxed">
+                Local businesses donate the food and gift cards for the staff meetings and appreciation weeks
+                we run. Here is what each one gave.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
-              {foodPartners.map((partner, index) => (
-                <motion.div
-                  key={partner.id ?? partner.business}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
-                >
-                  <div className="aspect-[3/4] w-full">
-                    {partner.image ? (
-                      <picture>
-                        {partner.avif && <source srcSet={partner.avif} type="image/avif" />}
-                        <img
-                          src={partner.image}
-                          alt={`${partner.business} — ${partner.month}`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </picture>
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-pencil/30 to-apple/20" />
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/85 via-chalkboard/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white/50 text-[9px] uppercase tracking-[0.18em] font-bold mb-0.5">{partner.month}</p>
-                    <p className="text-white font-bold text-sm leading-tight">{partner.business}</p>
-                    <p className="text-white/65 text-[11px] mt-1 leading-snug">{partner.detail}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            <InKindLedger partners={foodPartners} />
           </div>
 
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-apple/5 rounded-full blur-[120px] -z-0 translate-x-1/2 -translate-y-1/2" />
@@ -239,14 +222,87 @@ export default function SponsorsPage() {
   );
 }
 
+/** Rows a phone shows before "Show all". */
+const LEDGER_PHONE_ROWS = 5;
+
+/**
+ * Every in-kind gift, as a record: what month, who, what they gave.
+ *
+ * This replaced a grid of tall portrait photo cards. Most of the photos are
+ * 4:3 landscape, so the cards cropped away most of each one; five gifts have
+ * no photo and showed as empty brown panels; and the section ran to 5,700px
+ * on a phone. A small thumbnail still shows the real evidence where there is
+ * some, and a gift without a photo gets the business's initial instead of a
+ * blank.
+ */
+function InKindLedger({ partners }: { partners: FoodPartner[] }) {
+  const [showAll, setShowAll] = useState(false);
+  const hidden = partners.length - LEDGER_PHONE_ROWS;
+
+  return (
+    <>
+      <ul id="in-kind-ledger" className="grid md:grid-cols-2 md:gap-x-10 max-w-5xl mx-auto">
+        {partners.map((partner, index) => {
+          const { name, detail: aside } = splitBusinessName(partner.business);
+          return (
+            <li
+              key={partner.id ?? `${partner.business}-${index}`}
+              className={`flex gap-4 py-5 border-t border-white/10 ${!showAll && index >= LEDGER_PHONE_ROWS ? 'max-md:hidden' : ''}`}
+            >
+              <div className="w-24 h-[72px] sm:w-28 sm:h-[84px] rounded-xl overflow-hidden shrink-0 bg-white/[0.06] ring-1 ring-white/10">
+                {partner.image ? (
+                  <picture>
+                    {partner.avif && <source srcSet={partner.avif} type="image/avif" />}
+                    <img
+                      src={partner.image}
+                      alt={`What ${name} donated, ${partner.month}`}
+                      width={900}
+                      height={675}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover"
+                    />
+                  </picture>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-serif font-bold text-3xl text-pencil/80" aria-hidden="true">
+                    {name.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-pencil">{partner.month}</p>
+                <p className="text-white font-bold leading-snug mt-0.5">{name}</p>
+                {aside && <p className="text-white/60 text-xs mt-0.5">{aside}</p>}
+                <p className="text-white/80 text-sm leading-relaxed mt-1.5">{partner.detail}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      {hidden > 0 && !showAll && (
+        <div className="md:hidden text-center mt-4">
+          <button
+            onClick={() => setShowAll(true)}
+            aria-controls="in-kind-ledger"
+            aria-expanded={showAll}
+            className="text-sm font-bold text-pencil underline underline-offset-4 decoration-pencil/40 py-2"
+          >
+            Show all {partners.length} gifts
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
 /**
  * Sponsor interest form — submits via Web3Forms (email notification) and
  * Supabase contact_submissions (type: 'sponsor'); falls back to mailto so
  * no inquiry is ever lost. Mirrors the pilot-school form on /for-schools.
  */
 function SponsorInterestForm() {
-  const inp = 'w-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-chalkboard outline-none placeholder:text-chalkboard/30 transition-all';
-  const lbl = 'block text-left text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/40 mb-1.5';
+  const inp = 'w-full bg-chalkboard/[0.03] ring-1 ring-chalkboard/10 focus:ring-2 focus:ring-apple/50 rounded-2xl px-5 py-3.5 text-sm text-chalkboard outline-none placeholder:text-chalkboard/45 transition-all';
+  const lbl = 'block text-left text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-1.5';
 
   const [form, setForm] = useState({ business: '', name: '', email: '', phone: '', message: '' });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -331,27 +387,27 @@ function SponsorInterestForm() {
       <div className="bg-white rounded-[calc(2rem-0.5rem)] p-7 md:p-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={lbl}>Business Name</label>
-            <input required value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} className={inp} placeholder="Acme Coffee Co." />
+            <label htmlFor="sp-business" className={lbl}>Business Name</label>
+            <input id="sp-business" autoComplete="organization" required value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} className={inp} placeholder="Acme Coffee Co." />
           </div>
           <div>
-            <label className={lbl}>Contact Name</label>
-            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Alex Rivera" />
+            <label htmlFor="sp-name" className={lbl}>Contact Name</label>
+            <input id="sp-name" autoComplete="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inp} placeholder="Alex Rivera" />
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className={lbl}>Email</label>
-            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="you@business.com" />
+            <label htmlFor="sp-email" className={lbl}>Email</label>
+            <input id="sp-email" autoComplete="email" required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inp} placeholder="you@business.com" />
           </div>
           <div>
-            <label className={lbl}>Phone (optional)</label>
-            <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inp} placeholder="(517) 555-0100" />
+            <label htmlFor="sp-phone" className={lbl}>Phone (optional)</label>
+            <input id="sp-phone" autoComplete="tel" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className={inp} placeholder="(517) 555-0100" />
           </div>
         </div>
         <div>
-          <label className={lbl}>What are you interested in?</label>
-          <textarea rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={inp} placeholder="Sponsoring a school, donating food or gift cards, something else…" />
+          <label htmlFor="sp-message" className={lbl}>What are you interested in?</label>
+          <textarea id="sp-message" rows={3} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={inp} placeholder="Sponsoring a school, donating food or gift cards, something else…" />
         </div>
 
         <div className="pt-2">
