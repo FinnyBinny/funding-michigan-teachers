@@ -61,7 +61,7 @@ interface DonationTiersProps {
 
 export default function DonationTiers({ onDonate }: DonationTiersProps) {
   return (
-    <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-start max-w-5xl mx-auto">
+    <div className="rail-sm md:grid md:grid-cols-3 gap-4 md:gap-6 items-start max-w-5xl mx-auto" role="region" tabIndex={0} aria-label="Monthly giving levels">
       {TIERS.map((tier, index) => (
         <motion.div
           key={tier.name}

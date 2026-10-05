@@ -1,35 +1,13 @@
 import { motion } from 'motion/react';
 import { Award, Star, Heart, Building2, ArrowRight } from 'lucide-react';
 import { cn, splitBusinessName } from '../lib/utils';
-import { useDonors, useSponsors } from '../hooks/useLocalData';
+import { useDonors, useSponsors, useFoodPartners } from '../hooks/useLocalData';
 
-const FOOD_PARTNERS = [
-  {
-    month: 'September',
-    business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)',
-    detail: 'Cookies + free meal coupons for every single staff member',
-    avif: '/images/IMG_3714(CFA).avif',
-    image: '/images/IMG_3714(CFA)-opt.jpg',
-  },
-  {
-    month: 'October',
-    business: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)",
-    detail: 'Fresh donuts for the whole staff',
-    avif: '/images/IMG_4369(DNK).avif',
-    image: '/images/IMG_4369(DNK)-opt.jpg',
-  },
-  {
-    month: 'January',
-    business: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)',
-    detail: 'Mini Bundt Cakes — the perfect January pick-me-up',
-    avif: '/images/IMG_5678(NBC).avif',
-    image: '/images/IMG_5678(NBC)-opt.jpg',
-  },
-];
 
 export default function DonorWall() {
   const donors = useDonors();
   const sponsors = useSponsors().filter((s) => s.active !== false);
+  const foodPartners = useFoodPartners();
 
   return (
     <div className="space-y-20">
@@ -113,7 +91,7 @@ export default function DonorWall() {
               <div className="w-11 h-11 mb-4 rounded-xl bg-pencil/20 ring-1 ring-pencil/30 flex items-center justify-center text-pencil">
                 <Building2 size={18} strokeWidth={1.5} />
               </div>
-              <p className="font-serif font-bold text-base leading-tight text-white">{sponsor.name}</p>
+              <p className="font-serif font-bold text-base leading-tight text-white">{splitBusinessName(sponsor.name).name}</p>
               <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-pencil/80 mt-1.5">{sponsor.tier}</p>
               {sponsor.description && (
                 <p className="text-[0.6875rem] italic mt-3 text-white/70 leading-snug font-light">"{sponsor.description}"</p>
@@ -139,46 +117,30 @@ export default function DonorWall() {
         </div>
       </div>
 
-      {/* Food Partners */}
-      <div>
-        <p className="text-center text-[0.625rem] uppercase tracking-[0.25em] font-bold text-white/70 mb-3">
+      {/* In-kind partners: their names here, their photos on /sponsors.
+          This was three tall photo cards, the same three photos that also
+          appear on /sponsors and used to appear on /for-schools. */}
+      <div className="text-center">
+        <p className="text-[0.625rem] uppercase tracking-[0.25em] font-bold text-white/70 mb-3">
           In-Kind Community Partners
         </p>
-        <p className="text-center text-sm text-white/70 mb-10 font-light max-w-lg mx-auto">
-          Every month during the school year, local Okemos businesses donate food for OHS teacher staff meetings.
-          This is what community support actually looks like.
+        <p className="text-sm text-white/75 mb-6 font-light max-w-lg mx-auto">
+          Local businesses donate the food and gift cards for the staff meetings and appreciation weeks we run.
         </p>
-        <div className="rail-sm md:grid md:grid-cols-4 gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Food partners">
-          {FOOD_PARTNERS.map((partner, index) => (
-            <motion.div
-              key={partner.business}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
-            >
-              <div className="aspect-[3/4] w-full">
-                <picture>
-                  <source srcSet={partner.avif} type="image/avif" />
-                  <img
-                    src={partner.image}
-                    alt={`What ${splitBusinessName(partner.business).name} donated, ${partner.month}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </picture>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/85 via-chalkboard/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.18em] font-bold mb-0.5">{partner.month}</p>
-                <p className="text-white font-bold text-sm leading-tight">{partner.business}</p>
-                <p className="text-white/70 text-[0.6875rem] mt-1 leading-snug">{partner.detail}</p>
-              </div>
-            </motion.div>
+        <ul className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto mb-6" aria-label="In-kind partners">
+          {[...new Set(foodPartners.map((p) => splitBusinessName(p.business).name))].map((name) => (
+            <li key={name} className="px-3.5 py-1.5 rounded-full bg-white/[0.07] ring-1 ring-white/15 text-sm text-white/90">
+              {name}
+            </li>
           ))}
-        </div>
+        </ul>
+        <a
+          href="/sponsors"
+          onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/sponsors'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-pencil underline underline-offset-4 decoration-pencil/40 hover:decoration-pencil"
+        >
+          See what each one gave <ArrowRight size={14} aria-hidden="true" />
+        </a>
       </div>
 
     </div>

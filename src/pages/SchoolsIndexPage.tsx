@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import PartnerSchools from '../components/PartnerSchools';
+import MichiganMap from '../components/MichiganMap';
 import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
 import { SCHOOLS } from '../../shared/schools';
@@ -52,8 +53,24 @@ export default function SchoolsIndexPage() {
           </div>
         </section>
 
-        <section className="px-4 sm:px-6 pb-20">
-          <div className="max-w-5xl mx-auto border-t border-chalkboard/10 pt-10">
+        {/* Moved here from the homepage. Every dot is a building where FMT has
+            shown up for staff; the legend says which are partner schools and
+            which received meal cards during one week in May. */}
+        <section className="px-4 sm:px-6 py-14 bg-chalkboard text-white" aria-labelledby="map-heading">
+          <div className="max-w-5xl mx-auto">
+            <h2 id="map-heading" className="font-serif font-bold text-[clamp(1.75rem,4vw,2.5rem)] leading-tight mb-3">
+              Where we've shown up
+            </h2>
+            <p className="text-white/75 font-light leading-relaxed max-w-2xl mb-8">
+              Our three partner schools, and the buildings that got Chick-fil-A meal cards for every staff
+              member during Teacher Appreciation Week in May 2026.
+            </p>
+            <MichiganMap />
+          </div>
+        </section>
+
+        <section className="px-4 sm:px-6 py-14 pb-20">
+          <div className="max-w-5xl mx-auto">
             <h2 className="font-serif font-bold text-2xl mb-3">Not on this list yet?</h2>
             <p className="text-chalkboard/75 font-light leading-relaxed max-w-2xl mb-5">
               If you work at a Michigan high school and want FMT in your building, we would like to

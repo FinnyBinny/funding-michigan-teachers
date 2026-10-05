@@ -60,7 +60,7 @@ export default function SiteFooter() {
               </a>
             ))}
             <a
-              href="mailto:hello@fundingmichiganteachers.org"
+              {...navLinkProps('/about#contact')}
               className="text-[0.6875rem] uppercase tracking-[0.2em] font-bold text-white/75 hover:text-white transition-colors"
             >
               Contact

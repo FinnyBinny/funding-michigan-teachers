@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Check, ArrowRight, Mail, Heart } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import ContactForm from '../components/ContactForm';
 import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
 import { STAT } from '../data/impactStats';
@@ -41,7 +42,13 @@ const YEAR = [
 
 export default function AboutPage() {
   useEffect(() => {
-    window.scrollTo(0, 0);
+    // /about#contact (the footer's Contact link) lands on the form; the page
+    // renders after the browser's own jump to the anchor, so do it here.
+    if (window.location.hash === '#contact') {
+      requestAnimationFrame(() => document.getElementById('contact')?.scrollIntoView());
+    } else {
+      window.scrollTo(0, 0);
+    }
     setPageMeta(metaForPath('/about'));
   }, []);
 
@@ -273,6 +280,13 @@ export default function AboutPage() {
               <Mail size={14} />
               {EMAIL}
             </a>
+          </div>
+        </section>
+        {/* The contact form, moved here from the bottom of the homepage. The
+            footer's Contact link points at it. */}
+        <section id="contact" className="px-4 sm:px-6 py-14 bg-white/60 scroll-mt-24">
+          <div className="max-w-5xl mx-auto">
+            <ContactForm />
           </div>
         </section>
       </main>

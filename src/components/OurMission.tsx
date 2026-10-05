@@ -1,19 +1,12 @@
 import { motion } from 'motion/react';
-import { Coffee, BookOpen, Star, GraduationCap, Apple, ArrowRight, Check } from 'lucide-react';
-
-/** FMT's 2026–27 values, as adopted by the org. */
-const VALUES = [
-  'Teachers are valued.',
-  'No teacher pays out of pocket.',
-  'Students lead.',
-  'Every dollar stays in Michigan.',
-];
+import { Coffee, BookOpen, Star, GraduationCap, ArrowRight } from 'lucide-react';
+import { STAT } from '../data/impactStats';
 
 const MISSION_POINTS = [
   {
     icon: Coffee,
     title: "At Almost Every Staff Meeting",
-    description: "At almost every staff meeting we show up with real food from local Okemos businesses — Chick-fil-A, Dunkin', Nothing Bundt Cakes, Ozzy's Kabob, Jamba Juice. Because a teacher still in the building at four o'clock deserves more than a granola bar.",
+    description: "We show up with real food from local businesses — Chick-fil-A, Dunkin', Nothing Bundt Cakes, Ozzy's Kabob, Jamba Juice. Because a teacher still in the building at four o'clock deserves more than a granola bar.",
     color: "text-apple",
     bgColor: "bg-apple/10"
   },
@@ -33,132 +26,61 @@ const MISSION_POINTS = [
   }
 ];
 
+/**
+ * What FMT does, short. This section used to run to 2,270px on a phone: the
+ * founding story, the values, a 2025–26 recap, two stat cards repeating the
+ * hero, three program cards and a "Join the Movement" card. The story and the
+ * values live on /about, where this links; the homepage keeps the three
+ * things FMT does and one line of proof.
+ */
 export default function OurMission() {
-
   return (
-    <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
-      <div className="grid lg:grid-cols-2 gap-12 items-start">
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest">
-            <GraduationCap size={14} />
-            <span>Our Origin Story</span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-[1.1] text-balance">
-            Empowering Educators to <span className="text-apple italic font-normal">Inspire</span> the Next Generation.
-          </h2>
-
-          <div className="mb-6">
-            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-apple mb-2.5">Our Mission</p>
-            <p className="text-lg text-chalkboard/85 leading-relaxed">
-              Funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
-            </p>
-          </div>
-
-          <p className="font-hand text-2xl text-apple/80 -rotate-1 mb-7">
-            Teachers deserve better; let's make it happen.
-          </p>
-
-          <div className="mb-8">
-            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-3">Our Values</p>
-            <div className="grid sm:grid-cols-2 gap-2.5">
-              {VALUES.map((value) => (
-                <div
-                  key={value}
-                  className="flex items-start gap-2.5 bg-white ring-1 ring-chalkboard/8 rounded-xl px-3.5 py-2.5"
-                >
-                  <Check size={13} strokeWidth={3} className="text-apple shrink-0 mt-[3px]" />
-                  <span className="text-sm text-chalkboard/80 font-medium leading-snug">{value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <p className="text-base text-chalkboard/70 mb-5 leading-relaxed font-light">
-            Founded in November 2023 by Finn Regan — a 14-year-old from Okemos, Michigan who grew up watching teachers spend their own money on classrooms while no one said thank you. What started as a tradition of delivering coffee and donuts to school staff became a registered 501(c)(3) nonprofit dedicated to making sure educators feel valued every single month.
-          </p>
-          <p className="text-base text-chalkboard/70 leading-relaxed font-light">
-            In the 2025–26 school year alone, FMT delivered more than $8,500 in donations and in-kind support, served Okemos High School staff at almost every staff meeting, handed meal cards to staff at nine buildings during Teacher Appreciation Week, awarded $500+ in door decorating prizes, ran a Valentine's letter campaign, and funded classroom grants — all by high school students, with at least 80¢ of every dollar going directly to teachers.
-          </p>
-
-          {/* The full founding story lives on /about — hiding it behind an
-              accordion kept the "who we are" content off the page for anyone
-              who didn't click, and out of search results entirely. */}
-          <button
-            onClick={() => {
-              window.history.pushState({}, '', '/about');
-              window.dispatchEvent(new PopStateEvent('popstate'));
-            }}
-            className="mt-5 mb-8 flex items-center gap-2 text-apple font-bold text-sm hover:text-apple/80 transition-colors"
-          >
-            <span>Read our full story</span>
-            <ArrowRight size={16} />
-          </button>
-
-          
-          <div className="grid sm:grid-cols-2 gap-8">
-            <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-apple/20 transition-colors">
-              <div className="text-3xl font-serif font-bold text-apple mb-1 group-hover:scale-110 transition-transform origin-left">80¢+</div>
-              <div className="text-[0.625rem] font-bold text-muted uppercase tracking-[0.2em]">Direct to Classrooms</div>
-            </div>
-            <div className="p-5 bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 group hover:border-ruler/20 transition-colors">
-              <div className="text-3xl font-serif font-bold text-ruler mb-1 group-hover:scale-110 transition-transform origin-left">350+</div>
-              <div className="text-[0.625rem] font-bold text-muted uppercase tracking-[0.2em]">Staff Reached</div>
-            </div>
-          </div>
-        </motion.div>
-
-        <div className="rail-sm md:block md:space-y-8" role="region" tabIndex={0} aria-label="What we do">
-          {MISSION_POINTS.map((point, index) => (
-            <motion.div
-              key={point.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
-              className="group p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] transition-all duration-500 flex gap-5 items-start"
-            >
-              <div className={`w-14 h-14 shrink-0 rounded-xl ${point.bgColor} ${point.color} flex items-center justify-center group-hover:rotate-6 transition-transform duration-500 shadow-sm`}>
-                <point.icon size={22} />
-              </div>
-              <div>
-                <h3 className="text-xl font-serif font-bold mb-2">{point.title}</h3>
-                <p className="text-chalkboard/70 leading-relaxed font-light text-base">
-                  {point.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="p-6 bg-chalkboard text-white rounded-3xl shadow-2xl relative overflow-hidden group"
-          >
-            <div className="relative z-10">
-              <h3 className="text-2xl font-serif font-bold mb-4 flex items-center gap-3">
-                <Apple size={24} className="text-apple" />
-                Join the Movement
-              </h3>
-              <p className="text-white/70 mb-5 text-sm font-light leading-relaxed">
-                Whether you're a donor, a teacher, or a student, there's a place for you in our mission to transform Michigan education.
-              </p>
-              <button 
-                onClick={() => document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-white text-chalkboard px-10 py-4 rounded-2xl font-bold text-sm hover:bg-apple hover:text-white transition-all shadow-lg hover:scale-105 active:scale-95"
-              >
-                Get Involved Today
-              </button>
-            </div>
-            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-apple/10 rounded-full blur-[100px] group-hover:scale-150 transition-transform duration-1000" />
-            <div className="absolute -left-20 -top-20 w-60 h-60 bg-ruler/10 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000" />
-          </motion.div>
+    // w-full min-w-0: the section is a flex container, and without them this
+    // sized itself to the swipe row's full width and slid off the left edge.
+    <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full min-w-0">
+      <div className="max-w-3xl mb-10">
+        <div className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-6 uppercase tracking-widest">
+          <GraduationCap size={14} aria-hidden="true" />
+          <span>What we do</span>
         </div>
+        <h2 className="text-4xl md:text-5xl font-serif font-bold mb-5 leading-[1.1] text-balance">
+          We show up for teachers, <span className="text-apple italic font-normal">all year</span>.
+        </h2>
+        <p className="text-lg text-chalkboard/80 leading-relaxed">
+          Funding Michigan teachers so no educator pays out of pocket, and every educator knows their
+          work matters. Run by high school students, started by Finn Regan at 14.
+        </p>
+        <p className="text-base text-chalkboard/75 leading-relaxed mt-3">
+          In 2025–26: {STAT.support.value} in donations and donated goods, food at almost every
+          Okemos High School staff meeting, and meal cards for {STAT.tawStaff.value} staff in {STAT.tawBuildings.value} buildings
+          during Teacher Appreciation Week.{' '}
+          <a
+            href="/about"
+            onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/about'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+            className="inline-flex items-center gap-1 text-apple font-bold hover:text-apple/80 transition-colors"
+          >
+            Read our story <ArrowRight size={14} aria-hidden="true" />
+          </a>
+        </p>
+      </div>
+
+      <div className="rail-sm md:grid md:grid-cols-3 gap-4 md:gap-6" role="region" tabIndex={0} aria-label="What we do">
+        {MISSION_POINTS.map((point, index) => (
+          <motion.div
+            key={point.title}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+            transition={{ delay: index * 0.1 }}
+            className="p-7 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/10"
+          >
+            <div className={`w-12 h-12 rounded-xl ${point.bgColor} ${point.color} flex items-center justify-center mb-5`}>
+              <point.icon size={20} aria-hidden="true" />
+            </div>
+            <h3 className="text-xl font-serif font-bold mb-2">{point.title}</h3>
+            <p className="text-chalkboard/75 leading-relaxed font-light text-base">{point.description}</p>
+          </motion.div>
+        ))}
       </div>
     </div>
   );

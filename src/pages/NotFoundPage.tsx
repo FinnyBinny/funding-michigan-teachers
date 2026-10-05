@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, ArrowRight, Compass } from 'lucide-react';
+import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
 import { NOT_FOUND_META } from '../../shared/pageMeta';
@@ -34,7 +35,10 @@ export default function NotFoundPage() {
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <div className="pointer-events-none absolute top-0 left-0 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />
 
-      <main id="main" className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 py-20">
+      {/* The only page that had no header: a mistyped link landed with no
+          logo and no way round the site. */}
+      <SiteHeader />
+      <main id="main" className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 pt-28 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

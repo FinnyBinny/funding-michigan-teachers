@@ -60,13 +60,13 @@ export default function Programs() {
         </p>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-5">
+      <div className="rail-sm md:grid md:grid-cols-2 gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Year-round programs">
         {PROGRAMS.map((program, i) => (
           <motion.div
             key={program.title}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
+            viewport={{ once: true, margin: '0px 0px -60px 0px' }}
             transition={{ duration: 0.6, delay: i * 0.1, ease: EASE }}
             className="bg-white rounded-[1.75rem] ring-1 ring-chalkboard/8 p-7 flex flex-col gap-4 hover:ring-apple/25 hover:-translate-y-1 transition-all duration-300"
           >

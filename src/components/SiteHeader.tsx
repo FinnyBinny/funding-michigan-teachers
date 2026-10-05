@@ -48,13 +48,13 @@ const PAGES = [
 
 /** Section anchors offered in the mobile menu on the homepage only. */
 const HOME_ANCHORS = [
-  { label: 'Mission', hash: '#mission' },
+  { label: 'What we do', hash: '#mission' },
   { label: 'Schools', hash: '#schools' },
-  { label: 'Impact', hash: '#impact' },
+  { label: 'Stories', hash: '#stories' },
+  { label: 'Give monthly', hash: '#tiers' },
   { label: 'Projects', hash: '#projects' },
   { label: 'Programs', hash: '#programs' },
   { label: 'Events', hash: '#events' },
-  { label: 'Stories', hash: '#stories' },
 ];
 
 /**
@@ -109,6 +109,10 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
     navigate(path);
   };
 
+  // The full menu shows from 1280px (xl). From 1024px it did not fit: three
+  // items and the Donate button wrapped to two lines and the name was cut
+  // off, on iPads in landscape and small laptops.
+
   /**
    * Navigation items are real links, so they can be opened in a new tab and a
    * screen reader announces them as links, with the click handled in-app.
@@ -159,7 +163,7 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
           </a>
 
           {/* Desktop nav — real pages, every page */}
-          <div className="hidden lg:flex items-center gap-8 font-medium text-xs uppercase tracking-[0.15em]">
+          <div className="hidden xl:flex items-center gap-8 font-medium text-xs uppercase tracking-[0.15em] whitespace-nowrap">
             {PAGES.map((item) => (
               <a
                 key={item.path}
@@ -195,7 +199,7 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
           <button
             ref={toggleRef}
             onClick={() => setMenuOpen(!menuOpen)}
-            className={cn('lg:hidden p-2 rounded-xl transition-colors', overDark && !menuOpen ? 'text-white hover:bg-white/10' : 'hover:bg-chalkboard/5')}
+            className={cn('xl:hidden p-2 rounded-xl transition-colors', overDark && !menuOpen ? 'text-white hover:bg-white/10' : 'hover:bg-chalkboard/5')}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
             aria-controls="site-menu"
@@ -214,7 +218,7 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-0 left-0 right-0 z-40 bg-white pt-24 pb-8 px-6 shadow-2xl lg:hidden max-h-[100dvh] overflow-y-auto overscroll-contain"
+            className="fixed top-0 left-0 right-0 z-40 bg-white pt-24 pb-8 px-6 shadow-2xl xl:hidden max-h-[100dvh] overflow-y-auto overscroll-contain"
           >
             <div className="flex flex-col gap-4">
               {[{ label: 'Home', path: '/' }, ...PAGES].map((item) => (

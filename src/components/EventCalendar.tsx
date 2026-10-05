@@ -15,6 +15,10 @@ export default function EventCalendar() {
   const events = allEvents
     .filter((e) => !e.date || String(e.date).slice(0, 10) >= today)
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  // The next three, with the rest a tap away: seven cards ran this section
+  // to 2,600px on desktop.
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? events : events.slice(0, 3);
 
   if (events.length === 0) {
     return (
@@ -38,7 +42,11 @@ export default function EventCalendar() {
               We're working on our next staff appreciation event. Drop us a line and we'll let you know the moment it's on the calendar.
             </p>
             <button
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                const box = document.getElementById('newsletter-email');
+                box?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                box?.focus({ preventScroll: true });
+              }}
               className="inline-flex items-center gap-2 bg-chalkboard text-white pl-5 pr-1.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.18em] hover:bg-apple group active:scale-[0.98]"
               style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
             >
@@ -54,8 +62,9 @@ export default function EventCalendar() {
   }
 
   return (
-    <div className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8" role="region" tabIndex={0} aria-label="Upcoming events">
-      {events.map((event, index) => (
+    <>
+    <div id="upcoming-events" className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8" role="region" tabIndex={0} aria-label="Upcoming events">
+      {shown.map((event, index) => (
         <motion.div
           key={event.id}
           initial={{ opacity: 0, y: 20 }}
@@ -136,6 +145,19 @@ export default function EventCalendar() {
         </motion.div>
       ))}
     </div>
+    {events.length > 3 && (
+      <div className="text-center mt-8">
+        <button
+          onClick={() => setShowAll(!showAll)}
+          aria-expanded={showAll}
+          aria-controls="upcoming-events"
+          className="text-sm font-bold text-ruler underline underline-offset-4 decoration-ruler/30 hover:decoration-ruler"
+        >
+          {showAll ? 'Show fewer' : `Show all ${events.length} upcoming events`}
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 

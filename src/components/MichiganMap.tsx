@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SCHOOLS } from '../../shared/schools';
 // Only these three d3 modules are used; importing the full `d3` meta-package
 // put ~90KB (gzipped) of unused library in the homepage bundle.
 import { select } from 'd3-selection';
@@ -78,6 +79,7 @@ export default function MichiganMap() {
       projected.forEach(({ loc, coords }) => {
         const [cx, cy] = coords;
         const isHome = loc.name === 'Okemos High School';
+        const isPartner = SCHOOLS.some((sch) => sch.name === loc.name);
         const lbl = LABEL[loc.name] ?? { dx: 15, dy: 4, anchor: 'start' as const };
 
         // Pulse ring (purely decorative — no event listeners)
@@ -123,9 +125,9 @@ export default function MichiganMap() {
           .datum(loc)
           .attr("cx", cx).attr("cy", cy)
           .attr("r", isHome ? 10 : 8)
-          .attr("fill", "#c0392b")
-          .attr("stroke", isHome ? "#e8b84b" : "rgba(255,255,255,0.9)")
-          .attr("stroke-width", isHome ? 3.5 : 2.5)
+          .attr("fill", isPartner ? "#c0392b" : "#1a1c1d")
+          .attr("stroke", isHome ? "#e8b84b" : isPartner ? "rgba(255,255,255,0.9)" : "#c0392b")
+          .attr("stroke-width", isHome ? 3.5 : isPartner ? 2.5 : 3)
           .attr("class", "cursor-pointer")
           // A keyboard stop and a name for each school, so the details are
           // not mouse-only.
@@ -183,8 +185,8 @@ export default function MichiganMap() {
                 </div>
               </div>
               <div className="ml-auto text-right">
-                <div className="text-pencil font-serif font-bold text-lg leading-none">{loc.amount}</div>
-                <div className="text-[0.625rem] text-white/70 uppercase tracking-widest mt-0.5">raised</div>
+                {/* Not money in every case ("One-time delivery"), so no "raised" label. */}
+                <div className="text-pencil font-serif font-bold text-base leading-tight">{loc.amount}</div>
               </div>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -250,6 +252,9 @@ export default function MichiganMap() {
               </div>
 
               <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
+                {/* Only when there are figures: most buildings have none, and
+                    three empty boxes read as missing data. */}
+                {selectedLocation.demographics.students && (
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { label: 'Students', value: selectedLocation.demographics.students },
@@ -262,6 +267,7 @@ export default function MichiganMap() {
                     </div>
                   ))}
                 </div>
+                )}
 
                 <div className="bg-pencil/10 p-4 rounded-2xl border border-pencil/20">
                   <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-ink mb-1">Impact</div>
@@ -279,7 +285,7 @@ export default function MichiganMap() {
 
                 <div className="flex items-center justify-between p-4 bg-chalkboard text-white rounded-2xl">
                   <div>
-                    <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-white/70 mb-0.5">Grant Total</div>
+                    <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-white/70 mb-0.5">In short</div>
                     <div className="text-xl font-serif font-bold text-pencil">{selectedLocation.amount}</div>
                   </div>
                   <Info size={18} className="text-white/70" />
@@ -301,13 +307,21 @@ export default function MichiganMap() {
 
         {/* Legend */}
         <div className="absolute bottom-6 left-6 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-white/80 text-xs shadow-2xl">
+          {/* Two kinds of dot, because they are two kinds of thing: a partner
+              school FMT works in all year, and a building that received meal
+              cards during one week in May. impactStats.ts is explicit that the
+              second are not "schools we support". */}
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-4 h-4 bg-apple rounded-full shadow-[0_0_10px_rgba(192,57,43,0.5)]" />
-            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Supported School</span>
+            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-white" aria-hidden="true" />
+            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Partner school</span>
+          </div>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-4 h-4 rounded-full border-2 border-apple" aria-hidden="true" />
+            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Teacher Appreciation Week, May 2026</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-pencil" />
-            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Home Base — Okemos High</span>
+            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-pencil" aria-hidden="true" />
+            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Home base: Okemos High</span>
           </div>
         </div>
       </div>

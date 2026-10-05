@@ -122,7 +122,7 @@ export default function PastEvents() {
 
         {/* School-year tabs */}
         {years.length > 0 && (
-          <div className="bg-chalkboard/[0.04] ring-1 ring-chalkboard/10 rounded-full p-1 flex items-center gap-1 w-fit max-w-full overflow-x-auto" role="group" aria-label="School year">
+          <div className="bg-chalkboard/[0.04] ring-1 ring-chalkboard/10 rounded-3xl p-1 flex flex-wrap items-center gap-1 w-fit max-w-full" role="group" aria-label="School year">
             {years.map((year) => (
               <button
                 key={year}
