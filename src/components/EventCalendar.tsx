@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Calendar as CalendarIcon, MapPin, Clock, Phone, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -14,6 +15,10 @@ export default function EventCalendar() {
   const events = allEvents
     .filter((e) => !e.date || String(e.date).slice(0, 10) >= today)
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  // The next three, with the rest a tap away: seven cards ran this section
+  // to 2,600px on desktop.
+  const [showAll, setShowAll] = useState(false);
+  const shown = showAll ? events : events.slice(0, 3);
 
   if (events.length === 0) {
     return (
@@ -29,15 +34,19 @@ export default function EventCalendar() {
             <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-ruler/10 text-ruler flex items-center justify-center">
               <CalendarIcon size={22} strokeWidth={1.5} />
             </div>
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/40 mb-3">No Events Scheduled Yet</p>
+            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-3">No Events Scheduled Yet</p>
             <h3 className="font-serif font-bold text-2xl md:text-3xl text-chalkboard leading-tight mb-3">
               The next one is being planned.
             </h3>
-            <p className="text-chalkboard/55 text-sm md:text-base font-light leading-relaxed mb-7 max-w-md mx-auto">
+            <p className="text-chalkboard/70 text-sm md:text-base font-light leading-relaxed mb-7 max-w-md mx-auto">
               We're working on our next staff appreciation event. Drop us a line and we'll let you know the moment it's on the calendar.
             </p>
             <button
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                const box = document.getElementById('newsletter-email');
+                box?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                box?.focus({ preventScroll: true });
+              }}
               className="inline-flex items-center gap-2 bg-chalkboard text-white pl-5 pr-1.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-[0.18em] hover:bg-apple group active:scale-[0.98]"
               style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
             >
@@ -53,8 +62,9 @@ export default function EventCalendar() {
   }
 
   return (
-    <div className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8" role="region" tabIndex={0} aria-label="Upcoming events">
-      {events.map((event, index) => (
+    <>
+    <div id="upcoming-events" className="rail-sm md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8" role="region" tabIndex={0} aria-label="Upcoming events">
+      {shown.map((event, index) => (
         <motion.div
           key={event.id}
           initial={{ opacity: 0, y: 20 }}
@@ -70,7 +80,7 @@ export default function EventCalendar() {
               <CalendarIcon size={26} />
             </div>
             <span className={cn(
-              "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] border shadow-sm",
+              "px-4 py-1.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.2em] border shadow-sm",
               event.type === 'fundraiser' ? "bg-apple/5 text-apple border-apple/10" :
               event.type === 'workshop'   ? "bg-ruler/5 text-ruler border-ruler/10" :
               "bg-pencil/5 text-ink border-pencil/20"
@@ -80,9 +90,7 @@ export default function EventCalendar() {
           </div>
 
           <h3 className="text-2xl font-serif font-bold mb-4 leading-tight group-hover:text-ruler transition-colors">{event.title}</h3>
-          <p className="text-chalkboard/60 text-base mb-6 leading-relaxed font-light line-clamp-3">
-            {event.description}
-          </p>
+          <ClampedText text={event.description} className="text-chalkboard/75 text-base mb-6 leading-relaxed font-light" />
 
           <div className="space-y-3 pt-6 border-t border-chalkboard/5">
             <div className="flex items-center gap-3 text-sm font-bold text-muted uppercase tracking-widest">
@@ -91,7 +99,7 @@ export default function EventCalendar() {
             </div>
             <div className="flex items-center gap-3 text-sm font-bold text-muted uppercase tracking-widest">
               <MapPin size={16} className="text-ruler" />
-              <span className="truncate">{event.location || 'Michigan (Virtual/In-person)'}</span>
+              <span>{event.location || 'Michigan (Virtual/In-person)'}</span>
             </div>
             {event.phone && (
               <div className="flex items-center gap-3 text-sm font-bold text-muted uppercase tracking-widest">
@@ -136,6 +144,42 @@ export default function EventCalendar() {
           )}
         </motion.div>
       ))}
+    </div>
+    {events.length > 3 && (
+      <div className="text-center mt-8">
+        <button
+          onClick={() => setShowAll(!showAll)}
+          aria-expanded={showAll}
+          aria-controls="upcoming-events"
+          className="text-sm font-bold text-ruler underline underline-offset-4 decoration-ruler/30 hover:decoration-ruler"
+        >
+          {showAll ? 'Show fewer' : `Show all ${events.length} upcoming events`}
+        </button>
+      </div>
+    )}
+    </>
+  );
+}
+
+/**
+ * Three lines, with a button to read the rest. Descriptions were clamped with
+ * no way to see what was cut, and at larger text sizes most of each one was.
+ */
+function ClampedText({ text, className }: { text: string; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 140;
+  return (
+    <div className={className}>
+      <p className={long && !open ? 'line-clamp-3' : undefined}>{text}</p>
+      {long && (
+        <button
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          className="mt-1.5 text-sm font-bold text-ruler underline underline-offset-4 decoration-ruler/30 hover:decoration-ruler"
+        >
+          {open ? 'Show less' : 'Read more'}
+        </button>
+      )}
     </div>
   );
 }

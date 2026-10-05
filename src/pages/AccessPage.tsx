@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import AdminPanel from '../components/AdminPanel';
 import { supabase } from '../lib/supabase';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 
 const EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
 
@@ -34,12 +35,7 @@ export default function AccessPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    setPageMeta({
-      title: 'Admin · Funding Michigan Teachers',
-      description: 'Internal dashboard.',
-      path: '/access',
-      noindex: true,
-    });
+    setPageMeta(metaForPath('/access'));
   }, []);
 
   useEffect(() => {
@@ -121,8 +117,8 @@ export default function AccessPage() {
            style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
       <motion.div
-        initial={{ opacity: 0, y: 28, filter: 'blur(8px)' }}
-        animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+        initial={{ opacity: 0, y: 28 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
         className="relative w-full max-w-md"
       >
@@ -134,9 +130,9 @@ export default function AccessPage() {
               <div className="w-14 h-14 bg-apple/15 ring-1 ring-apple/30 rounded-2xl flex items-center justify-center mb-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 <ShieldCheck size={24} className="text-apple" />
               </div>
-              <p className="text-[10px] uppercase tracking-[0.32em] font-bold text-white/40 mb-3">Restricted</p>
+              <p className="text-[0.625rem] uppercase tracking-[0.32em] font-bold text-white/70 mb-3">Restricted</p>
               <h1 className="text-3xl font-serif font-bold leading-tight text-center mb-2">Admin Access</h1>
-              <p className="text-white/40 text-sm font-light text-center max-w-xs leading-relaxed mb-8">
+              <p className="text-white/70 text-sm font-light text-center max-w-xs leading-relaxed mb-8">
                 {supabase
                   ? 'Sign in to manage sponsors, partners, projects, stories, and site content.'
                   : 'The dashboard is offline: the database connection is not configured in this build.'}
@@ -146,7 +142,7 @@ export default function AccessPage() {
             {!checking && supabase && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="relative">
-                  <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                  <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70" />
                   <input
                     type="email"
                     id="admin-email"
@@ -154,13 +150,13 @@ export default function AccessPage() {
                     autoComplete="email"
                     value={email}
                     onChange={e => { setEmail(e.target.value); setError(null); }}
-                    className="w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium outline-none placeholder:text-white/30 text-white"
+                    className="w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium outline-none placeholder:text-white/55 text-white"
                     placeholder="Email"
                     autoFocus
                   />
                 </div>
                 <div className="relative">
-                  <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                  <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70" />
                   <input
                     type={showPw ? 'text' : 'password'}
                     id="admin-password"
@@ -169,7 +165,7 @@ export default function AccessPage() {
                     value={pw}
                     onChange={e => { setPw(e.target.value); setError(null); }}
                     className={cn(
-                      'w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-12 py-3.5 text-sm font-medium outline-none placeholder:text-white/30 text-white',
+                      'w-full bg-white/5 ring-1 ring-white/10 focus:ring-apple/40 transition-all rounded-2xl pl-11 pr-12 py-3.5 text-sm font-medium outline-none placeholder:text-white/55 text-white',
                       error && 'ring-2 ring-apple/60'
                     )}
                     placeholder="Password"
@@ -178,7 +174,7 @@ export default function AccessPage() {
                     type="button"
                     aria-label={showPw ? 'Hide password' : 'Show password'}
                     onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
                   >
                     {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
@@ -210,14 +206,14 @@ export default function AccessPage() {
 
             <button
               onClick={() => navigate('/')}
-              className="mt-6 mx-auto block text-[10px] uppercase tracking-[0.28em] font-bold text-white/30 hover:text-white/60 transition-colors"
+              className="mt-6 mx-auto block text-[0.625rem] uppercase tracking-[0.28em] font-bold text-white/70 hover:text-white transition-colors"
             >
               ← Back to Public Site
             </button>
           </div>
         </div>
 
-        <p className="text-center text-[10px] uppercase tracking-[0.28em] font-bold text-white/40 mt-8">
+        <p className="text-center text-[0.625rem] uppercase tracking-[0.28em] font-bold text-white/70 mt-8">
           Funding Michigan Teachers · Internal
         </p>
       </motion.div>

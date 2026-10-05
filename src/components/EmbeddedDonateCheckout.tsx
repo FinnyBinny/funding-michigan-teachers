@@ -1,17 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { X, AlertCircle, Shield } from 'lucide-react';
 import { STRIPE_PUBLISHABLE_KEY, type DonationFrequency } from '../lib/donate';
+import { coverFee as grossUp, dollars } from '../../shared/donations';
+import { useModalDialog } from '../lib/useModalDialog';
+import { getStripe } from '../lib/stripe';
 
-const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 interface EmbeddedDonateCheckoutProps {
   amount: number;
   frequency: DonationFrequency;
-  /** set when the gift is designated to one teacher's classroom fund */
-  fund?: { title: string; teacher: string } | null;
+  /** 'general' | 'school:<slug>' | 'project:<id>' — see shared/donations.ts */
+  designation: string;
+  /** What the gift is going to, for the header ("Okemos Mid-Year Refill"). */
+  designationLabel: string;
+  /** Whether the donor kept "cover the processing fee" ticked. */
+  coverFee: boolean;
   onClose: () => void;
 }
 
@@ -21,8 +27,20 @@ interface EmbeddedDonateCheckoutProps {
  * inside this panel. Handles both one-time and subscription (monthly)
  * donations via the same component.
  */
-export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClose }: EmbeddedDonateCheckoutProps) {
+export default function EmbeddedDonateCheckout({
+  amount, frequency, designation, designationLabel, coverFee, onClose,
+}: EmbeddedDonateCheckoutProps) {
   const [error, setError] = useState<string | null>(null);
+  // Loaded now, when the dialog opens, not when the page did.
+  const stripePromise = useMemo(() => getStripe(), []);
+  const giftCents = Math.round(amount * 100);
+  // Display only. The Worker computes the fee itself from the same function
+  // and never takes a total from this page.
+  const totalCents = coverFee ? grossUp(giftCents).totalCents : giftCents;
+
+  // Focus moves in, Tab stays in, Escape closes, the page behind is inert.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalDialog(dialogRef, onClose);
 
   // loadStripe() can reject if js.stripe.com is unreachable (network blip,
   // ad-blocker, restrictive proxy) — without this, a rejected promise leaves
@@ -39,19 +57,20 @@ export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClos
     const res = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount, frequency, fund }),
+      body: JSON.stringify({ amount, frequency, designation, coverFee }),
     });
-    const data = await res.json();
+    const data = (await res.json().catch(() => ({}))) as { clientSecret?: string; error?: string };
     if (!res.ok || !data.clientSecret) {
       setError(data.error || 'Could not start checkout. Please try again.');
       throw new Error(data.error || 'checkout session creation failed');
     }
-    return data.clientSecret as string;
-  }, [amount, frequency, fund]);
+    return data.clientSecret;
+  }, [amount, frequency, designation, coverFee]);
 
   const options = useMemo(() => ({ fetchClientSecret }), [fetchClientSecret]);
 
-  return (
+  // Rendered into <body>, outside #root, which is inert while this is open.
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -64,6 +83,10 @@ export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClos
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 10 }}
         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="donate-checkout-title"
         className="w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col"
         style={{ maxHeight: '90dvh' }}
         onClick={(e) => e.stopPropagation()}
@@ -71,10 +94,10 @@ export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClos
         {/* Header */}
         <div className="bg-chalkboard px-6 py-4 flex items-center justify-between shrink-0">
           <div>
-            <p className="text-white font-bold text-sm">
-              Donating ${amount}{frequency === 'monthly' ? '/month' : ''}
+            <p id="donate-checkout-title" className="text-white font-bold text-sm">
+              {dollars(totalCents)}{frequency === 'monthly' ? '/month' : ''} to {designationLabel}
             </p>
-            <p className="text-white/45 text-[10px] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
+            <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.18em] font-bold mt-0.5 flex items-center gap-1.5">
               <Shield size={10} strokeWidth={1.5} />
               Secure checkout by Stripe
             </p>
@@ -94,7 +117,7 @@ export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClos
             <div className="p-10 flex flex-col items-center text-center gap-3">
               <AlertCircle size={28} className="text-pencil-dark" />
               <p className="font-bold text-chalkboard">Stripe isn't configured yet.</p>
-              <p className="text-sm text-chalkboard/55 max-w-xs">
+              <p className="text-sm text-chalkboard/70 max-w-xs">
                 An admin needs to add <code className="bg-chalkboard/5 px-1.5 py-0.5 rounded text-xs">STRIPE_SECRET_KEY</code> as a Secret in the
                 Cloudflare dashboard before embedded checkout will work.
               </p>
@@ -117,6 +140,7 @@ export default function EmbeddedDonateCheckout({ amount, frequency, fund, onClos
           )}
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   );
 }

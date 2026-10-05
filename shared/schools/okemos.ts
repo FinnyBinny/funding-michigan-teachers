@@ -47,18 +47,20 @@ export const okemos: School = {
     width: 900,
     height: 1200,
     caption: "The Post Office of Love, set up for Valentine's Day.",
+    // The top third of this photo is ceiling tile; keep the sign and arch.
+    position: '50% 68%',
   },
 
-  // The May 2026 OHS staff meeting, already published on the For Schools
-  // page. No faces; the certificate names are this year's Teacher of the
-  // Month honorees, which that program publishes by design.
+  // The October 2025 OHS staff meeting. Each photo on the site gets one
+  // featured slot; the May staff-meeting photo this used to repeat is the
+  // For Schools page's. No faces: one person in the background, from behind.
   photos: [
     {
-      src: '/images/may-staff-meeting-opt.jpg',
-      alt: 'A whiteboard reading Happy Teacher Appreciation Week, signed Funding Michigan Teachers, with three Teacher of the Month certificates',
+      src: '/images/IMG_4369(DNK)-opt.jpg',
+      alt: 'Boxes of donuts on a staff-room table in front of a whiteboard reading Happy Spooktober',
       width: 900,
       height: 675,
-      caption: 'Teacher Appreciation Week at the May 2026 staff meeting.',
+      caption: "Donuts from Tailgaters and Dunkin' for an October staff meeting.",
     },
   ],
 
@@ -72,7 +74,7 @@ export const okemos: School = {
       title: 'Mid-Year Refill',
       body: 'Classroom supply budgets usually run out by winter. In January we restock the classrooms that ask, and every refill is delivered the week of January 12th.',
       ctaLabel: 'Donate to the Okemos refill',
-      ctaHref: '/donate?fund=Okemos%20Mid-Year%20Refill',
+      ctaHref: '/donate?designation=school:okemos',
       secondaryLabel: 'Teach here? Tell us what your room needs',
       secondaryHref: '/for-teachers?kind=mid-year-refill&school=Okemos%20High%20School',
     },

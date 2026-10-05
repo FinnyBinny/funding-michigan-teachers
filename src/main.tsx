@@ -1,12 +1,15 @@
 import {
-  Component, StrictMode, Suspense, lazy, useState, useEffect,
+  Component, StrictMode, Suspense, lazy, useState, useEffect, useRef,
   type ComponentType, type ReactNode,
 } from 'react';
 import { createRoot } from 'react-dom/client';
+import { MotionConfig } from 'motion/react';
 import App from './App.tsx';
+import SiteHeader from './components/SiteHeader';
 import { isKnownRoute } from '../shared/routes';
 import { findSchool, schoolSlugFromPath } from '../shared/schools';
 import { initAnalytics } from './lib/analytics';
+import { stripCheckoutReturn } from './lib/checkoutReturn';
 import './index.css';
 
 // Every page except the homepage is code-split: the homepage bundle is what
@@ -187,10 +190,58 @@ const AboutPage = lazyPage(() => import('./pages/AboutPage.tsx'));
 const ForTeachersPage = lazyPage(() => import('./pages/ForTeachersPage.tsx'));
 const ShopPage = lazyPage(() => import('./pages/ShopPage.tsx'));
 const PrivacyPage = lazyPage(() => import('./pages/PrivacyPage.tsx'));
+const AccessibilityPage = lazyPage(() => import('./pages/AccessibilityPage.tsx'));
 const SchoolsIndexPage = lazyPage(() => import('./pages/SchoolsIndexPage.tsx'));
 const SchoolPage = lazyPage(() => import('./pages/SchoolPage.tsx'));
 const NotFoundPage = lazyPage(() => import('./pages/NotFoundPage.tsx'));
 const RestrictedPage = lazyPage(() => import('./pages/RestrictedPage.tsx'));
+
+/**
+ * After an in-app page change, focus the new page's heading.
+ *
+ * A single-page app swaps the content without the browser loading a page, so
+ * nothing tells a screen reader anything happened: a visitor who pressed
+ * "About" heard silence and stayed wherever focus had been. Moving focus to
+ * the new <h1> reads its name and starts the next Tab from the top of the new
+ * page. Code-split pages arrive a moment later, so it waits for the heading.
+ */
+function useFocusOnNavigate(path: string) {
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    let frame = 0;
+    let tries = 0;
+    const tick = () => {
+      // While the next page's code loads, React keeps the previous page in
+      // the DOM with display:none, h1 and all. Only a heading that is
+      // actually rendered counts, or focus lands on the hidden old one.
+      const h1 = [...document.querySelectorAll<HTMLElement>('main h1, h1')].find((h) => h.getClientRects().length > 0);
+      if (h1) {
+        h1.setAttribute('tabindex', '-1');
+        h1.focus({ preventScroll: true });
+        return;
+      }
+      if (tries++ < 180) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [path]);
+}
+
+/**
+ * On a phone, a .rail-sm row scrolls sideways and snaps. Tabbing to a button
+ * on the second card used to leave that card off-screen; this brings the card
+ * holding focus into view.
+ */
+document.addEventListener('focusin', (e) => {
+  const card = (e.target as HTMLElement | null)?.closest?.('.rail-sm > *');
+  if (card && window.matchMedia('(max-width: 767.98px)').matches) {
+    card.scrollIntoView({ block: 'nearest', inline: 'start' });
+  }
+});
 
 function Router() {
   const [rawPath, setRawPath] = useState(window.location.pathname);
@@ -205,6 +256,7 @@ function Router() {
   // append one; the Worker also 301s them away). Matching on the normalized
   // path means /donate/ renders the donate page instead of the homepage.
   const path = rawPath.length > 1 ? rawPath.replace(/\/+$/, '') : rawPath;
+  useFocusOnNavigate(path);
 
   // The site's only dynamic route. The slug is resolved from the school
   // registry, so an invented /schools/... falls through to the 404 below and
@@ -223,6 +275,7 @@ function Router() {
   else if (path === '/for-teachers') page = <ForTeachersPage />;
   else if (path === '/shop') page = <ShopPage />;
   else if (path === '/privacy') page = <PrivacyPage />;
+  else if (path === '/accessibility') page = <AccessibilityPage />;
   else if (path === '/restricted') page = <RestrictedPage />;
   // Anything else is genuinely missing. The Worker pairs this with a real 404
   // status; previously every typo silently rendered the homepage at 200.
@@ -231,17 +284,27 @@ function Router() {
 
   return (
     <PageErrorBoundary>
-      <Suspense fallback={<div className="min-h-screen bg-paper" />}>
+      {/* The header stays up while a page's code loads. The fallback used to
+          be an empty paper-coloured screen, so for a third of a second on
+          every page change the header vanished and the site looked blank. */}
+      <Suspense fallback={<div className="min-h-screen bg-paper"><SiteHeader /></div>}>
         {page}
       </Suspense>
     </PageErrorBoundary>
   );
 }
 
+// Before analytics reads the URL: take Stripe's session ID out of it.
+stripCheckoutReturn();
 initAnalytics();
 
+// reducedMotion="user": every Motion animation on the site respects the
+// visitor's "reduce motion" setting. Without it only CSS animations did, and
+// the blur-in heroes, slide-ins and scroll effects ran regardless.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Router />
+    <MotionConfig reducedMotion="user">
+      <Router />
+    </MotionConfig>
   </StrictMode>,
 );

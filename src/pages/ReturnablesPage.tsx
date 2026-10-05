@@ -7,10 +7,13 @@ import {
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { fileWithBloomerang } from '../lib/bloomerang';
+import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { track, captureSource } from '../lib/analytics';
-import { MetalCan, PlasticBottle, ReturnablesStillLife } from '../components/campaignDoodles';
+import { ReturnableCansRow, ReturnableCansTrio } from '../components/ReturnableCans';
 import SiteHeader from '../components/SiteHeader';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import SiteFooter from '../components/SiteFooter';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -67,12 +70,6 @@ const CAMPAIGN = {
       a: 'Of course — and it helps just as much. There\'s a donate button on this page.',
     },
   ],
-  /** Swap in bottle-drive photos when there are some. */
-  photos: [
-    { src: '/images/IMG_5568-opt.jpg', caption: 'Special delivery', rotate: -3, y: 0 },
-    { src: '/images/coffee-bar-biggby-opt.jpg', caption: 'Coffee bar, staffed by students', rotate: 2.5, y: 16 },
-    { src: '/images/may-staff-meeting-opt.jpg', caption: 'Teacher of the Month, announced live', rotate: -1.5, y: 6 },
-  ],
 } as const;
 
 const STEPS = [
@@ -122,12 +119,7 @@ export default function ReturnablesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Donate Your Returnables | Funding Michigan Teachers',
-      description:
-        'Your empty cans and bottles can fund a Michigan classroom. We collect your Michigan returnables and turn the 10¢ deposits into teacher support.',
-      path: '/returnables',
-    });
+    setPageMeta(metaForPath('/returnables'));
     setSource(captureSource());
     track('returnables_page_view', { source: captureSource() });
   }, []);
@@ -151,7 +143,7 @@ export default function ReturnablesPage() {
       <div className="pointer-events-none absolute top-0 left-0 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />
       <div className="pointer-events-none absolute top-[40%] right-0 w-[500px] h-[500px] bg-[var(--color-campaign-teal)]/[0.08] rounded-full blur-[160px] translate-x-1/3" />
 
-      <main className="relative z-10 pt-28 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-10">
+      <main id="main" className="relative z-10 pt-28 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-10">
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto">
 
           {/* ═══ 1. HERO ═══ */}
@@ -160,7 +152,7 @@ export default function ReturnablesPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: EASE }}
-              className="text-[10px] sm:text-[11px] uppercase tracking-[0.24em] font-bold text-chalkboard/45 mb-5"
+              className="text-[0.625rem] sm:text-[0.6875rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-5"
             >
               Funding Michigan Teachers presents
             </motion.p>
@@ -183,11 +175,11 @@ export default function ReturnablesPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-              className="text-base sm:text-lg text-chalkboard/65 font-light leading-relaxed max-w-xl mx-auto mb-8"
+              className="text-base sm:text-lg text-chalkboard/70 font-light leading-relaxed max-w-xl mx-auto mb-8"
             >
               Your empty cans and bottles can do more than sit in the garage. Donate your
               Michigan returnables and we'll turn those 10¢ deposits into real support for
-              local teachers and classrooms.
+              local teachers and classrooms. Free pickup in {CAMPAIGN.serviceArea}.
             </motion.p>
 
             <motion.div
@@ -198,7 +190,7 @@ export default function ReturnablesPage() {
             >
               <button
                 onClick={() => goToForm('hero')}
-                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-8 pr-2.5 py-2.5 rounded-full font-bold text-sm uppercase tracking-[0.18em] shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[52px]"
+                className="group w-full sm:w-auto flex items-center justify-center gap-3 bg-apple text-white pl-7 sm:pl-8 pr-2.5 py-2.5 rounded-full font-bold text-sm uppercase tracking-[0.12em] sm:tracking-[0.18em] whitespace-nowrap shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[52px]"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
                 Donate My Returnables
@@ -209,22 +201,16 @@ export default function ReturnablesPage() {
 
               <button
                 onClick={() => goDonate('hero')}
-                className="text-sm font-bold text-chalkboard/55 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
+                className="text-sm font-bold text-chalkboard/70 hover:text-apple underline underline-offset-4 decoration-chalkboard/20 hover:decoration-apple min-h-[44px] px-2 transition-colors"
               >
                 Don't have cans? Make a donation
               </button>
             </motion.div>
 
-            {/* A still life rather than a parade: the objects grouped the way
-                they would be photographed, arriving once and then staying put. */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.35, ease: EASE }}
-              className="mt-12 sm:mt-14 flex justify-center text-[14px] sm:text-[17px]"
-            >
-              <ReturnablesStillLife />
-            </motion.div>
+            {/* Real crushed cans, standing on one ground line. Each one arrives
+                once and stays put; see ReturnableCans.tsx for why the sizes
+                are what they are. */}
+            <ReturnableCansRow className="mt-12 sm:mt-14" />
           </section>
 
           {/* ═══ 2. HOW IT WORKS ═══ */}
@@ -233,7 +219,7 @@ export default function ReturnablesPage() {
               Your empties can do something{' '}
               <span className="text-apple italic font-normal">pretty great</span>.
             </h2>
-            <p className="text-center font-hand text-lg text-chalkboard/45 -rotate-1 mb-10">
+            <p className="text-center font-hand text-lg text-chalkboard/70 -rotate-1 mb-10">
               three steps, and you're done
             </p>
 
@@ -258,13 +244,13 @@ export default function ReturnablesPage() {
                       <step.icon size={20} strokeWidth={1.5} />
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/35">
+                      <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
                         Step {i + 1}
                       </p>
                       <h3 className="text-lg font-serif font-bold leading-tight">{step.title}</h3>
                     </div>
                   </div>
-                  <p className="text-sm text-chalkboard/60 font-light leading-relaxed">{step.copy}</p>
+                  <p className="text-sm text-chalkboard/70 font-light leading-relaxed">{step.copy}</p>
                 </motion.div>
               ))}
             </div>
@@ -276,7 +262,7 @@ export default function ReturnablesPage() {
               <h2 className="font-serif font-bold text-3xl sm:text-4xl leading-tight tracking-[-0.01em] mb-3">
                 Got cans? <span className="text-apple italic font-normal">We'll take it from here.</span>
               </h2>
-              <p className="text-chalkboard/60 font-light leading-relaxed max-w-xl mx-auto">
+              <p className="text-chalkboard/70 font-light leading-relaxed max-w-xl mx-auto">
                 Tell us a little about your returnables and we'll coordinate the pickup with you.
               </p>
             </div>
@@ -292,70 +278,22 @@ export default function ReturnablesPage() {
                   <br />
                   <span className="text-pencil italic font-normal">Until a whole neighborhood gets involved.</span>
                 </h2>
-                <p className="text-white/55 font-light leading-relaxed max-w-lg mx-auto text-sm sm:text-base">
+                <p className="text-white/70 font-light leading-relaxed max-w-lg mx-auto text-sm sm:text-base">
                   One household might have a few dollars sitting in the garage. A whole
                   community can turn that into something much bigger. Every returned
                   container adds to the campaign.
                 </p>
 
-                <div className="flex items-end justify-center gap-3 sm:gap-4 mt-9" aria-hidden="true">
-                  {[
-                    <MetalCan key="a" color="#D9483B" className="h-14 sm:h-16 w-auto" />,
-                    <PlasticBottle key="b" className="h-[4.4rem] sm:h-20 w-auto" />,
-                    <MetalCan key="c" color="#2E9E93" className="h-14 sm:h-16 w-auto" />,
-                  ].map((item, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 12 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.08, duration: 0.5, ease: EASE }}
-                    >
-                      {item}
-                    </motion.div>
-                  ))}
-                </div>
+                <ReturnableCansTrio className="mt-9" />
               </div>
               <div className="pointer-events-none absolute -bottom-24 -right-24 w-72 h-72 bg-[var(--color-campaign-teal)]/10 rounded-full blur-[100px]" />
             </div>
           </section>
 
-          {/* ═══ 5. SCRAPBOOK ═══ */}
-          <section className="mt-20 sm:mt-24">
-            <h2 className="text-center font-serif font-bold text-3xl sm:text-4xl leading-tight tracking-[-0.01em] mb-2">
-              This is who you're <span className="text-apple italic font-normal">helping</span>.
-            </h2>
-            <p className="text-center font-hand text-lg text-chalkboard/45 -rotate-1 mb-10">
-              real teachers, real classrooms, right here
-            </p>
-
-            <div className="flex flex-wrap justify-center items-start gap-5 md:gap-3">
-              {CAMPAIGN.photos.map((photo, i) => (
-                <motion.figure
-                  key={photo.src}
-                  initial={{ opacity: 0, y: 36, rotate: 0 }}
-                  whileInView={{ opacity: 1, y: photo.y, rotate: photo.rotate }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.8, delay: i * 0.09, ease: EASE }}
-                  className="polaroid w-[46%] sm:w-52 md:w-56 shrink-0"
-                  style={{ rotate: `${photo.rotate}deg` }}
-                >
-                  <div className="aspect-square overflow-hidden rounded-[2px] bg-chalkboard/5">
-                    <img
-                      src={photo.src}
-                      alt={photo.caption}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </div>
-                  <figcaption className="font-hand text-sm text-chalkboard/60 text-center py-3 px-1 leading-tight">
-                    {photo.caption}
-                  </figcaption>
-                </motion.figure>
-              ))}
-            </div>
-          </section>
+          {/* A photo scrapbook sat here, filled with other events' photos —
+              none of them showed a returnables pickup. It comes back when
+              there are real ones (the next pickup: bags in a trunk, the
+              return machine, the receipt). The painted cans carry the page. */}
 
           {/* ═══ 6. SECONDARY DONATION ═══ */}
           <section className="mt-20 sm:mt-24 max-w-2xl mx-auto">
@@ -366,7 +304,7 @@ export default function ReturnablesPage() {
               <h2 className="font-serif font-bold text-2xl mb-3 leading-tight">
                 No returnables? You can still help.
               </h2>
-              <p className="text-sm text-chalkboard/60 font-light leading-relaxed mb-6 max-w-md mx-auto">
+              <p className="text-sm text-chalkboard/70 font-light leading-relaxed mb-6 max-w-md mx-auto">
                 If your recycling bin is empty but you'd still like to support the mission,
                 a direct donation goes just as far.
               </p>
@@ -388,7 +326,7 @@ export default function ReturnablesPage() {
             <h2 className="font-serif font-bold text-2xl sm:text-3xl leading-tight tracking-[-0.01em] mb-4">
               Students supporting the teachers who support us.
             </h2>
-            <p className="text-chalkboard/60 font-light leading-relaxed mb-6">
+            <p className="text-chalkboard/70 font-light leading-relaxed mb-6">
               Funding Michigan Teachers is a student-led 501(c)(3) nonprofit working to
               support educators, classrooms, and school communities — so no teacher pays
               out of pocket, and every teacher knows their work matters.
@@ -419,7 +357,7 @@ export default function ReturnablesPage() {
               </span>{' '}
               to a teacher.
             </h2>
-            <p className="font-hand text-xl text-chalkboard/45 -rotate-1 mb-8">
+            <p className="font-hand text-xl text-chalkboard/70 -rotate-1 mb-8">
               ready to turn them into something bigger?
             </p>
 
@@ -481,28 +419,21 @@ function FaqList() {
                 <ChevronDown
                   size={18}
                   className={cn(
-                    'text-chalkboard/40 shrink-0 transition-transform duration-300',
+                    'text-chalkboard/70 shrink-0 transition-transform duration-300',
                     isOpen && 'rotate-180',
                   )}
                 />
               </button>
             </h3>
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  id={`faq-panel-${i}`}
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: EASE }}
-                  className="overflow-hidden"
-                >
-                  <p className="px-5 pb-5 text-sm text-chalkboard/65 font-light leading-relaxed">
-                    {item.a}
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Always in the page, hidden when closed: rendered only while
+                open, the answers were invisible to search engines (crawlers
+                do not click), including the only mention of the pickup area,
+                and aria-controls pointed at nothing. */}
+            <div id={`faq-panel-${i}`} hidden={!isOpen}>
+              <p className="px-5 pb-5 text-sm text-chalkboard/75 font-light leading-relaxed">
+                {item.a}
+              </p>
+            </div>
           </div>
         );
       })}
@@ -532,8 +463,48 @@ const SPOTS = ['Front porch', 'Garage / driveway', 'Side of house', 'Other (note
 type Access = 'leave-out' | 'someone-home' | 'coordinate';
 
 const inputCls =
-  'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-apple/25 focus:border-apple/40 outline-none transition-all placeholder:text-chalkboard/30 min-h-[48px]';
-const labelCls = 'block text-[10px] uppercase tracking-[0.18em] font-bold text-chalkboard/45 mb-1.5';
+  'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-base focus:ring-2 focus:ring-apple/25 focus:border-apple/40 outline-none transition-all placeholder:text-chalkboard/65 min-h-[48px]';
+const labelCls = 'block text-[0.625rem] uppercase tracking-[0.18em] font-bold text-chalkboard/70 mb-1.5';
+
+/** Replaces the pickup form once a request has been delivered. */
+function PickupConfirmed() {
+  const headingRef = useFocusOnMount<HTMLHeadingElement>();
+  return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="max-w-2xl mx-auto bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-8 sm:p-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+      >
+        <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/10 flex items-center justify-center">
+          <CheckCircle2 size={26} className="text-apple" />
+        </div>
+        <h3 ref={headingRef} tabIndex={-1} className="font-serif font-bold text-2xl mb-3 leading-tight outline-none">
+          Your cans are officially on their way to helping a classroom 💛
+        </h3>
+        <p className="text-sm text-chalkboard/70 font-light leading-relaxed max-w-md mx-auto mb-6">
+          We've got your request. Here's what happens next:
+        </p>
+        <ol className="text-left max-w-sm mx-auto space-y-3 mb-7">
+          {[
+            "We'll email you to confirm the day and time — nothing is scheduled until we've checked with you.",
+            'Have them ready where you told us, or be around to hand them off.',
+            'We pick them up, redeem them, and every dime goes to local teachers.',
+          ].map((line, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-[var(--color-campaign-teal)]/15 text-[var(--color-campaign-teal)] text-[0.625rem] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                {i + 1}
+              </span>
+              <span className="text-sm text-chalkboard/70 font-light leading-snug">{line}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="text-xs text-chalkboard/70 font-light">
+          Questions? <a href={`mailto:${CAMPAIGN.contactEmail}`} className="text-apple font-bold underline underline-offset-2">{CAMPAIGN.contactEmail}</a>
+        </p>
+      </motion.div>
+  );
+}
 
 function PickupForm({ source }: { source: string }) {
   const [form, setForm] = useState({
@@ -546,7 +517,7 @@ function PickupForm({ source }: { source: string }) {
     date: '', window: '', notes: '',
     deposit: false, newsletter: false,
   });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [startedTracked, setStartedTracked] = useState(false);
 
   const set = (patch: Partial<typeof form>) => {
@@ -619,58 +590,37 @@ function PickupForm({ source }: { source: string }) {
       if (!error) submitted = true;
     }
 
-    if (!submitted) {
-      // Last-resort fallback — open a prefilled email so no request is lost
-      const subject = encodeURIComponent(`Returnables pickup — ${form.name} (${form.city})`);
-      const body = encodeURIComponent(
-        `Name: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}\n` +
-        `Address: ${fullAddress}\nQuantity: ${form.quantity}\n` +
-        `How we get them: ${accessSummary}\n` +
-        `Preferred: ${form.date} ${form.window}\n\nNotes: ${form.notes}\nSource: ${source}`,
-      );
-      window.open(`mailto:${CAMPAIGN.contactEmail}?subject=${subject}&body=${body}`);
-    }
+    // Filed with the CRM as well, so a household that gives is one record
+    // with its history. Deliberately without the street address or the
+    // "bags on the porch / nobody home" details: those are for planning one
+    // pickup and stay in the FormBold email and Supabase, not in a donor
+    // database kept for years. Not awaited; the visitor is told the delivery
+    // result.
+    void fileWithBloomerang('returnables', {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      note: `Returnables pickup requested (${form.city}${form.quantity ? `, ${form.quantity}` : ''}).${form.newsletter ? ' Asked for updates.' : ''}`,
+    });
 
-    track('returnables_form_submitted', { source, access: form.access, quantity: form.quantity });
-    setStatus('success');
+    if (submitted) track('returnables_form_submitted', { source, access: form.access, quantity: form.quantity });
+    setStatus(submitted ? 'success' : 'error');
+  };
+
+  const mailto = () => {
+    const fullAddress = `${form.street}, ${form.city}, MI ${form.zip}`;
+    const subject = encodeURIComponent(`Returnables pickup — ${form.name} (${form.city})`);
+    const body = encodeURIComponent(
+      `Name: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}\n` +
+      `Address: ${fullAddress}\nQuantity: ${form.quantity}\n` +
+      `How we get them: ${accessSummary}\n` +
+      `Preferred: ${form.date} ${form.window}\n\nNotes: ${form.notes}\nSource: ${source}`,
+    );
+    return `mailto:${CAMPAIGN.contactEmail}?subject=${subject}&body=${body}`;
   };
 
   if (status === 'success') {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: EASE }}
-        className="max-w-2xl mx-auto bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-8 sm:p-10 text-center shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
-      >
-        <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-apple/10 flex items-center justify-center">
-          <CheckCircle2 size={26} className="text-apple" />
-        </div>
-        <h3 className="font-serif font-bold text-2xl mb-3 leading-tight">
-          Your cans are officially on their way to helping a classroom 💛
-        </h3>
-        <p className="text-sm text-chalkboard/60 font-light leading-relaxed max-w-md mx-auto mb-6">
-          We've got your request. Here's what happens next:
-        </p>
-        <ol className="text-left max-w-sm mx-auto space-y-3 mb-7">
-          {[
-            "We'll email you to confirm the day and time — nothing is scheduled until we've checked with you.",
-            'Have them ready where you told us, or be around to hand them off.',
-            'We pick them up, redeem them, and every dime goes to local teachers.',
-          ].map((line, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-[var(--color-campaign-teal)]/15 text-[var(--color-campaign-teal)] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                {i + 1}
-              </span>
-              <span className="text-sm text-chalkboard/70 font-light leading-snug">{line}</span>
-            </li>
-          ))}
-        </ol>
-        <p className="text-xs text-chalkboard/40 font-light">
-          Questions? <a href={`mailto:${CAMPAIGN.contactEmail}`} className="text-apple font-bold underline underline-offset-2">{CAMPAIGN.contactEmail}</a>
-        </p>
-      </motion.div>
-    );
+    return <PickupConfirmed />;
   }
 
   return (
@@ -707,7 +657,7 @@ function PickupForm({ source }: { source: string }) {
 
         {/* — Where — */}
         <div className="pt-5 border-t border-chalkboard/8 space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/35">
+          <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
             Pickup address
           </p>
           <div>
@@ -750,7 +700,7 @@ function PickupForm({ source }: { source: string }) {
         {/* — ACCESS: the load-bearing question — */}
         <fieldset className="pt-5 border-t border-chalkboard/8">
           <legend className="text-sm font-bold text-chalkboard mb-1">How will we get them? *</legend>
-          <p className="text-xs text-chalkboard/50 font-light leading-snug mb-3">
+          <p className="text-xs text-chalkboard/70 font-light leading-snug mb-3">
             This is the part that matters most — we want to make sure we can actually
             grab them when we come by.
           </p>
@@ -777,7 +727,7 @@ function PickupForm({ source }: { source: string }) {
                 />
                 <span className="min-w-0">
                   <span className="block text-sm font-bold text-chalkboard leading-snug">{title}</span>
-                  <span className="block text-xs text-chalkboard/50 font-light">{hint}</span>
+                  <span className="block text-xs text-chalkboard/70 font-light">{hint}</span>
                 </span>
               </label>
             ))}
@@ -798,7 +748,7 @@ function PickupForm({ source }: { source: string }) {
                     <option value="">Choose a spot…</option>
                     {SPOTS.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
-                  <p className="mt-2.5 text-xs text-chalkboard/55 font-light leading-relaxed bg-paper ring-1 ring-chalkboard/8 rounded-xl px-4 py-3">
+                  <p className="mt-2.5 text-xs text-chalkboard/70 font-light leading-relaxed bg-paper ring-1 ring-chalkboard/8 rounded-xl px-4 py-3">
                     Please make sure they're easy for us to reach and not blocking the
                     sidewalk or street — and that leaving them out is OK under your HOA
                     or local rules.
@@ -875,10 +825,12 @@ function PickupForm({ source }: { source: string }) {
             {status === 'loading' ? <Loader2 size={17} className="animate-spin" /> : <Send size={16} />}
             <span>Request My Pickup</span>
           </button>
-          <p className="mt-4 flex items-start gap-2 text-xs text-chalkboard/45 font-light leading-relaxed">
-            <ShieldCheck size={14} className="text-[var(--color-campaign-teal)] shrink-0 mt-0.5" strokeWidth={1.5} />
-            We'll only use your information to coordinate this pickup and talk to you
-            about this request. Your address is never shown publicly.
+          {status === 'error' && <div className="mt-4"><SendFailed mailto={mailto()} /></div>}
+          <p className="mt-4 flex items-start gap-2 text-xs text-chalkboard/70 font-light leading-relaxed">
+            <ShieldCheck size={14} className="text-[var(--color-campaign-teal)] shrink-0 mt-0.5" strokeWidth={1.5} aria-hidden="true" />
+            We use your information to arrange this pickup and keep a record of your gift. We only email
+            you about anything else if you tick the box above. Your address is never shown publicly.{' '}
+            <a href="/privacy" className="underline underline-offset-2">Privacy policy</a>
           </p>
         </div>
       </div>

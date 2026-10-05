@@ -4,44 +4,39 @@ import {
   Heart,
   Sparkles,
   BookOpen,
-  MapPin,
-  Trophy,
   Calendar,
   ArrowRight,
 } from 'lucide-react';
 import { setPageMeta } from './lib/seo';
+import { metaForPath } from '../shared/pageMeta';
 import SiteHeader from './components/SiteHeader';
+import SiteFooter from './components/SiteFooter';
+import { navLinkProps } from './lib/navigate';
 import { Button, ButtonTrailing } from './components/ui/button';
-import MichiganMap from './components/MichiganMap';
 import DonationTiers from './components/DonationTiers';
 import TeacherStories from './components/TeacherStories';
 import EventCalendar from './components/EventCalendar';
 import DonorWall from './components/DonorWall';
 import ClassroomProjects from './components/ClassroomProjects';
-import TeacherLeaderboard from './components/TeacherLeaderboard';
 import OurMission from './components/OurMission';
 import Newsletter from './components/Newsletter';
-import ContactForm from './components/ContactForm';
 import FAQAssistant from './components/FAQAssistant';
 import DonationNudge from './components/DonationNudge';
 import PastEvents from './components/PastEvents';
 import { STAT } from './data/impactStats';
-import { TeeArt as ShopTee, HoodieArt as ShopHoodie } from './components/merchDoodles';
-import { MERCH_COLORS as SHOP_COLORS } from '../shared/merch';
 import Programs from './components/Programs';
 import PartnerSchools from './components/PartnerSchools';
 
 export default function App() {
   useEffect(() => {
-    setPageMeta({
-      title: 'Funding Michigan Teachers | Student-Led 501(c)(3)',
-      description:
-        'A student-led 501(c)(3) funding classroom supplies, staff meals and teacher appreciation at Michigan high schools — so no teacher pays out of pocket.',
-      path: '/',
-    });
+    setPageMeta(metaForPath('/'));
   }, []);
 
-  const handleDonate = (amount?: number, project?: { title: string; teacher_name: string }) => {
+  const handleDonate = (
+    amount?: number,
+    project?: { id?: number; title: string; teacher_name: string },
+    frequency?: 'once' | 'monthly',
+  ) => {
     // 3-click donation flow:
     //   1. Click "Donate" (anywhere on the site) — lands on /donate, which
     //      hosts the embedded Stripe checkout panel (card form renders
@@ -49,14 +44,13 @@ export default function App() {
     //   2. Tap "Donate $X" — the embedded panel opens right there
     //   3. Apple Pay / Google Pay / card — Face ID or a few digits. Done.
     // A known amount is passed through as ?amount=X so /donate preselects it.
-    // A project carries through as ?fund=/?teacher= so /donate can show whose
-    // classroom the gift is for and name it on the Stripe receipt.
+    // A project carries through as ?designation=project:<id>. The Worker
+    // looks the id up itself before naming the project on the receipt, so
+    // the title never has to travel in the URL.
     const q = new URLSearchParams();
     if (amount && amount > 0) q.set('amount', String(amount));
-    if (project?.title) {
-      q.set('fund', project.title);
-      if (project.teacher_name) q.set('teacher', project.teacher_name);
-    }
+    if (project?.id) q.set('designation', `project:${project.id}`);
+    if (frequency) q.set('frequency', frequency);
     const path = q.toString() ? `/donate?${q}` : '/donate';
     window.history.pushState({}, '', path);
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -74,7 +68,7 @@ export default function App() {
     <div className="min-h-screen bg-paper selection:bg-pencil/30 overflow-x-hidden">
       <SiteHeader isHome />
 
-      <main>
+      <main id="main">
         {/* Hero Section */}
         <section className="viewport-section hero-section pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 overflow-hidden classroom-grid">
           {/* Ambient brand glows — atmospheric depth without the moving particles */}
@@ -82,52 +76,49 @@ export default function App() {
           <div className="pointer-events-none absolute -bottom-40 -right-32 w-[500px] h-[500px] bg-pencil/[0.06] rounded-full blur-[120px]" />
 
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative z-[2]">
+            {/* The headline and intro are the first thing anyone (and Google's
+                LCP measure) sees, so they paint at once and only slide:
+                starting them at opacity 0 behind a blur held back the
+                homepage's largest text by about 1.5s on a phone. */}
             <motion.div
-              initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.9, ease: [0.32, 0.72, 0, 1] }}
+              initial={{ y: 16 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
               className="lg:col-span-7"
             >
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1, ease: [0.32, 0.72, 0, 1] }}
-                className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
+                className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-apple animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-apple" />
                 Student-Led · 501(c)(3) · Founded Okemos 2023
               </motion.div>
               <h1 className="font-serif font-bold leading-[0.95] tracking-[-0.025em] mb-7 text-[clamp(2.5rem,4.6vw,4.5rem)]">
                 Michigan teachers give everything.{' '}
                 <span className="text-apple italic font-normal">We give back.</span>
               </h1>
-              <p className="text-lg text-chalkboard/65 max-w-xl mb-10 leading-relaxed font-light text-pretty">
+              <p className="text-lg text-chalkboard/70 max-w-xl mb-10 leading-relaxed font-light text-pretty">
                 Founded by Finn Regan at age 14 — because he grew up watching teachers spend their own money on classrooms while no one said thank you. We exist to change that.
               </p>
               <div className="flex flex-wrap gap-3 items-center">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="group"
-                  onClick={() => document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Donate to a Teacher
-                  <ButtonTrailing dark>
-                    <ArrowRight size={14} />
-                  </ButtonTrailing>
+                {/* Real links: the main action goes straight to /donate (it used
+                    to scroll down the page), and crawlers can follow both. */}
+                <Button asChild variant="primary" size="lg" className="group">
+                  <a {...navLinkProps('/donate')}>
+                    Donate to a Teacher
+                    <ButtonTrailing dark>
+                      <ArrowRight size={14} />
+                    </ButtonTrailing>
+                  </a>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="md"
-                  onClick={() => document.getElementById('mission')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Our Story
+                <Button asChild variant="outline" size="md">
+                  <a {...navLinkProps('/about')}>Our Story</a>
                 </Button>
               </div>
-              <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
-                <span className="inline-block w-4 h-px bg-chalkboard/20" />
+              <p className="mt-4 text-[0.6875rem] text-chalkboard/70 font-bold uppercase tracking-widest">
                 501(c)(3) Nonprofit · EIN 93-4485967 · 80¢+ of every dollar to teachers
-                <span className="inline-block w-4 h-px bg-chalkboard/20" />
               </p>
               {/* Grid on mobile (hard 3-column constraint prevents horizontal
                   overflow from long uppercase labels); flex+dividers once
@@ -135,19 +126,44 @@ export default function App() {
               <div className="mt-10 grid grid-cols-3 gap-3 sm:flex sm:items-center sm:gap-6">
                 <div className="flex flex-col min-w-0">
                   <span className="text-apple font-bold text-xl sm:text-2xl leading-none">{STAT.teachers.value}</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.teachers.label}</span>
+                  <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.teachers.label}</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-ruler font-bold text-xl sm:text-2xl leading-none">{STAT.staff.value}</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.staff.label}</span>
+                  <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.staff.label}</span>
                 </div>
                 <div className="hidden sm:block w-px h-10 bg-chalkboard/10" />
                 <div className="flex flex-col min-w-0">
-                  <span className="text-pencil font-bold text-xl sm:text-2xl leading-none">{STAT.partnerSchools.value}</span>
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.partnerSchools.label}</span>
+                  <span className="text-pencil-dark font-bold text-xl sm:text-2xl leading-none">{STAT.partnerSchools.value}</span>
+                  <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted">{STAT.partnerSchools.label}</span>
                 </div>
               </div>
+
+              {/* Below 1024px the photo column is hidden, so phones saw no
+                  photograph until 16 screens down. One compact copy here. */}
+              <figure className="lg:hidden mt-9">
+                <picture>
+                  <source
+                    media="(max-width: 1023.98px)"
+                    type="image/avif"
+                    srcSet="/images/finn-and-mrs-freeman-480.avif 480w, /images/finn-and-mrs-freeman-1280.avif 960w"
+                    sizes="(max-width: 640px) 100vw, 640px"
+                  />
+                  <img
+                    src="/images/finn-and-mrs-freeman-1280.jpg"
+                    alt="Finn Regan with Mrs. Freeman at Okemos High School"
+                    width={960}
+                    height={1280}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full aspect-[4/3] object-cover object-[50%_18%] rounded-[1.75rem] ring-1 ring-chalkboard/10"
+                  />
+                </picture>
+                <figcaption className="mt-2.5 text-sm text-chalkboard/70">
+                  Finn and Mrs. Freeman, one of FMT's first supporters at Okemos High School.
+                </figcaption>
+              </figure>
             </motion.div>
 
             <motion.div
@@ -161,13 +177,19 @@ export default function App() {
                   already shown in the left column, so the photo takes that
                   space instead. */}
               <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-chalkboard/5">
+                {/* Both sources are desktop-only, matching the column. The
+                    column is display:none on smaller screens, but that does
+                    not stop an eager <img> downloading, so phones fetched a
+                    175KB photo they never showed. Below 1024px the <img>
+                    falls back to a 1px GIF instead. */}
                 <picture>
-                  <source srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <source media="(min-width: 1024px)" srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <source media="(min-width: 1024px)" srcSet="/images/finn-and-mrs-freeman-1280.jpg" />
                   <img
-                    src="/images/finn-and-mrs-freeman-1280.jpg"
+                    src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
                     alt="Finn Regan with Mrs. Freeman at Okemos High School"
-                    width={1280}
-                    height={960}
+                    width={960}
+                    height={1280}
                     className="w-full h-[540px] xl:h-[600px] object-cover object-top"
                     loading="eager"
                     decoding="async"
@@ -176,7 +198,7 @@ export default function App() {
                 </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/75 via-chalkboard/10 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
-                  <p className="text-white/60 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Finn &amp; Mrs. Freeman · Okemos High School</p>
+                  <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.2em] font-bold mb-1">Finn &amp; Mrs. Freeman · Okemos High School</p>
                   <p className="text-white font-serif text-2xl font-bold leading-tight">One of FMT's first and loudest supporters at OHS.</p>
                 </div>
               </div>
@@ -195,48 +217,16 @@ export default function App() {
           <OurMission />
         </section>
 
-        {/* Donation Tiers Section — placed early so warm visitors can convert immediately */}
-        <section
-          id="tiers"
-          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 relative overflow-hidden bg-paper"
-        >
-          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
-            <div className="text-center mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest"
-              >
-                <Heart size={14} />
-                <span>Monthly Support</span>
-              </motion.div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
-                Choose Your <span className="text-apple italic font-normal">Impact</span>.
-              </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed mb-6">
-                Monthly giving is the most powerful way to support Michigan teachers — it lets us plan ahead, show up consistently, and make every staff meeting feel special.
-              </p>
-              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/60 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest">
-                <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
-                2026–27 School Year Goal: $20,000
-              </div>
-            </div>
-            <DonationTiers onDonate={handleDonate} />
-          </div>
-        </section>
-
-        {/* Partner schools, above the map on purpose: the three buildings we
-            actually work in come before the wider map of everywhere we have
-            been. Each school is a link to its own page — a small version here,
-            the full thing there. */}
+        {/* Partner schools: the three buildings we work in, each a link to
+            its own page. The map of everywhere we have delivered is on
+            /schools. */}
         <section id="schools" className="py-14 sm:py-16 px-4 sm:px-6 bg-paper">
           <div className="max-w-5xl mx-auto">
             <div className="mb-8">
               <h2 className="font-serif font-bold text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.05] tracking-tight mb-4 text-balance">
                 Our <span className="text-apple italic font-normal">partner schools</span>.
               </h2>
-              <p className="text-chalkboard/65 font-light leading-relaxed max-w-2xl">
+              <p className="text-chalkboard/70 font-light leading-relaxed max-w-2xl">
                 Three high schools, each with its own page — its own events, its own sponsors, and
                 its own teachers telling us what their rooms ran out of.
               </p>
@@ -253,10 +243,10 @@ export default function App() {
           </div>
         </section>
 
-        {/* Impact Map Section */}
+        {/* Teacher Stories Section */}
         <section
-          id="impact"
-          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-chalkboard text-white overflow-hidden relative"
+          id="stories"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper relative overflow-hidden"
         >
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
             <div className="text-center mb-10">
@@ -264,24 +254,55 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-apple/20"
               >
-                <MapPin size={14} />
-                <span>Ingham County &amp; Growing</span>
+                <Sparkles size={14} />
+                <span>Impact Stories</span>
               </motion.div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
-                Our Impact Across <span className="text-pencil italic font-normal">Michigan</span>.
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
+                Voices from the <span className="text-apple italic font-normal">Classroom</span>.
               </h2>
-              <p className="text-base text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
-                Explore the schools and districts we've supported. Every dot represents a classroom transformed by your generosity.
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
+                In their own words: the teachers and staff at our partner schools.
               </p>
             </div>
-            <MichiganMap />
+            <TeacherStories />
           </div>
+        </section>
 
-          {/* Background Accents */}
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-apple/5 rounded-full blur-[120px] -z-0 translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-ruler/5 rounded-full blur-[100px] -z-0 -translate-x-1/2 translate-y-1/2" />
+        {/* Monthly giving tiers. After the proof (schools, a teacher's own
+            words), not before it; the hero's Donate goes straight to /donate
+            for anyone ready sooner. */}
+        <section
+          id="tiers"
+          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 relative overflow-hidden bg-paper"
+        >
+          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
+            <div className="text-center mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest"
+              >
+                <Heart size={14} />
+                <span>Monthly Support</span>
+              </motion.div>
+              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
+                Choose Your <span className="text-apple italic font-normal">Impact</span>.
+              </h2>
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed mb-6">
+                Monthly giving is the most powerful way to support Michigan teachers — it lets us plan ahead, show up consistently, and make every staff meeting feel special.
+              </p>
+              <div className="inline-flex items-center gap-2 bg-chalkboard/5 text-chalkboard/70 px-4 py-1.5 rounded-full text-[0.6875rem] font-bold uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-pencil-dark" />
+                2026–27 School Year Goal: $20,000
+              </div>
+            </div>
+            {/* These are monthly giving tiers, so they open /donate on monthly;
+                everything else opens on one-time. */}
+            <DonationTiers onDonate={(a) => handleDonate(a, undefined, 'monthly')} />
+          </div>
         </section>
 
         {/* Classroom Projects Section */}
@@ -295,7 +316,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-apple/20"
+                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-apple/20"
               >
                 <BookOpen size={14} />
                 <span>Classroom Initiatives</span>
@@ -303,71 +324,11 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Classroom <span className="text-apple italic font-normal">Projects</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
                 Vote for the projects you believe in and help teachers reach their specific goals. Every vote brings them closer to a fully funded classroom.
               </p>
             </div>
             <ClassroomProjects onDonate={handleDonate} />
-          </div>
-        </section>
-
-        {/* Teacher Leaderboard Section */}
-        <section
-          id="leaderboard"
-          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-apple/5 relative overflow-hidden"
-        >
-          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
-            <div className="text-center mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-ink px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
-              >
-                <Trophy size={14} />
-                <span>Excellence in Education</span>
-              </motion.div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
-                Teacher <span className="text-pencil italic font-normal">Leaderboard</span>.
-              </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
-                Recognizing the incredible engagement and dedication of our Michigan educators who go above and beyond for their students.
-              </p>
-            </div>
-            <TeacherLeaderboard />
-          </div>
-        </section>
-
-        {/* Merch, as a band rather than a section: the shop earns a mention on
-            the homepage because that is where people land, but it stays
-            visually secondary to the programs and events around it. */}
-        <section className="px-4 sm:px-6 py-10">
-          <div className="max-w-5xl mx-auto">
-            <motion.button
-              onClick={() => { window.history.pushState({}, '', '/shop'); window.dispatchEvent(new PopStateEvent('popstate')); }}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1] }}
-              className="group w-full bg-chalkboard text-white rounded-[1.75rem] px-7 py-7 sm:px-9 flex flex-col sm:flex-row sm:items-center gap-5 text-left hover:bg-chalkboard/95 transition-colors"
-            >
-              <span className="flex -space-x-3 shrink-0" aria-hidden="true">
-                <ShopTee color={SHOP_COLORS[0]} className="w-16 h-16 rotate-[-6deg]" />
-                <ShopHoodie color={SHOP_COLORS[2]} className="w-16 h-16 rotate-[5deg]" />
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="block font-serif font-bold text-2xl leading-snug mb-1">
-                  Wear it. <span className="text-pencil italic font-normal">Fund it.</span>
-                </span>
-                <span className="block text-white/65 text-sm font-light leading-relaxed">
-                  Tees, crewnecks and hoodies — printed in town, hand-pressed by our students.
-                  What's left after materials buys classroom supplies. Teachers pay our cost.
-                </span>
-              </span>
-              <span className="shrink-0 bg-white text-chalkboard px-6 py-3 rounded-full font-bold text-sm group-hover:bg-pencil transition-colors">
-                Shop merch
-              </span>
-            </motion.button>
           </div>
         </section>
 
@@ -390,16 +351,16 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-ruler/20"
+                className="inline-flex items-center gap-2 bg-ruler/10 text-ruler px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-ruler/20"
               >
-                <Calendar size={14} />
-                <span>Community Engagement</span>
+                <Calendar size={14} aria-hidden="true" />
+                <span>On the calendar</span>
               </motion.div>
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
                 Upcoming <span className="text-ruler italic font-normal">Events</span>.
               </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
-                Join us for fundraisers, teacher appreciation days, and community showcases that celebrate the impact of education.
+              <p className="text-base text-chalkboard/70 max-w-2xl mx-auto font-light leading-relaxed">
+                What's coming up at our partner schools, and everything we've done so far.
               </p>
             </div>
             <EventCalendar />
@@ -418,7 +379,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
+                className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-8 uppercase tracking-widest border border-pencil/30"
               >
                 <Heart size={14} />
                 <span>Wall of Fame</span>
@@ -426,7 +387,7 @@ export default function App() {
               <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance text-white">
                 Our <span className="text-pencil italic font-normal">Supporters</span>.
               </h2>
-              <p className="text-base text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
+              <p className="text-base text-white/70 max-w-2xl mx-auto font-light leading-relaxed">
                 A public thank you to the individuals and organizations making a difference in Michigan classrooms every single day.
               </p>
             </div>
@@ -437,122 +398,15 @@ export default function App() {
           <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-apple/5 rounded-full blur-[120px] -z-0 -translate-x-1/2 -translate-y-1/2" />
         </section>
 
-        {/* Teacher Stories Section */}
-        <section
-          id="stories"
-          className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper relative overflow-hidden"
-        >
-          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
-            <div className="text-center mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="inline-flex items-center gap-2 bg-apple/10 text-apple px-4 py-1.5 rounded-full text-[11px] font-bold mb-8 uppercase tracking-widest border border-apple/20"
-              >
-                <Sparkles size={14} />
-                <span>Impact Stories</span>
-              </motion.div>
-              <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight text-balance">
-                Voices from the <span className="text-apple italic font-normal">Classroom</span>.
-              </h2>
-              <p className="text-base text-chalkboard/60 max-w-2xl mx-auto font-light leading-relaxed">
-                Real stories from educators whose classrooms were changed by your generosity. Every story is a testament to the power of community.
-              </p>
-            </div>
-            <TeacherStories />
-          </div>
-        </section>
-
         {/* Newsletter Section */}
         <Newsletter />
 
-        {/* Contact Section */}
-        <section id="contact" className="viewport-section py-14 sm:py-16 md:py-18 px-4 sm:px-6 bg-paper">
-          <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full">
-            <ContactForm />
-          </div>
-        </section>
       </main>
 
-      {/* Footer */}
-      <footer id="footer" className="bg-chalkboard text-white py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden">
-        <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto relative z-10">
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-10">
-            <div className="sm:col-span-2">
-              <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-2xl rotate-3 shrink-0">
-                  <picture>
-                    <source srcSet="/images/fmt-logo-96.avif" type="image/avif" />
-                    <img src="/images/fmt-logo-96.png" alt="Funding Michigan Teachers" width={96} height={96} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                  </picture>
-                </div>
-                <span className="font-serif text-xl sm:text-3xl font-bold tracking-tight">Funding Michigan Teachers</span>
-              </div>
-              <p className="font-hand text-2xl text-pencil mb-4 -rotate-1">
-                Teachers deserve better; let's make it happen.
-              </p>
-              <p className="text-white/50 max-w-md mb-10 text-lg font-light leading-relaxed">
-                A student-led 501(c)(3) funding Michigan teachers so no educator pays out of pocket, and every educator knows their work matters.
-              </p>
-              <div className="flex gap-6">
-                <a href="https://www.facebook.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Facebook</a>
-                <a href="https://www.instagram.com/fundingmichiganteachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">Instagram</a>
-                <a href="https://www.linkedin.com/company/funding-michigan-teachers" target="_blank" rel="noopener noreferrer" className="text-white/60 hover:text-apple transition-colors text-sm font-bold uppercase tracking-widest">LinkedIn</a>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Navigation</h4>
-              <ul className="space-y-5 text-white/60 font-medium">
-                <li><a href="/about" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="/for-teachers" className="hover:text-white transition-colors">For Teachers</a></li>
-                <li><a href="#mission" className="hover:text-white transition-colors">Our Mission</a></li>
-                <li><a href="#impact" className="hover:text-white transition-colors">Impact Map</a></li>
-                <li><a href="#projects" className="hover:text-white transition-colors">Classroom Projects</a></li>
-                <li><a href="#leaderboard" className="hover:text-white transition-colors">Leaderboard</a></li>
-                <li><a href="/sponsors" className="hover:text-white transition-colors">Corporate Sponsors</a></li>
-                <li><a href="/schools" className="hover:text-white transition-colors">Partner Schools</a></li>
-                <li><a href="/for-schools" className="hover:text-white transition-colors">Bring FMT to your school</a></li>
-                <li><a href="/shop" className="hover:text-white transition-colors inline-flex items-center gap-2">Shop Merch <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-apple bg-apple/10 px-1.5 py-0.5 rounded-full">New</span></a></li>
-                <li><a href="/returnables" className="hover:text-white transition-colors">Donate Returnables</a></li>
-                <li><a href="#donors" className="hover:text-white transition-colors">Supporter Wall</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold mb-8 uppercase tracking-[0.2em] text-[10px] text-pencil">Connect</h4>
-              <ul className="space-y-5 text-white/60 font-medium">
-                <li>Okemos, Michigan</li>
-                <li><a href="mailto:hello@fundingmichiganteachers.org" className="hover:text-white transition-colors">hello@fundingmichiganteachers.org</a></li>
-                <li className="pt-6">
-                  <button
-                    onClick={() => document.getElementById('tiers')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="bg-apple text-white px-10 py-4 rounded-2xl hover:bg-white hover:text-apple transition-all font-bold shadow-2xl flex items-center gap-3 group"
-                  >
-                    <Heart size={20} className="fill-current group-hover:scale-110 transition-transform" />
-                    <span>Support a Teacher</span>
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-white/60 text-xs">
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-              <span>&copy; {new Date().getFullYear()} Funding Michigan Teachers</span>
-              <span className="font-mono uppercase tracking-widest text-[9px] px-3 py-1 bg-white/5 rounded-full">EIN: 93-4485967</span>
-            </div>
-            <div className="flex items-center gap-6">
-              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-            </div>
-          </div>
-        </div>
-
-        {/* Background Accents */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-apple/5 rounded-full blur-[150px] -z-0 translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-ruler/5 rounded-full blur-[100px] -z-0 -translate-x-1/2 translate-y-1/2" />
-      </footer>
+      {/* The same footer as every other page. The homepage had its own, with
+          a column of same-page anchors and no Donate link, so the footer
+          changed under you the moment you left the homepage. */}
+      <SiteFooter />
 
       {/* FAQ Assistant */}
       <FAQAssistant />

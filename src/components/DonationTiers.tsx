@@ -61,7 +61,7 @@ interface DonationTiersProps {
 
 export default function DonationTiers({ onDonate }: DonationTiersProps) {
   return (
-    <div className="grid md:grid-cols-3 gap-5 md:gap-6 items-start max-w-5xl mx-auto">
+    <div className="rail-sm md:grid md:grid-cols-3 gap-4 md:gap-6 items-start max-w-5xl mx-auto" role="region" tabIndex={0} aria-label="Monthly giving levels">
       {TIERS.map((tier, index) => (
         <motion.div
           key={tier.name}
@@ -75,7 +75,7 @@ export default function DonationTiers({ onDonate }: DonationTiersProps) {
           )}
         >
           {tier.popular && (
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-ruler text-white px-4 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.18em] shadow-lg whitespace-nowrap">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-ruler text-white px-4 py-1 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.18em] shadow-lg whitespace-nowrap">
               Most Impactful
             </div>
           )}
@@ -94,18 +94,18 @@ export default function DonationTiers({ onDonate }: DonationTiersProps) {
               <h3 className="text-lg font-serif font-bold leading-tight">{tier.name}</h3>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl font-serif font-bold tracking-[-0.01em]">{tier.amount}</span>
-                <span className="text-muted font-bold text-[9px] uppercase tracking-[0.18em]">/ month</span>
+                <span className="text-muted font-bold text-[0.625rem] uppercase tracking-[0.18em]">/ month</span>
               </div>
             </div>
           </div>
 
-          <p className="text-chalkboard/60 text-sm mb-5 leading-relaxed font-light">
+          <p className="text-chalkboard/70 text-sm mb-5 leading-relaxed font-light">
             {tier.description}
           </p>
 
           <div className="flex-1 space-y-2.5 mb-6">
             {tier.rewards.map((reward) => (
-              <div key={reward} className="flex items-start gap-2.5 text-[13px]">
+              <div key={reward} className="flex items-start gap-2.5 text-[0.8125rem]">
                 <div className="w-4 h-4 mt-0.5 rounded-full bg-apple/10 text-apple flex items-center justify-center shrink-0">
                   <Check size={10} strokeWidth={3} />
                 </div>

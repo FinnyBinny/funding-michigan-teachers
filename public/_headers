@@ -1,0 +1,22 @@
+# Cache rules for Cloudflare's static asset service (Workers Static Assets
+# reads this file; it is not served). Without it every file got the default,
+# which makes the browser revalidate on each visit.
+
+# Every static file: never let a browser guess a different type.
+/*
+  X-Content-Type-Options: nosniff
+
+# Vite names every bundle after its contents, so a changed file is a new
+# URL: these can be cached for a year and never rechecked.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Fonts keep their names. A month is long enough to matter and short enough
+# that a replaced file reaches everyone; to change one sooner, rename it.
+/fonts/*
+  Cache-Control: public, max-age=2592000
+
+# Photos also keep their names and do get replaced (the shop photos, for
+# one), so a day, then served stale for up to a week while it refreshes.
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

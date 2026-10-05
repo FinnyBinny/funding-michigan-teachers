@@ -13,7 +13,7 @@ import { rowToEvent, rowToLocation } from '../hooks/useLocalData';
 import type { Event, Donor, Project, Story, Location, Sponsor, FoodPartner, TeacherOfTheMonth } from '../data/initialData';
 
 const inp ='w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-apple/20 outline-none';
-const lbl = 'block text-[10px] uppercase tracking-widest font-bold opacity-40 mb-1';
+const lbl = 'block text-[0.625rem] uppercase tracking-widest font-bold opacity-40 mb-1';
 const btnSave = 'flex-[2] bg-apple text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-apple/90 transition-all';
 const btnCancel = 'flex-1 bg-chalkboard/10 text-chalkboard py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-chalkboard/20 transition-all';
 
@@ -231,7 +231,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
               <Layout className="text-pencil" size={24} />
               <div>
                 <h2 className="text-2xl font-bold leading-none">Admin Dashboard</h2>
-                <p className="text-white/50 text-xs mt-1">Changes save instantly to the database — live for all visitors.</p>
+                <p className="text-white/70 text-xs mt-1">Changes save instantly to the database — live for all visitors.</p>
               </div>
             </div>
             <button aria-label="Close admin panel" onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
@@ -245,7 +245,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
                 <Lock size={28} className="text-apple" />
               </div>
               <h3 className="text-2xl font-bold mb-2">Signed out</h3>
-              <p className="text-chalkboard/50 text-sm">Sign in at /access to manage site content.</p>
+              <p className="text-chalkboard/70 text-sm">Sign in at /access to manage site content.</p>
             </div>
 
           ) : (
@@ -257,8 +257,8 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      'flex-1 min-w-[120px] py-4 px-3 flex items-center justify-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-all whitespace-nowrap',
-                      activeTab === tab.id ? 'text-apple border-b-2 border-apple bg-paper/60' : 'text-chalkboard/40 hover:text-chalkboard'
+                      'flex-1 min-w-[120px] py-4 px-3 flex items-center justify-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.12em] transition-all whitespace-nowrap',
+                      activeTab === tab.id ? 'text-apple border-b-2 border-apple bg-paper/60' : 'text-chalkboard/70 hover:text-chalkboard'
                     )}
                   >
                     <tab.icon size={14} /> {tab.label}
@@ -410,7 +410,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
                       </div>
                       <div><label className={lbl}>Logo URL (optional)</label><input value={spf.logo} onChange={e => setSpf({ ...spf, logo: e.target.value })} className={inp} placeholder="https://... or /images/logo.png" /></div>
                       <div><label className={lbl}>Short Description</label><textarea rows={2} value={spf.description} onChange={e => setSpf({ ...spf, description: e.target.value })} className={inp} placeholder="Proud to support the Okemos community." /></div>
-                      <label className="flex items-center gap-2 text-xs font-bold text-chalkboard/60">
+                      <label className="flex items-center gap-2 text-xs font-bold text-chalkboard/70">
                         <input type="checkbox" checked={spf.active} onChange={e => setSpf({ ...spf, active: e.target.checked })} className="w-4 h-4" />
                         Show on sponsors page
                       </label>
@@ -464,7 +464,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
                 {/* Right: Item List */}
                 <div className="p-8 bg-paper/30">
                   <h3 className="text-base font-bold mb-5 flex items-center gap-2">
-                    <Layout size={16} className="text-chalkboard/40" />
+                    <Layout size={16} className="text-chalkboard/70" />
                     Existing {
                       activeTab === 'stories' ? 'Stories'
                         : activeTab === 'events' ? 'Events'
@@ -475,25 +475,25 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
                         : activeTab === 'food_partners' ? 'Food Partners'
                         : 'Teachers of the Month'
                     }
-                    <span className="ml-auto text-[10px] font-bold text-chalkboard/30 bg-chalkboard/5 px-2 py-0.5 rounded-full">{items.length}</span>
+                    <span className="ml-auto text-[0.625rem] font-bold text-chalkboard/70 bg-chalkboard/5 px-2 py-0.5 rounded-full">{items.length}</span>
                   </h3>
                   <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
                     {items.length === 0 ? (
-                      <p className="text-center py-12 text-chalkboard/30 italic text-sm">No items yet. Add one on the left.</p>
+                      <p className="text-center py-12 text-chalkboard/70 italic text-sm">No items yet. Add one on the left.</p>
                     ) : (
                       items.map(item => (
                         <div key={item.id} className="bg-white p-4 rounded-xl border border-chalkboard/5 flex items-center justify-between gap-2 hover:border-apple/20 transition-all group">
                           <div className="min-w-0">
                             <p className="font-bold text-sm truncate">{item.title || item.business || item.teacher_name || item.name}</p>
-                            <p className="text-[10px] text-chalkboard/40 truncate mt-0.5">
+                            <p className="text-[0.625rem] text-chalkboard/70 truncate mt-0.5">
                               {item.school || item.school_name || item.district || item.tier || item.month || item.date || (item.amount !== undefined && typeof item.amount === 'number' ? `$${item.amount}` : item.amount || '')}
                             </p>
                           </div>
                           <div className="flex gap-1 shrink-0">
-                            <button onClick={() => loadForEdit(item)} aria-label="Edit item" className="p-2 text-chalkboard/20 hover:text-ruler hover:bg-ruler/5 rounded-lg transition-all">
+                            <button onClick={() => loadForEdit(item)} aria-label="Edit item" className="p-2 text-chalkboard/70 hover:text-ruler hover:bg-ruler/5 rounded-lg transition-all">
                               <Edit2 size={14} />
                             </button>
-                            <button onClick={() => handleDelete(item.id)} aria-label="Delete item" className="p-2 text-chalkboard/20 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                            <button onClick={() => handleDelete(item.id)} aria-label="Delete item" className="p-2 text-chalkboard/70 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                               <Trash2 size={14} />
                             </button>
                           </div>

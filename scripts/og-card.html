@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  The social share card: public/images/finn-and-mrs-freeman-og.jpg, 1200x630.
+
+  It is what Facebook, LinkedIn, iMessage, Slack and Google show for any link
+  to the site. It used to be a 1200x630 crop of a portrait photo, cut from
+  pixels that had never been turned upright, so every share showed Finn and
+  Mrs. Freeman lying on their sides. A designed card keeps both people whole.
+
+  To re-render after changing it, from the repo root, with Playwright
+  available (it is not a project dependency):
+
+    npx playwright screenshot --viewport-size=1200,630 \
+      "file://$PWD/scripts/og-card.html" /tmp/og.png
+    node -e "require('sharp')('/tmp/og.png').jpeg({quality:84,mozjpeg:true}).toFile('public/images/finn-and-mrs-freeman-og.jpg')"
+
+  Then re-scrape with Facebook's Sharing Debugger so the old one is dropped.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<style>
+  @font-face { font-family: "Fraunces"; font-weight: 100 900; src: url("../public/fonts/fraunces-latin.woff2") format("woff2"); }
+  @font-face { font-family: "Plus Jakarta Sans"; font-weight: 200 800; src: url("../public/fonts/plus-jakarta-sans-latin.woff2") format("woff2"); }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1200px; height: 630px; }
+  body {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    background: #fcfaf5;
+    color: #1a1c1d;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .photo { width: 450px; height: 630px; object-fit: cover; object-position: 50% 22%; display: block; }
+  .text { padding: 64px 64px 56px 64px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand img { width: 64px; height: 64px; border-radius: 16px; }
+  .brand b { font-family: "Fraunces", serif; font-size: 26px; line-height: 1.1; letter-spacing: -0.01em; }
+  .brand small { display: block; font-size: 13px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: #5b5f65; margin-top: 4px; }
+  h1 { font-family: "Fraunces", serif; font-weight: 700; font-size: 66px; line-height: 0.98; letter-spacing: -0.025em; margin-top: auto; }
+  h1 span { color: #c0392b; font-style: italic; font-weight: 400; }
+  p { margin-top: 26px; font-size: 21px; line-height: 1.45; color: #46494e; max-width: 600px; }
+  .url { margin-top: 30px; font-size: 17px; font-weight: 800; letter-spacing: 0.04em; color: #1f5673; }
+</style>
+</head>
+<body>
+  <img class="photo" src="../public/images/finn-and-mrs-freeman-1280.jpg" alt="" />
+  <div class="text">
+    <div class="brand">
+      <img src="../public/images/fmt-logo-192.png" alt="" />
+      <div><b>Funding Michigan Teachers</b><small>Student-led 501(c)(3) · Okemos, MI</small></div>
+    </div>
+    <h1>Michigan teachers give everything. <span>We give back.</span></h1>
+    <p>Classroom supplies, staff meals and thank-yous at three mid-Michigan high schools.</p>
+    <div class="url">fundingmichiganteachers.org</div>
+  </div>
+</body>
+</html>

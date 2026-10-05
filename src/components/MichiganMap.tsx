@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SCHOOLS } from '../../shared/schools';
 // Only these three d3 modules are used; importing the full `d3` meta-package
 // put ~90KB (gzipped) of unused library in the homepage bundle.
 import { select } from 'd3-selection';
@@ -14,6 +15,16 @@ export default function MichiganMap() {
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<Location | null>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // Opening a school's details moves focus into the panel; Escape closes it.
+  useEffect(() => {
+    if (!selectedLocation) return;
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedLocation(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedLocation]);
   const locations = useLocations();
 
   useEffect(() => {
@@ -68,6 +79,7 @@ export default function MichiganMap() {
       projected.forEach(({ loc, coords }) => {
         const [cx, cy] = coords;
         const isHome = loc.name === 'Okemos High School';
+        const isPartner = SCHOOLS.some((sch) => sch.name === loc.name);
         const lbl = LABEL[loc.name] ?? { dx: 15, dy: 4, anchor: 'start' as const };
 
         // Pulse ring (purely decorative — no event listeners)
@@ -79,7 +91,15 @@ export default function MichiganMap() {
           .attr("stroke-width", 1.5)
           .attr("opacity", 0.6);
 
+        // Three pulses, then still: endless motion beside content is a WCAG
+        // 2.2.2 problem, and none at all for anyone who asked for less motion.
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let pulses = 0;
         (function animateRing() {
+          if (reduceMotion || pulses++ >= 3) {
+            ring.attr("opacity", 0);
+            return;
+          }
           ring.transition().duration(1400)
             .attr("r", 22).attr("opacity", 0)
             .transition().duration(0)
@@ -105,10 +125,29 @@ export default function MichiganMap() {
           .datum(loc)
           .attr("cx", cx).attr("cy", cy)
           .attr("r", isHome ? 10 : 8)
-          .attr("fill", "#c0392b")
-          .attr("stroke", isHome ? "#e8b84b" : "rgba(255,255,255,0.9)")
-          .attr("stroke-width", isHome ? 3.5 : 2.5)
+          .attr("fill", isPartner ? "#c0392b" : "#1a1c1d")
+          .attr("stroke", isHome ? "#e8b84b" : isPartner ? "rgba(255,255,255,0.9)" : "#c0392b")
+          .attr("stroke-width", isHome ? 3.5 : isPartner ? 2.5 : 3)
           .attr("class", "cursor-pointer")
+          // A keyboard stop and a name for each school, so the details are
+          // not mouse-only.
+          .attr("tabindex", 0)
+          .attr("role", "button")
+          .attr("aria-label", `${loc.name}, ${loc.district}: show details`)
+          .on("keydown", (event: KeyboardEvent, d) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setSelectedLocation(d);
+            }
+          })
+          .on("focus", function (_event, d) {
+            select(this).attr("r", isHome ? 15 : 13);
+            setHoveredLocation(d);
+          })
+          .on("blur", function () {
+            select(this).attr("r", isHome ? 10 : 8);
+            setHoveredLocation(null);
+          })
           .on("mouseenter", function (event, d) {
             select(this).transition().duration(150).attr("r", isHome ? 15 : 13);
             setHoveredLocation(d);
@@ -141,18 +180,18 @@ export default function MichiganMap() {
               </div>
               <div>
                 <div className="font-serif font-bold leading-tight">{loc.name}</div>
-                <div className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                <div className="text-[0.625rem] font-bold text-white/70 uppercase tracking-widest flex items-center gap-1 mt-0.5">
                   <MapPin size={10} className="text-apple" />{loc.district}
                 </div>
               </div>
               <div className="ml-auto text-right">
-                <div className="text-pencil font-serif font-bold text-lg leading-none">{loc.amount}</div>
-                <div className="text-[9px] text-white/30 uppercase tracking-widest mt-0.5">raised</div>
+                {/* Not money in every case ("One-time delivery"), so no "raised" label. */}
+                <div className="text-pencil font-serif font-bold text-base leading-tight">{loc.amount}</div>
               </div>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {loc.projects.map(p => (
-                <span key={p} className="px-2 py-1 bg-apple/10 text-apple text-[9px] font-bold rounded-lg border border-apple/10">{p}</span>
+                <span key={p} className="px-2 py-1 bg-white/10 text-white/90 text-[0.625rem] font-bold rounded-lg border border-white/15">{p}</span>
               ))}
             </div>
           </div>
@@ -165,6 +204,8 @@ export default function MichiganMap() {
           ref={svgRef}
           viewBox="0 0 800 600"
           className="w-full h-full"
+          role="group"
+          aria-label="Map of partner schools around Okemos. Each school is a button that opens its details."
         />
 
         {/* Hover hint — names are on the map now; show the district */}
@@ -177,7 +218,7 @@ export default function MichiganMap() {
               className="absolute pointer-events-none bg-white/95 backdrop-blur-xl text-chalkboard px-4 py-3 rounded-2xl shadow-2xl border border-white/20 z-20 bottom-8 right-8"
             >
               <div className="font-serif font-bold text-base leading-tight">{hoveredLocation.name}</div>
-              <div className="text-[10px] font-bold text-muted uppercase tracking-widest mt-0.5">{hoveredLocation.district} · click for details</div>
+              <div className="text-[0.625rem] font-bold text-muted uppercase tracking-widest mt-0.5">{hoveredLocation.district} · click for details</div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -192,10 +233,12 @@ export default function MichiganMap() {
               className="absolute top-4 right-4 bottom-4 w-72 bg-white/95 backdrop-blur-2xl text-chalkboard p-5 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.3)] z-30 flex flex-col border border-white/20"
             >
               <button
+                ref={closeRef}
                 onClick={() => setSelectedLocation(null)}
+                aria-label="Close school details"
                 className="absolute top-4 right-4 p-2 hover:bg-chalkboard/5 rounded-full transition-colors"
               >
-                <X size={18} />
+                <X size={18} aria-hidden="true" />
               </button>
 
               <div className="w-10 h-10 bg-apple/10 text-apple rounded-xl flex items-center justify-center mb-3 shadow-sm">
@@ -203,12 +246,15 @@ export default function MichiganMap() {
               </div>
 
               <h3 className="text-lg font-serif font-bold mb-1 leading-tight pr-6">{selectedLocation.name}</h3>
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted uppercase tracking-widest mb-3">
+              <div className="flex items-center gap-1.5 text-[0.625rem] font-bold text-muted uppercase tracking-widest mb-3">
                 <MapPin size={12} className="text-apple" />
                 <span>{selectedLocation.district}</span>
               </div>
 
               <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
+                {/* Only when there are figures: most buildings have none, and
+                    three empty boxes read as missing data. */}
+                {selectedLocation.demographics.students && (
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { label: 'Students', value: selectedLocation.demographics.students },
@@ -216,32 +262,33 @@ export default function MichiganMap() {
                     { label: 'Diversity', value: selectedLocation.demographics.diversity }
                   ].map(stat => (
                     <div key={stat.label} className="bg-chalkboard/[0.03] p-2 rounded-xl text-center border border-chalkboard/5">
-                      <div className="text-[7px] uppercase font-bold text-muted tracking-widest mb-0.5">{stat.label}</div>
-                      <div className="text-[11px] font-bold font-mono">{stat.value}</div>
+                      <div className="text-[0.625rem] uppercase font-bold text-muted tracking-wider mb-0.5">{stat.label}</div>
+                      <div className="text-xs font-bold tabular-nums">{stat.value}</div>
                     </div>
                   ))}
                 </div>
+                )}
 
                 <div className="bg-pencil/10 p-4 rounded-2xl border border-pencil/20">
-                  <div className="text-[9px] uppercase tracking-[0.2em] font-bold text-ink mb-1">Impact</div>
+                  <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-ink mb-1">Impact</div>
                   <p className="text-xs leading-relaxed font-light italic">"{selectedLocation.impact}"</p>
                 </div>
 
                 <div>
-                  <div className="text-[9px] uppercase tracking-[0.2em] font-bold text-muted mb-2">Initiatives</div>
+                  <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-muted mb-2">Initiatives</div>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedLocation.projects.map(p => (
-                      <span key={p} className="px-2 py-1 bg-apple/5 text-apple text-[9px] font-bold rounded-lg border border-apple/10">{p}</span>
+                      <span key={p} className="px-2 py-1 bg-apple/5 text-apple text-[0.625rem] font-bold rounded-lg border border-apple/10">{p}</span>
                     ))}
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-chalkboard text-white rounded-2xl">
                   <div>
-                    <div className="text-[9px] uppercase tracking-[0.2em] font-bold text-white/50 mb-0.5">Grant Total</div>
+                    <div className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-white/70 mb-0.5">In short</div>
                     <div className="text-xl font-serif font-bold text-pencil">{selectedLocation.amount}</div>
                   </div>
-                  <Info size={18} className="text-white/30" />
+                  <Info size={18} className="text-white/70" />
                 </div>
               </div>
 
@@ -260,13 +307,21 @@ export default function MichiganMap() {
 
         {/* Legend */}
         <div className="absolute bottom-6 left-6 bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl text-white/80 text-xs shadow-2xl">
+          {/* Two kinds of dot, because they are two kinds of thing: a partner
+              school FMT works in all year, and a building that received meal
+              cards during one week in May. impactStats.ts is explicit that the
+              second are not "schools we support". */}
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-4 h-4 bg-apple rounded-full animate-pulse shadow-[0_0_10px_rgba(192,57,43,0.5)]" />
-            <span className="font-bold tracking-widest uppercase text-[10px]">Supported School</span>
+            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-white" aria-hidden="true" />
+            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Partner school</span>
+          </div>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-4 h-4 rounded-full border-2 border-apple" aria-hidden="true" />
+            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Teacher Appreciation Week, May 2026</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-pencil" />
-            <span className="font-bold tracking-widest uppercase text-[10px]">Home Base — Okemos High</span>
+            <div className="w-4 h-4 bg-apple rounded-full ring-2 ring-pencil" aria-hidden="true" />
+            <span className="font-bold tracking-widest uppercase text-[0.625rem]">Home base: Okemos High</span>
           </div>
         </div>
       </div>

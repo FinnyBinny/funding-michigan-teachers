@@ -70,13 +70,13 @@ export default function TeacherStories() {
                 <h3 className="font-serif font-bold text-lg md:text-xl text-chalkboard leading-tight tracking-[-0.01em]">
                   {currentStory.name}
                 </h3>
-                <p className="text-xs text-chalkboard/50 font-light mt-0.5 truncate">
+                <p className="text-xs text-chalkboard/70 font-light mt-0.5 truncate">
                   {currentStory.school} · {currentStory.location}
                 </p>
               </motion.div>
             </AnimatePresence>
 
-            <span className="shrink-0 text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/30">
+            <span className="shrink-0 text-[0.625rem] uppercase tracking-[0.22em] font-bold text-chalkboard/70">
               {String(currentIndex + 1).padStart(2, '0')} / {String(stories.length).padStart(2, '0')}
             </span>
           </div>
@@ -91,16 +91,16 @@ export default function TeacherStories() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={`quote-${currentStory.id ?? currentStory.name}`}
-                initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={{ opacity: 0, y: -10, filter: 'blur(3px)' }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.6, ease: EASE }}
                 className="relative z-10"
               >
                 <blockquote className="font-serif text-[clamp(1.0625rem,1.5vw,1.25rem)] leading-[1.5] text-chalkboard/85 mb-4">
                   &ldquo;{currentStory.impact}&rdquo;
                 </blockquote>
-                <p className="text-chalkboard/50 text-xs leading-relaxed font-light">
+                <p className="text-chalkboard/70 text-xs leading-relaxed font-light">
                   {currentStory.bio}
                 </p>
               </motion.div>
@@ -109,18 +109,26 @@ export default function TeacherStories() {
 
           {/* BOTTOM bar — pagination + nav + share CTA */}
           <div className="border-t border-chalkboard/5 px-5 md:px-6 py-3 flex flex-wrap items-center justify-between gap-3 bg-paper/30">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center">
               {stories.map((s, i) => (
+                // A 24px button around the small visible dot: the dot alone
+                // was a 4x4px target (WCAG 2.5.8 asks for 24px).
                 <button
                   key={s.id ?? s.name}
                   onClick={() => { setDirection(i > currentIndex ? 1 : -1); setCurrentIndex(i); }}
                   aria-label={`View story ${i + 1}: ${s.name}`}
-                  className={cn(
-                    'h-1 rounded-full',
-                    currentIndex === i ? 'bg-apple w-6' : 'bg-chalkboard/15 w-1 hover:bg-chalkboard/30',
-                  )}
-                  style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
-                />
+                  aria-current={currentIndex === i ? 'true' : undefined}
+                  className="group h-6 min-w-6 flex items-center justify-center"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'block h-1 rounded-full',
+                      currentIndex === i ? 'bg-apple w-6' : 'bg-chalkboard/30 w-1.5 group-hover:bg-chalkboard/50',
+                    )}
+                    style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
+                  />
+                </button>
               ))}
             </div>
 
@@ -144,7 +152,7 @@ export default function TeacherStories() {
 
               <button
                 onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group flex items-center gap-1.5 bg-chalkboard text-white pl-3.5 pr-1 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.18em] hover:bg-apple active:scale-[0.98] ml-1.5"
+                className="group flex items-center gap-1.5 bg-chalkboard text-white pl-3.5 pr-1 py-1 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.18em] hover:bg-apple active:scale-[0.98] ml-1.5"
                 style={{ transition: 'all 600ms cubic-bezier(0.32,0.72,0,1)' }}
               >
                 <Mail size={10} strokeWidth={1.5} />

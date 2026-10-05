@@ -1,42 +1,20 @@
 import { motion } from 'motion/react';
 import { Award, Star, Heart, Building2, ArrowRight } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { useDonors, useSponsors } from '../hooks/useLocalData';
+import { cn, splitBusinessName } from '../lib/utils';
+import { useDonors, useSponsors, useFoodPartners } from '../hooks/useLocalData';
 
-const FOOD_PARTNERS = [
-  {
-    month: 'September',
-    business: 'Chick-Fil-A (2075 W Grand River Ave. Okemos, MI)',
-    detail: 'Cookies + free meal coupons for every single staff member',
-    avif: '/images/IMG_3714(CFA).avif',
-    image: '/images/IMG_3714(CFA)-opt.jpg',
-  },
-  {
-    month: 'October',
-    business: "Tailgaters / Dunkin' (3450 Okemos Rd. Okemos, MI)",
-    detail: 'Fresh donuts for the whole staff',
-    avif: '/images/IMG_4369(DNK).avif',
-    image: '/images/IMG_4369(DNK)-opt.jpg',
-  },
-  {
-    month: 'January',
-    business: 'Nothing Bundt Cakes (2090 W Grand River Ave. Okemos, MI)',
-    detail: 'Mini Bundt Cakes — the perfect January pick-me-up',
-    avif: '/images/IMG_5678(NBC).avif',
-    image: '/images/IMG_5678(NBC)-opt.jpg',
-  },
-];
 
 export default function DonorWall() {
   const donors = useDonors();
   const sponsors = useSponsors().filter((s) => s.active !== false);
+  const foodPartners = useFoodPartners();
 
   return (
     <div className="space-y-20">
 
       {/* Cash Supporters */}
       <div>
-        <p className="text-center text-[10px] uppercase tracking-[0.25em] font-bold text-white/50 mb-10">
+        <p className="text-center text-[0.625rem] uppercase tracking-[0.25em] font-bold text-white/70 mb-10">
           Individual &amp; Community Supporters
         </p>
         <div className="rail-sm rail-auto md:flex md:flex-wrap md:justify-center gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Individual and community supporters">
@@ -67,10 +45,10 @@ export default function DonorWall() {
                   ? <Star size={18} />
                   : <Heart size={18} />}
               </div>
-              <h4 className="font-bold text-sm leading-tight text-white">{donor.name}</h4>
-              <p className="text-[9px] uppercase tracking-widest font-bold text-white/50 mt-1">{donor.tier}</p>
+              <p className="font-bold text-sm leading-tight text-white">{donor.name}</p>
+              <p className="text-[0.625rem] uppercase tracking-widest font-bold text-white/70 mt-1">{donor.tier}</p>
               {donor.message && (
-                <p className="text-[11px] italic mt-3 text-white/70 leading-snug">"{donor.message}"</p>
+                <p className="text-[0.6875rem] italic mt-3 text-white/70 leading-snug">"{donor.message}"</p>
               )}
             </motion.div>
           ))}
@@ -83,21 +61,21 @@ export default function DonorWall() {
             transition={{ delay: donors.length * 0.07 }}
             className="p-6 rounded-2xl border border-dashed border-white/20 flex flex-col items-center text-center max-w-[190px] bg-transparent"
           >
-            <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-dashed border-white/25 flex items-center justify-center text-white/30">
+            <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-dashed border-white/25 flex items-center justify-center text-white/70">
               <span className="text-xl font-bold">+</span>
             </div>
-            <p className="text-sm font-bold text-white/40">Your name here</p>
-            <p className="text-[10px] text-white/25 mt-1">Donate today</p>
+            <p className="text-sm font-bold text-white/70">Your name here</p>
+            <p className="text-[0.625rem] text-white/70 mt-1">Donate today</p>
           </motion.div>
         </div>
       </div>
 
       {/* Corporate Sponsors — distinct from individuals and in-kind partners */}
       <div>
-        <p className="text-center text-[10px] uppercase tracking-[0.25em] font-bold text-white/50 mb-3">
+        <p className="text-center text-[0.625rem] uppercase tracking-[0.25em] font-bold text-white/70 mb-3">
           Corporate Sponsors
         </p>
-        <p className="text-center text-sm text-white/50 mb-10 font-light max-w-lg mx-auto">
+        <p className="text-center text-sm text-white/70 mb-10 font-light max-w-lg mx-auto">
           Businesses that put real dollars behind Michigan teachers — publicly, proudly, year after year.
         </p>
         <div className="rail-sm rail-auto md:flex md:flex-wrap md:justify-center gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Corporate sponsors">
@@ -113,10 +91,10 @@ export default function DonorWall() {
               <div className="w-11 h-11 mb-4 rounded-xl bg-pencil/20 ring-1 ring-pencil/30 flex items-center justify-center text-pencil">
                 <Building2 size={18} strokeWidth={1.5} />
               </div>
-              <h4 className="font-serif font-bold text-base leading-tight text-white">{sponsor.name}</h4>
-              <p className="text-[9px] uppercase tracking-[0.22em] font-bold text-pencil/80 mt-1.5">{sponsor.tier}</p>
+              <p className="font-serif font-bold text-base leading-tight text-white">{splitBusinessName(sponsor.name).name}</p>
+              <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-pencil/80 mt-1.5">{sponsor.tier}</p>
               {sponsor.description && (
-                <p className="text-[11px] italic mt-3 text-white/60 leading-snug font-light">"{sponsor.description}"</p>
+                <p className="text-[0.6875rem] italic mt-3 text-white/70 leading-snug font-light">"{sponsor.description}"</p>
               )}
             </motion.div>
           ))}
@@ -130,55 +108,39 @@ export default function DonorWall() {
             transition={{ delay: sponsors.length * 0.08 }}
             className="group border border-dashed border-white/20 rounded-2xl px-7 py-6 flex flex-col items-center justify-center text-center max-w-[220px] hover:border-pencil/50 transition-colors"
           >
-            <div className="w-11 h-11 mb-4 rounded-xl border-2 border-dashed border-white/25 flex items-center justify-center text-white/30 group-hover:text-pencil group-hover:border-pencil/40 transition-colors">
+            <div className="w-11 h-11 mb-4 rounded-xl border-2 border-dashed border-white/25 flex items-center justify-center text-white/70 group-hover:text-pencil group-hover:border-pencil/40 transition-colors">
               <ArrowRight size={16} strokeWidth={1.5} />
             </div>
-            <p className="text-sm font-bold text-white/40 group-hover:text-white/70 transition-colors">Your business here</p>
-            <p className="text-[10px] text-white/25 mt-1">Become a sponsor</p>
+            <p className="text-sm font-bold text-white/70 group-hover:text-white transition-colors">Your business here</p>
+            <p className="text-[0.625rem] text-white/70 mt-1">Become a sponsor</p>
           </motion.a>
         </div>
       </div>
 
-      {/* Food Partners */}
-      <div>
-        <p className="text-center text-[10px] uppercase tracking-[0.25em] font-bold text-white/50 mb-3">
+      {/* In-kind partners: their names here, their photos on /sponsors.
+          This was three tall photo cards, the same three photos that also
+          appear on /sponsors and used to appear on /for-schools. */}
+      <div className="text-center">
+        <p className="text-[0.625rem] uppercase tracking-[0.25em] font-bold text-white/70 mb-3">
           In-Kind Community Partners
         </p>
-        <p className="text-center text-sm text-white/50 mb-10 font-light max-w-lg mx-auto">
-          Every month during the school year, local Okemos businesses donate food for OHS teacher staff meetings.
-          This is what community support actually looks like.
+        <p className="text-sm text-white/75 mb-6 font-light max-w-lg mx-auto">
+          Local businesses donate the food and gift cards for the staff meetings and appreciation weeks we run.
         </p>
-        <div className="rail-sm md:grid md:grid-cols-4 gap-4 md:gap-5" role="region" tabIndex={0} aria-label="Food partners">
-          {FOOD_PARTNERS.map((partner, index) => (
-            <motion.div
-              key={partner.business}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
-            >
-              <div className="aspect-[3/4] w-full">
-                <picture>
-                  <source srcSet={partner.avif} type="image/avif" />
-                  <img
-                    src={partner.image}
-                    alt={`${partner.business} donation — ${partner.month}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </picture>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/85 via-chalkboard/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-white/50 text-[9px] uppercase tracking-[0.18em] font-bold mb-0.5">{partner.month}</p>
-                <p className="text-white font-bold text-sm leading-tight">{partner.business}</p>
-                <p className="text-white/65 text-[11px] mt-1 leading-snug">{partner.detail}</p>
-              </div>
-            </motion.div>
+        <ul className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto mb-6" aria-label="In-kind partners">
+          {[...new Set(foodPartners.map((p) => splitBusinessName(p.business).name))].map((name) => (
+            <li key={name} className="px-3.5 py-1.5 rounded-full bg-white/[0.07] ring-1 ring-white/15 text-sm text-white/90">
+              {name}
+            </li>
           ))}
-        </div>
+        </ul>
+        <a
+          href="/sponsors"
+          onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/sponsors'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-pencil underline underline-offset-4 decoration-pencil/40 hover:decoration-pencil"
+        >
+          See what each one gave <ArrowRight size={14} aria-hidden="true" />
+        </a>
       </div>
 
     </div>

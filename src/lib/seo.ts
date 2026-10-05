@@ -1,4 +1,5 @@
 import { trackPageView } from './analytics';
+import { canonicalUrl } from '../../shared/pageMeta';
 
 /**
  * Per-route <head> management for the SPA.
@@ -15,6 +16,9 @@ import { trackPageView } from './analytics';
  */
 
 const ORIGIN = 'https://www.fundingmichiganteachers.org';
+// Titles and descriptions live in shared/pageMeta.ts, which the Worker also
+// writes into the HTML it serves, so the head the server sends and the head
+// the page sets are the same and the canonical never changes after render.
 
 function upsertMeta(attr: 'name' | 'property', key: string, content: string): void {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
@@ -50,11 +54,13 @@ export function setPageMeta({ title, description, path, noindex = false }: PageM
   document.title = title;
   upsertMeta('name', 'description', description);
   upsertMeta('name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow');
-  const canonical = path === '/' ? `${ORIGIN}/` : `${ORIGIN}${path}`;
+  const canonical = canonicalUrl(path);
   upsertCanonical(canonical);
   upsertMeta('property', 'og:url', canonical);
   upsertMeta('property', 'og:title', title);
   upsertMeta('property', 'og:description', description);
+  upsertMeta('name', 'twitter:title', title);
+  upsertMeta('name', 'twitter:description', description);
   trackPageView(path, title);
 }
 

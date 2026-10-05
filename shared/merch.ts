@@ -6,8 +6,9 @@
  * a visitor can edit ever decides what they get charged — a page that posts
  * its own prices to Stripe can be bought from for a dollar.
  *
- * Deliberately dependency-free so the Worker can import it.
+ * Imports only shared/fees.ts, so the Worker can bundle it.
  */
+import { coverFee } from './fees';
 
 export type MerchSize = 'S' | 'M' | 'L' | 'XL' | 'XXL';
 export const MERCH_SIZES: readonly MerchSize[] = ['S', 'M', 'L', 'XL', 'XXL'];
@@ -90,8 +91,6 @@ export interface CartLine {
   size: string;
   colorId: string;
   qty: number;
-  /** Teacher pricing: the item is sold at cost, with no margin for FMT. */
-  atCost?: boolean;
 }
 
 export function findProduct(id: string): MerchProduct | undefined {
@@ -102,27 +101,111 @@ export function unitPrice(p: MerchProduct, atCost?: boolean): number {
   return atCost ? p.cost : p.price;
 }
 
-/**
- * Order total in cents. Used by the page for display and independently by the
- * Worker for what it actually charges; both must agree, so both call this.
- */
-export function orderTotal(lines: CartLine[], fulfilment: Fulfilment): {
-  subtotal: number;
+export interface PricedItem {
+  /** "FMT T-Shirt — Navy, M" — what the receipt and the packing list say. */
+  name: string;
+  description: string;
+  /** Cents. */
+  unitAmount: number;
+  quantity: number;
+}
+
+export interface PricingOptions {
+  fulfilment: Fulfilment;
+  /**
+   * Teacher pricing, claimed with the "I'm a teacher" box. That box is an
+   * honour system on purpose: at cost, FMT makes nothing on the order but
+   * loses nothing either.
+   */
+  educator: boolean;
+  /**
+   * The kind of code that applies. The Worker passes the kind of a code it
+   * has looked up itself; the page passes the kind the Worker told it about.
+   * Never a kind the page decided on its own.
+   */
+  codeKind: CodeKind | null;
+  /** The buyer chose to cover the card processing fee. */
+  coverFee: boolean;
+}
+
+export interface PricedOrder {
+  /** Garments, then delivery, then the covered fee: exactly what Stripe charges. */
+  items: PricedItem[];
+  /** Garments as charged, after educator pricing and any free tee. */
+  merchandise: number;
+  /** What the free tee would have cost, so the page can show it. */
+  freeTeeSavings: number;
   delivery: number;
+  fee: number;
   total: number;
-} {
-  const subtotal = lines.reduce((sum, l) => {
-    const p = findProduct(l.productId);
-    if (!p) return sum;
-    return sum + unitPrice(p, l.atCost) * l.qty;
-  }, 0);
+}
 
+/**
+ * Prices an order. The page calls it to show the total; the Worker calls it,
+ * independently, to build what Stripe charges. One function, so the two
+ * cannot disagree — before this, the page ignored a free-tee code and showed
+ * $25 for an order Stripe then charged $0.
+ */
+export function priceOrder(lines: CartLine[], o: PricingOptions): PricedOrder {
+  const educator = o.educator || o.codeKind === 'educator';
+  // A free-tee code covers exactly one shirt; the rest of that line, and
+  // everything else, is charged normally.
+  let freeTeeRemaining = o.codeKind === 'free-tee' ? 1 : 0;
+
+  const items: PricedItem[] = [];
+  let merchandise = 0;
+  let freeTeeSavings = 0;
+  let goodsValue = 0;
+
+  for (const l of lines) {
+    const product = findProduct(l.productId);
+    const color = MERCH_COLORS.find((c) => c.id === l.colorId);
+    if (!product || !color) continue;
+    const unit = unitPrice(product, educator);
+    const name = `${product.name} — ${color.name}, ${l.size}`;
+    goodsValue += unit * l.qty;
+
+    let freeHere = 0;
+    if (freeTeeRemaining > 0 && product.id === 'tee') {
+      freeHere = Math.min(freeTeeRemaining, l.qty);
+      freeTeeRemaining -= freeHere;
+      freeTeeSavings += unit * freeHere;
+      items.push({ name, description: 'Teacher of the Month — on us.', unitAmount: 0, quantity: freeHere });
+    }
+    if (l.qty - freeHere > 0) {
+      items.push({
+        name,
+        description: educator
+          ? 'Educator pricing: sold at our cost, no margin to FMT.'
+          // On the buyer's receipt. A purchase, so not presented as a gift.
+          : 'Merchandise from Funding Michigan Teachers. Not a tax-deductible donation.',
+        unitAmount: unit,
+        quantity: l.qty - freeHere,
+      });
+      merchandise += unit * (l.qty - freeHere);
+    }
+  }
+
+  // Delivery is judged on what the garments are worth, free tee included, so
+  // a free shirt still pays its own delivery.
   const delivery =
-    fulfilment === 'delivery' && subtotal > 0 && subtotal < FREE_DELIVERY_OVER
-      ? DELIVERY_FEE
-      : 0;
+    o.fulfilment === 'delivery' && goodsValue > 0 && goodsValue < FREE_DELIVERY_OVER ? DELIVERY_FEE : 0;
+  if (delivery > 0) {
+    items.push({ name: 'Local delivery', description: `Free on orders over ${formatPrice(FREE_DELIVERY_OVER)}.`, unitAmount: delivery, quantity: 1 });
+  }
 
-  return { subtotal, delivery, total: subtotal + delivery };
+  const beforeFee = merchandise + delivery;
+  const fee = o.coverFee && beforeFee > 0 ? coverFee(beforeFee).feeCents : 0;
+  if (fee > 0) {
+    items.push({
+      name: 'Card processing fee, covered by you',
+      description: 'Optional. Means the full price of your order reaches FMT.',
+      unitAmount: fee,
+      quantity: 1,
+    });
+  }
+
+  return { items, merchandise, freeTeeSavings, delivery, fee, total: beforeFee + fee };
 }
 
 /** Validates a cart from the browser. Returns an error string, or null. */

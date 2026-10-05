@@ -4,9 +4,11 @@ import { Send, Loader2, CheckCircle2, Award, Package, Heart } from 'lucide-react
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { supabase } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
+import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -175,12 +177,7 @@ export default function ForTeachersPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'Request Classroom Supplies | Funding Michigan Teachers',
-      description:
-        'Teach at Okemos, East Lansing or Haslett? Tell us what your classroom ran out of and we restock it. No application, no committee, no grant cycle.',
-      path: '/for-teachers',
-    });
+    setPageMeta(metaForPath('/for-teachers'));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -292,24 +289,28 @@ export default function ForTeachersPage() {
       return;
     }
 
-    // Last resort: hand it to their mail app. Says what actually happened —
-    // claiming "sent" here would be a lie if the client never opens.
+    // Nothing received it. Say so, and offer the email with the request in
+    // it as a link the teacher presses, rather than a window.open() that a
+    // pop-up blocker or a phone with no mail app swallows silently.
+    setStatus('mailto');
+  };
+
+  const mailtoHref = () => {
     const subject = encodeURIComponent(`Supply request — ${form.name} (${schoolName})`);
     const body = encodeURIComponent(
       `Teacher: ${form.name}\nSchool: ${schoolName}${form.room ? `\nRoom: ${form.room}` : ''}\nEmail: ${form.email}\n\nWhat the classroom needs:\n${form.needs}`,
     );
-    window.open(`mailto:${EMAIL}?subject=${subject}&body=${body}`);
-    setStatus('mailto');
+    return `mailto:${EMAIL}?subject=${subject}&body=${body}`;
   };
 
-  const field = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 focus:border-apple/40 outline-none transition-all placeholder:text-chalkboard/35';
-  const label = 'block text-[10px] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 ml-1';
+  const field = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-apple/10 focus:border-apple/40 outline-none transition-all placeholder:text-chalkboard/65';
+  const label = 'block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 ml-1';
 
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <SiteHeader />
 
-      <main className="relative z-10 flex-1">
+      <main id="main" className="relative z-10 flex-1">
         {/* Hero */}
         <section className="px-4 sm:px-6 pt-28 sm:pt-36 pb-10">
           <div className="pointer-events-none absolute top-0 right-0 w-[560px] h-[560px] bg-ruler/[0.06] rounded-full blur-[140px] translate-x-1/3 -translate-y-1/4" />
@@ -319,7 +320,7 @@ export default function ForTeachersPage() {
             transition={{ duration: 0.7, ease: EASE }}
             className="max-w-3xl mx-auto relative"
           >
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/50 mb-5">
+            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-5">
               For Michigan Teachers
             </p>
             <h1 className="font-serif font-bold text-[clamp(2.25rem,7vw,3.75rem)] leading-[1.03] tracking-[-0.02em] mb-6 text-balance">
@@ -335,7 +336,7 @@ export default function ForTeachersPage() {
         {/* Quick fills */}
         <section className="px-4 sm:px-6 pb-12">
           <div className="max-w-3xl mx-auto">
-            <p className="text-sm text-chalkboard/60 font-light mb-4">
+            <p className="text-sm text-chalkboard/70 font-light mb-4">
               The requests we fill fastest:
             </p>
             <div className="flex flex-wrap gap-2">
@@ -348,63 +349,65 @@ export default function ForTeachersPage() {
                 </span>
               ))}
             </div>
-            <p className="text-sm text-chalkboard/55 font-light mt-4 italic">
+            <p className="text-sm text-chalkboard/70 font-light mt-4 italic">
               Something else? Ask anyway.
             </p>
           </div>
         </section>
 
         {/* Reassurance */}
-        <section className="px-4 sm:px-6 py-12 bg-white/60">
+        <section className="px-4 sm:px-6 py-12 bg-white/60" aria-labelledby="how-it-works">
+          <h2 id="how-it-works" className="sr-only">How asking works</h2>
           <div className="max-w-3xl mx-auto grid sm:grid-cols-3 gap-5">
             {REASSURANCE.map((r) => (
               <div key={r.title}>
                 <div className="w-10 h-10 rounded-xl bg-apple/10 text-apple flex items-center justify-center mb-3">
                   <r.icon size={18} strokeWidth={1.6} />
                 </div>
-                <h2 className="font-bold text-sm mb-1.5">{r.title}</h2>
-                <p className="text-sm text-chalkboard/65 font-light leading-relaxed">{r.body}</p>
+                <h3 className="font-sans font-bold text-sm mb-1.5">{r.title}</h3>
+                <p className="text-sm text-chalkboard/70 font-light leading-relaxed">{r.body}</p>
               </div>
             ))}
           </div>
         </section>
 
+        {/* What turns up. This photo's one featured slot on the site. */}
+        <section className="px-4 sm:px-6 pt-12">
+          <figure className="max-w-3xl mx-auto">
+            <picture>
+              <source srcSet="/images/IMG_3714(CFA).avif" type="image/avif" />
+              <img
+                src="/images/IMG_3714(CFA)-opt.jpg"
+                alt="Trays of cookies and coupon cards on a staff-room table, beside a whiteboard note reading Thank you for all you do, help yourself to one cookie, signed Funding Michigan Teachers"
+                width={675}
+                height={900}
+                loading="lazy"
+                decoding="async"
+                className="w-full aspect-[4/3] object-cover object-[50%_40%] rounded-[1.5rem] ring-1 ring-chalkboard/10"
+              />
+            </picture>
+            <figcaption className="mt-3 text-sm text-chalkboard/70">
+              The first staff meeting of the 2025–26 school year: cookies and meal coupons from Chick-fil-A, and a note from us.
+            </figcaption>
+          </figure>
+        </section>
+
         {/* The form — the page's single action */}
         <section id="request" className="px-4 sm:px-6 py-14">
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             <h2 className="font-serif font-bold text-2xl sm:text-3xl mb-2">What does your classroom need?</h2>
-            <p className="text-chalkboard/60 font-light mb-8 text-sm">
-              Five fields. Under a minute.
+            <p className="text-chalkboard/70 font-light mb-8 text-sm">
+              A few quick questions. The rest are optional.
             </p>
 
-            {status === 'success' || status === 'mailto' ? (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white ring-1 ring-apple/25 rounded-[1.75rem] p-8 text-center"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-apple/10 text-apple flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 size={22} />
-                </div>
-                <h3 className="font-serif font-bold text-xl mb-2">
-                  {status === 'mailto' ? 'Almost — one more tap' : 'Got it.'}
-                </h3>
-                <p className="text-sm text-chalkboard/70 font-light leading-relaxed">
-                  {status === 'mailto'
-                    ? "We opened your email app with the request ready. Press send there and it'll reach us."
-                    : "We'll be in touch within a day or two. If it's on the quick list, it's usually straightforward."}
-                </p>
-                <button
-                  onClick={() => setStatus('idle')}
-                  className="mt-5 text-sm font-bold text-apple hover:text-apple/80 transition-colors"
-                >
-                  Send another request
-                </button>
-              </motion.div>
+            {status === 'success' ? (
+              <RequestReceived onAnother={() => setStatus('idle')} />
             ) : (
               <form onSubmit={handleSubmit} className="bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-8 space-y-5">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="mb-5">
+                {/* "What is this for?" gets its own full-width row; inside the
+                    two-column grid it left School alone on the next row and
+                    cut its own longest option off. */}
+                <div>
                   <label htmlFor="teacher-kind" className={label}>What is this for?</label>
                   <select
                     id="teacher-kind" name="kind" value={form.kind}
@@ -416,13 +419,14 @@ export default function ForTeachersPage() {
                     ))}
                   </select>
                   {form.kind === 'mid-year-refill' && (
-                    <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                    <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
                       Refills are all delivered the week of January 12th, so anything you send
                       before then is in time.
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="grid sm:grid-cols-2 gap-4 items-end">
+                  <div>
                     <label htmlFor="teacher-name" className={label}>Your name</label>
                     <input
                       id="teacher-name" name="name" required autoComplete="name"
@@ -453,7 +457,7 @@ export default function ForTeachersPage() {
                       onChange={(e) => setForm({ ...form, schoolOther: e.target.value })}
                       className={field} placeholder="Kinawa Middle School"
                     />
-                    <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                    <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
                       We work in Okemos, East Lansing and Haslett today, but tell us anyway — it's
                       how we find out where to go next.
                     </p>
@@ -476,7 +480,7 @@ export default function ForTeachersPage() {
                     value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })}
                     className={field} placeholder="212, or Media center"
                   />
-                  <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                  <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
                     So we can walk it to you instead of leaving it at the office.
                   </p>
                 </div>
@@ -491,7 +495,7 @@ export default function ForTeachersPage() {
                     className={`${field} resize-none`}
                     placeholder="2 boxes of tissues, a 12-pack of black dry erase markers, and 500 sheets of copy paper. We're out and it's only October."
                   />
-                  <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                  <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
                     Quantities help — "2 boxes" is easier to fund than "some", and guessing is fine.
                     If it's for something specific, a lab or a garden or a reading corner, say so:
                     that sentence is usually what we put in the letter we send a business. Please
@@ -506,7 +510,7 @@ export default function ForTeachersPage() {
                     value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })}
                     className={field} placeholder="https://..."
                   />
-                  <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                  <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
                     Optional. If you've already got it in a cart, paste the link — that's the
                     fastest request we can fill.
                   </p>
@@ -576,7 +580,7 @@ export default function ForTeachersPage() {
                     className={`${field} resize-none`}
                     placeholder="Sharing one set between four lab groups, so half the class watches."
                   />
-                  <p className="mt-2 text-sm text-chalkboard/60 font-light leading-snug">
+                  <p className="mt-2 text-sm text-chalkboard/70 font-light leading-snug">
                     Optional, one line is plenty. This is usually the part we end up quoting when we
                     ask a business for help. Please don't include student names.
                   </p>
@@ -613,7 +617,7 @@ export default function ForTeachersPage() {
                       </label>
                     ))}
                   </div>
-                  <p className="mt-3 text-sm text-chalkboard/60 font-light leading-snug">
+                  <p className="mt-3 text-sm text-chalkboard/70 font-light leading-snug">
                     All optional, and your request is treated exactly the same either way. A tick is
                     permission to ask — nothing goes public from this form on its own.
                   </p>
@@ -627,13 +631,15 @@ export default function ForTeachersPage() {
                   {status === 'loading' ? <Loader2 className="animate-spin" size={20} /> : (
                     <>
                       <span>Send my request</span>
-                      <Send size={17} />
+                      <Send size={17} aria-hidden="true" />
                     </>
                   )}
                 </button>
+                {status === 'mailto' && <SendFailed mailto={mailtoHref()} />}
 
-                <p className="text-xs text-chalkboard/50 font-light text-center leading-relaxed">
-                  Goes straight to Finn. Or email{' '}
+                <p className="text-xs text-chalkboard/70 font-light text-center leading-relaxed">
+                  Read by our student team and kept with your request so we can follow up.
+                  See our <a href="/privacy" className="text-apple underline">privacy policy</a>, or email{' '}
                   <a href={`mailto:${EMAIL}`} className="text-apple underline">{EMAIL}</a>.
                 </p>
               </form>
@@ -645,5 +651,31 @@ export default function ForTeachersPage() {
       <SiteFooter />
       <div className="grain-overlay" aria-hidden="true" />
     </div>
+  );
+}
+
+/** Replaces the request form once it has been delivered. */
+function RequestReceived({ onAnother }: { onAnother: () => void }) {
+  const headingRef = useFocusOnMount<HTMLHeadingElement>();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white ring-1 ring-apple/25 rounded-[1.75rem] p-8 text-center"
+    >
+      <div className="w-12 h-12 rounded-2xl bg-apple/10 text-apple flex items-center justify-center mx-auto mb-4">
+        <CheckCircle2 size={22} aria-hidden="true" />
+      </div>
+      <h3 ref={headingRef} tabIndex={-1} className="font-serif font-bold text-xl mb-2 outline-none">Got it.</h3>
+      <p className="text-sm text-chalkboard/75 font-light leading-relaxed">
+        We'll be in touch within a day or two. If it's on the quick list, it's usually straightforward.
+      </p>
+      <button
+        onClick={onAnother}
+        className="mt-5 text-sm font-bold text-apple hover:text-apple/80 transition-colors"
+      >
+        Send another request
+      </button>
+    </motion.div>
   );
 }

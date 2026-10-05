@@ -9,6 +9,7 @@ import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 import { Button, ButtonTrailing } from '../components/ui/button';
 import { breadcrumbs, setPageMeta, setPageStructuredData } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { useEvents } from '../hooks/useLocalData';
 import { PAST_EVENTS } from '../data/initialData';
 import { schoolPath, type School } from '../../shared/schools';
@@ -109,7 +110,7 @@ function SectionHead({
   return (
     <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
       <div
-        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold mb-6 uppercase tracking-widest"
+        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[0.6875rem] font-bold mb-6 uppercase tracking-widest"
         style={{
           background: 'color-mix(in srgb, var(--school-primary) 10%, transparent)',
           color: 'var(--school-primary)',
@@ -123,7 +124,7 @@ function SectionHead({
         <span className="italic font-normal" style={{ color: 'var(--school-primary)' }}>{accent}</span>
       </h2>
       {sub && (
-        <p className="mt-5 text-lg text-chalkboard/60 font-light leading-relaxed text-pretty">{sub}</p>
+        <p className="mt-5 text-lg text-chalkboard/70 font-light leading-relaxed text-pretty">{sub}</p>
       )}
     </div>
   );
@@ -153,7 +154,7 @@ function FeatureCard({
       </div>
       <div className="min-w-0">
         <h3 className="text-xl font-serif font-bold mb-2">{title}</h3>
-        <div className="text-chalkboard/60 leading-relaxed font-light text-base">{children}</div>
+        <div className="text-chalkboard/70 leading-relaxed font-light text-base">{children}</div>
       </div>
     </motion.div>
   );
@@ -171,11 +172,7 @@ export default function SchoolPage({ school }: { school: School }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setPageMeta({
-      title: `${school.name} | Funding Michigan Teachers`,
-      description: `What Funding Michigan Teachers does at ${school.name}: staff meals, teacher appreciation, and classroom supplies, with thanks to the local businesses who helped.`,
-      path: schoolPath(school.slug),
-    });
+    setPageMeta(metaForPath(schoolPath(school.slug)));
     // Breadcrumbs show in the search result in place of the bare URL, and
     // tell Google this page sits under the Partner Schools section.
     setPageStructuredData([
@@ -263,7 +260,7 @@ export default function SchoolPage({ school }: { school: School }) {
     <div className="min-h-[100dvh] bg-paper flex flex-col overflow-x-clip" style={palette}>
       <SiteHeader />
 
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         {/* ── Hero: the homepage's grid, the school's color ─────────────── */}
         <section className="relative px-4 sm:px-6 pt-28 sm:pt-32 pb-16 sm:pb-24">
           <div
@@ -276,22 +273,25 @@ export default function SchoolPage({ school }: { school: School }) {
           />
 
           <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto w-full grid lg:grid-cols-12 gap-12 items-center relative">
+            {/* min-w-0: a grid column otherwise refuses to shrink below its
+                widest unbreakable content, and at 320px the East Lansing
+                hero clipped its text and button off the right edge. */}
             <motion.div
-              initial={reduce ? false : { opacity: 0, y: 32, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 0.9, ease: EASE }}
-              className="lg:col-span-7"
+              initial={reduce ? false : { opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: EASE }}
+              className="lg:col-span-7 min-w-0"
             >
               <button
                 onClick={() => navigate('/schools')}
-                className="school-link inline-flex items-center gap-1.5 text-sm text-chalkboard/50 hover:text-chalkboard transition-colors mb-6"
+                className="school-link inline-flex items-center gap-1.5 text-sm text-chalkboard/75 hover:text-chalkboard transition-colors mb-6"
               >
                 <ArrowLeft size={14} /> All partner schools
               </button>
 
               <div className="flex">
-                <div className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[10px] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--school-primary)' }} />
+                <div className="inline-flex items-center gap-2 bg-white/85 backdrop-blur-xl ring-1 ring-chalkboard/10 px-3.5 py-1.5 rounded-full text-[0.625rem] font-bold mb-8 uppercase tracking-[0.24em] text-chalkboard/70 shadow-[0_4px_16px_rgba(0,0,0,0.04)]">
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--school-primary)' }} />
                   Partner school · {school.district}
                 </div>
               </div>
@@ -306,13 +306,13 @@ export default function SchoolPage({ school }: { school: School }) {
                 Home of the {school.mascot}
               </p>
 
-              <p className="text-lg text-chalkboard/65 max-w-xl mb-10 leading-relaxed font-light text-pretty">
+              <p className="text-lg text-chalkboard/75 max-w-xl mb-10 leading-relaxed font-light text-pretty">
                 {school.intro}
               </p>
 
               <div className="flex flex-wrap gap-3 items-center">
                 {donateInitiative && (
-                  <Button asChild variant="primary" size="lg" className={`group ${schoolButton}`}>
+                  <Button asChild variant="primary" size="lg" className={`group whitespace-normal text-center ${schoolButton}`}>
                     <a href={donateInitiative.ctaHref}>
                       Donate to {school.shortName}
                       <ButtonTrailing dark>
@@ -326,7 +326,7 @@ export default function SchoolPage({ school }: { school: School }) {
                 </Button>
               </div>
 
-              <p className="mt-4 text-[11px] text-chalkboard/40 font-bold uppercase tracking-widest flex items-center gap-2">
+              <p className="mt-4 text-[0.6875rem] text-chalkboard/70 font-bold uppercase tracking-widest flex flex-wrap items-center gap-2">
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
                 {partnerYear ? `Partner since ${partnerYear}` : 'Where FMT started'} · No cost to the school
                 <span className="inline-block w-4 h-px bg-chalkboard/20" />
@@ -341,7 +341,7 @@ export default function SchoolPage({ school }: { school: School }) {
                         <span className="font-bold text-2xl leading-none" style={{ color: 'var(--school-primary)' }}>
                           <Tally value={s.value} count={s.count} />
                         </span>
-                        <span className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted mt-1">
+                        <span className="text-[0.625rem] sm:text-xs uppercase tracking-widest font-bold text-muted mt-1">
                           {s.label}
                         </span>
                       </div>
@@ -367,6 +367,7 @@ export default function SchoolPage({ school }: { school: School }) {
                     width={school.hero.width}
                     height={school.hero.height}
                     className="w-full h-[420px] sm:h-[480px] lg:h-[540px] xl:h-[600px] object-cover"
+                    style={school.hero.position ? { objectPosition: school.hero.position } : undefined}
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
@@ -374,7 +375,7 @@ export default function SchoolPage({ school }: { school: School }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-chalkboard/80 via-chalkboard/10 to-transparent" />
                   {school.hero.caption && (
                     <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-8">
-                      <p className="text-white/65 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">
+                      <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.2em] font-bold mb-1">
                         {school.shortName} · Funding Michigan Teachers
                       </p>
                       <p className="text-white font-serif text-xl sm:text-2xl font-bold leading-tight">
@@ -407,7 +408,7 @@ export default function SchoolPage({ school }: { school: School }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
                   {feature && (
                     <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-8">
-                      <p className="text-white/65 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">
+                      <p className="text-white/70 text-[0.625rem] uppercase tracking-[0.2em] font-bold mb-1">
                         {feature.when} · {school.shortName}
                       </p>
                       <p className="text-white font-serif text-xl sm:text-2xl font-bold leading-tight">
@@ -473,13 +474,13 @@ export default function SchoolPage({ school }: { school: School }) {
                         className="p-7 bg-white rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-chalkboard/5"
                       >
                         <p
-                          className="text-[11px] uppercase tracking-widest font-bold mb-2"
+                          className="text-[0.6875rem] uppercase tracking-widest font-bold mb-2"
                           style={{ color: 'var(--school-primary)' }}
                         >
                           {h.when}
                         </p>
                         <h3 className="text-xl font-serif font-bold mb-2">{h.title}</h3>
-                        <p className="text-chalkboard/60 leading-relaxed font-light">{h.body}</p>
+                        <p className="text-chalkboard/70 leading-relaxed font-light">{h.body}</p>
                       </motion.li>
                     ))}
                   </ol>
@@ -502,7 +503,7 @@ export default function SchoolPage({ school }: { school: School }) {
                             <li key={e.id} className="flex gap-4">
                               {e.date && (
                                 <span className="shrink-0 w-14 text-center rounded-xl bg-white/10 py-2">
-                                  <span className="block text-[10px] uppercase tracking-widest text-white/60 font-bold">
+                                  <span className="block text-[0.625rem] uppercase tracking-widest text-white/70 font-bold">
                                     {fmtDate(String(e.date)).split(' ')[0]}
                                   </span>
                                   <span className="block text-xl font-bold leading-none mt-0.5">
@@ -512,7 +513,7 @@ export default function SchoolPage({ school }: { school: School }) {
                               )}
                               <span>
                                 <span className="block font-bold leading-snug">{e.title}</span>
-                                <span className="block text-sm text-white/60 font-light leading-relaxed mt-1">
+                                <span className="block text-sm text-white/70 font-light leading-relaxed mt-1">
                                   {e.description}
                                 </span>
                               </span>
@@ -546,7 +547,7 @@ export default function SchoolPage({ school }: { school: School }) {
                       decoding="async"
                     />
                     {p.caption && (
-                      <figcaption className="px-6 py-4 text-sm text-chalkboard/60 font-light">{p.caption}</figcaption>
+                      <figcaption className="px-6 py-4 text-sm text-chalkboard/70 font-light">{p.caption}</figcaption>
                     )}
                   </figure>
                 ))}
@@ -610,7 +611,7 @@ export default function SchoolPage({ school }: { school: School }) {
                       </h3>
                       <p className="text-white/75 font-light leading-relaxed max-w-xl">{school.club.body}</p>
                       {school.club.advisor && (
-                        <p className="text-white/60 text-sm mt-3">Faculty advisor: {school.club.advisor}</p>
+                        <p className="text-white/70 text-sm mt-3">Faculty advisor: {school.club.advisor}</p>
                       )}
                     </div>
                     <a
@@ -671,7 +672,7 @@ export default function SchoolPage({ school }: { school: School }) {
                 Help {school.shortName} teachers{' '}
                 <span className="italic font-normal text-white/80">this year.</span>
               </h2>
-              <p className="mt-5 text-white/65 font-light text-lg max-w-xl mx-auto">
+              <p className="mt-5 text-white/70 font-light text-lg max-w-xl mx-auto">
                 At least 80¢ of every dollar goes to teachers. Funding Michigan Teachers is a 501(c)(3)
                 nonprofit, EIN 93-4485967.
               </p>

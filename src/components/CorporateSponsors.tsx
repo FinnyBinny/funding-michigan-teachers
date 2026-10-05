@@ -1,272 +1,169 @@
 import { STAT } from '../data/impactStats';
 import { motion } from 'motion/react';
-import {
-  Building2,
-  CheckCircle2,
-  Star,
-  Award,
-  Crown,
-  Handshake,
-  TrendingUp,
-  Users,
-  Heart,
-  Mail,
-} from 'lucide-react';
+import { Building2, Check, Star, Award, Crown } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+/**
+ * The four sponsorship levels on /sponsors.
+ *
+ * Each card lists at most three benefits, and only the ones it ADDS to the
+ * level below — the columns ran to 690px of near-identical bullets when every
+ * card restated everything. Keep it that way: a fourth bullet goes in the
+ * level above, or replaces one.
+ *
+ * Only list what FMT delivers today. These were cut in October 2026 as
+ * commitments nobody had been asked to keep yet; add any back once they are
+ * real: a thank-you video from a teacher, input into which projects get
+ * funded, co-branded social content, permanent wall-of-honor recognition,
+ * early access to new programs, and a certificate of appreciation.
+ *
+ * Tier names must match the tier column in the sponsors table and the picker
+ * in AdminPanel.
+ */
 const SPONSOR_TIERS = [
   {
     name: 'Pencil Partner',
     price: '$250',
-    period: 'per year',
     value: 250,
     icon: Building2,
-    accent: 'bg-pencil',
-    accentText: 'text-chalkboard',
-    border: 'border-pencil/30',
-    description:
-      'An accessible entry point for local businesses that want to stand behind Michigan teachers and get recognized for it.',
+    iconClass: 'bg-pencil text-chalkboard',
     perks: [
-      'Logo featured on the FMT website sponsors page',
-      'Business name in printed materials at teacher appreciation events',
-      'One dedicated social media shout-out',
-      'Tax-deductible 501(c)(3) contribution',
+      'Your logo on our sponsors page',
+      'Your name at our appreciation events',
+      'A thank-you post on our social media',
     ],
   },
   {
     name: 'Campus Champion',
     price: '$500',
-    period: 'per year',
     value: 500,
     icon: Star,
-    accent: 'bg-ruler',
-    accentText: 'text-white',
-    border: 'border-ruler/30',
-    popular: true,
-    description:
-      'The sweet spot for businesses ready to show up for teachers consistently and earn meaningful community visibility.',
+    iconClass: 'bg-ruler text-white',
+    includes: 'Pencil Partner',
     perks: [
-      'Everything in Pencil Partner',
-      'Featured spotlight in FMT\'s monthly newsletter',
-      'Dedicated Instagram post every quarter',
-      'Your name on teacher thank-you flyers shown at staff meetings',
-      'Personalized certificate of appreciation for your business',
+      'A spotlight in our monthly newsletter',
+      'An Instagram post every quarter',
+      'Your name on staff-meeting thank-you flyers',
     ],
   },
   {
     name: "Principal's Circle",
     price: '$1,000',
-    period: 'per year',
     value: 1000,
     icon: Award,
-    accent: 'bg-apple',
-    accentText: 'text-white',
-    border: 'border-apple/30',
-    description:
-      'For organizations committed to making a visible, trackable impact in Okemos classrooms — and proving it to their community.',
+    iconClass: 'bg-apple text-white',
+    includes: 'Campus Champion',
     perks: [
-      'Everything in Campus Champion',
-      'Your logo on physical appreciation banners, flyers, and pinned post',
-      'Personal thank-you video from a teacher you helped fund',
-      'Quarterly impact report tied to your specific contribution',
-      '"Sponsored by [Business]" callout at one staff meeting per semester',
-      'Input into which classroom projects get funded',
+      'Your logo on event banners and flyers',
+      '"Sponsored by" at a staff meeting each semester',
+      'A quarterly report on what your gift paid for',
     ],
   },
   {
     name: 'Founding Patron',
     price: '$2,500',
-    period: 'per year',
     value: 2500,
     icon: Crown,
-    accent: 'bg-chalkboard',
-    accentText: 'text-pencil',
-    border: 'border-chalkboard/20',
-    premium: true,
-    description:
-      'Our highest honor, reserved for partners who believe deeply in the future of Michigan education and want to help define it.',
+    iconClass: 'bg-pencil text-chalkboard',
+    includes: "Principal's Circle",
+    dark: true,
     perks: [
-      'Everything in Principal\'s Circle',
-      'Named sponsorship fund — e.g., "[Business] Teacher Appreciation Fund"',
-      'Co-branded social content published throughout the year',
-      'First pick of which school or project your dollars fund',
-      'Direct monthly check-ins with FMT founder Finn Regan',
-      'Permanent wall-of-honor recognition on the FMT website',
-      'Early access to new programs and initiatives',
+      'A fund named for your business',
+      'You choose the school or project it supports',
+      'A monthly check-in with our founder',
     ],
   },
 ];
 
-const WHY_STATS = [
-  {
-    icon: Users,
-    value: STAT.staff.value,
-    label: STAT.staff.label,
-    color: 'text-ruler',
-    bg: 'bg-ruler/10',
-  },
-  {
-    icon: TrendingUp,
-    value: STAT.support.value,
-    label: STAT.support.label,
-    color: 'text-apple',
-    bg: 'bg-apple/10',
-  },
-  {
-    icon: Heart,
-    value: STAT.partnerSchools.value,
-    label: STAT.partnerSchools.label,
-    color: 'text-pencil-dark',
-    bg: 'bg-pencil/20',
-  },
-];
+const WHY_STATS = [STAT.staff, STAT.support, STAT.partnerSchools];
 
 interface CorporateSponsorsProps {
-  onContact: () => void;
   onDonate: (amount: number) => void;
 }
 
-export default function CorporateSponsors({ onContact, onDonate }: CorporateSponsorsProps) {
+export default function CorporateSponsors({ onDonate }: CorporateSponsorsProps) {
   return (
     <div>
 
-      {/* Impact Stats */}
-      <div className="grid md:grid-cols-3 gap-5 mb-10 md:mb-14">
-        {WHY_STATS.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-[1.5rem] p-6 border border-chalkboard/5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex items-center gap-4"
-          >
-            <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center shrink-0', stat.bg)}>
-              <stat.icon size={22} className={stat.color} />
-            </div>
-            <div>
-              <p className={cn('text-2xl font-serif font-bold leading-none', stat.color)}>{stat.value}</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] font-bold text-muted mt-1">{stat.label}</p>
-            </div>
-          </motion.div>
+      {/* Impact figures: one strip, three across even on a phone. */}
+      <dl className="grid grid-cols-3 divide-x divide-chalkboard/10 bg-white rounded-[1.5rem] ring-1 ring-chalkboard/[0.06] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-10 md:mb-14 max-w-3xl mx-auto">
+        {WHY_STATS.map((stat) => (
+          // A term must come before its description in a <dl>; the figure is
+          // shown first by reversing the column, not the markup.
+          <div key={stat.label} className="px-3 py-4 sm:px-6 sm:py-5 text-center flex flex-col-reverse">
+            <dt className="text-[0.625rem] sm:text-[0.625rem] uppercase tracking-[0.16em] font-bold text-muted mt-1.5 leading-snug">{stat.label}</dt>
+            <dd className="font-serif font-bold text-xl sm:text-3xl leading-none text-chalkboard">{stat.value}</dd>
+          </div>
         ))}
-      </div>
+      </dl>
 
-      {/* Sponsor Tier Cards */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-10 md:mb-14">
+      {/* Levels. A swipeable row on phones, four across on wide screens. */}
+      <div
+        className="rail-sm md:grid md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5 mb-4"
+        role="region"
+        tabIndex={0}
+        aria-label="Sponsorship levels"
+      >
         {SPONSOR_TIERS.map((tier, index) => (
           <motion.div
             key={tier.name}
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
+            transition={{ delay: index * 0.08 }}
             className={cn(
-              'relative group bg-white p-7 rounded-[2rem] border flex flex-col transition-all duration-500 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] hover:-translate-y-2',
-              tier.border,
-              tier.popular && 'ring-4 ring-ruler/10 md:scale-[1.03] z-10 shadow-xl',
-              tier.premium && 'ring-4 ring-chalkboard/10'
+              'rounded-[1.75rem] p-6 flex flex-col ring-1',
+              tier.dark
+                ? 'bg-chalkboard ring-chalkboard text-white'
+                : 'bg-white ring-chalkboard/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.03)]',
             )}
           >
-            {tier.popular && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-ruler text-white px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] shadow-lg whitespace-nowrap">
-                Most Popular
+            <div className="flex items-center gap-3 mb-4">
+              <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', tier.iconClass)}>
+                <tier.icon size={17} aria-hidden="true" />
               </div>
-            )}
-            {tier.premium && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-chalkboard text-pencil px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] shadow-lg whitespace-nowrap">
-                Top Tier
-              </div>
-            )}
-
-            {/* Icon */}
-            <div className={cn(
-              'w-11 h-11 rounded-xl flex items-center justify-center mb-5 transform group-hover:rotate-6 transition-transform duration-500 shadow-md shrink-0',
-              tier.accent,
-              tier.accentText
-            )}>
-              <tier.icon size={20} />
+              <h3 className="font-serif font-bold text-lg leading-tight">{tier.name}</h3>
             </div>
 
-            {/* Name & Price */}
-            <h3 className="text-lg font-serif font-bold mb-1 leading-tight">{tier.name}</h3>
-            <div className="flex items-baseline gap-1.5 mb-4">
+            <p className="flex items-baseline gap-1.5 mb-5">
               <span className="text-3xl font-serif font-bold">{tier.price}</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{tier.period}</span>
-            </div>
-
-            <p className="text-chalkboard/55 text-sm mb-5 leading-relaxed font-light flex-none">
-              {tier.description}
+              <span className={cn('text-[0.625rem] font-bold uppercase tracking-widest', tier.dark ? 'text-white/70' : 'text-muted')}>a year</span>
             </p>
 
-            {/* Perks */}
-            <div className="flex-1 space-y-2.5 mb-6">
-              {tier.perks.map((perk) => (
-                <div key={perk} className="flex items-start gap-2.5 text-[13px] group/item">
-                  <div className="w-4 h-4 rounded-full bg-apple/10 flex items-center justify-center shrink-0 mt-px group-hover/item:bg-apple group-hover/item:text-white transition-colors">
-                    <CheckCircle2 size={10} />
-                  </div>
-                  <span className="text-chalkboard/75 group-hover/item:text-chalkboard transition-colors leading-snug">
-                    {perk}
-                  </span>
-                </div>
-              ))}
+            <div className={cn('border-t pt-4 flex-1 mb-6', tier.dark ? 'border-white/15' : 'border-chalkboard/10')}>
+              {tier.includes && (
+                <p className={cn('text-xs font-bold mb-2.5', tier.dark ? 'text-pencil' : 'text-ruler')}>
+                  Everything in {tier.includes}, plus:
+                </p>
+              )}
+              <ul className="space-y-2">
+                {tier.perks.map((perk) => (
+                  <li key={perk} className="flex items-start gap-2.5 text-[0.84375rem] leading-snug">
+                    <Check size={14} strokeWidth={2.5} className={cn('shrink-0 mt-0.5', tier.dark ? 'text-pencil' : 'text-apple')} aria-hidden="true" />
+                    <span className={tier.dark ? 'text-white/85' : 'text-chalkboard/80'}>{perk}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            {/* CTA */}
             <button
               onClick={() => onDonate(tier.value)}
+              aria-label={`Become a ${tier.name} sponsor, ${tier.price} a year`}
               className={cn(
-                'w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 shadow-lg hover:scale-[1.02] cursor-pointer uppercase tracking-widest',
-                tier.popular
-                  ? 'bg-ruler text-white hover:bg-ruler/90'
-                  : tier.premium
-                  ? 'bg-chalkboard text-pencil hover:bg-apple hover:text-white'
-                  : 'bg-chalkboard text-white hover:bg-apple'
+                'w-full py-3 rounded-xl font-bold text-xs uppercase tracking-[0.16em] transition-colors active:scale-[0.98] cursor-pointer',
+                tier.dark ? 'bg-pencil text-chalkboard hover:bg-white' : 'bg-chalkboard text-white hover:bg-apple',
               )}
             >
-              Become a Sponsor
+              Become a sponsor
             </button>
           </motion.div>
         ))}
       </div>
 
-      {/* Custom Package CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="bg-chalkboard rounded-[2.5rem] p-7 sm:p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8"
-      >
-        <div className="text-center md:text-left">
-          <div className="inline-flex items-center gap-2 bg-pencil/20 text-pencil px-4 py-1.5 rounded-full text-[11px] font-bold mb-5 uppercase tracking-widest border border-pencil/20">
-            <Handshake size={13} />
-            <span>Custom Packages Available</span>
-          </div>
-          <h3 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3 leading-tight">
-            Need something <span className="text-pencil italic font-normal">tailored</span>?
-          </h3>
-          <p className="text-white/55 max-w-lg leading-relaxed font-light">
-            We're happy to build a sponsorship package around your goals — whether that's a specific school,
-            a branded supply drive, or an in-kind food donation. Reach out and let's talk.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 shrink-0 w-full md:w-auto">
-          <button
-            onClick={onContact}
-            className="flex items-center justify-center gap-3 bg-apple text-white px-8 py-4 rounded-2xl font-bold hover:bg-apple/90 transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer whitespace-nowrap w-full sm:w-auto"
-          >
-            <Mail size={18} />
-            Get in Touch
-          </button>
-          <button
-            onClick={() => onDonate(500)}
-            className="flex items-center justify-center gap-3 bg-white/10 text-white px-8 py-4 rounded-2xl font-bold hover:bg-white/20 transition-all border border-white/10 cursor-pointer whitespace-nowrap w-full sm:w-auto"
-          >
-            Donate Directly
-          </button>
-        </div>
-      </motion.div>
+      <p className="text-center text-xs text-muted leading-relaxed max-w-2xl mx-auto mb-10 md:mb-14">
+        Food, gift cards and supplies count toward a level at fair market value. Funding Michigan Teachers is a{' '}
+        <span className="whitespace-nowrap">501(c)(3)</span>, EIN 93-4485967; sponsorships are tax-deductible to the extent the law allows.
+      </p>
 
     </div>
   );

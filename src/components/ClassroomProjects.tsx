@@ -1,15 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { ThumbsUp, Heart, School, Loader2, CheckCircle2, Send, X, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useProjects, readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
 import { PROJECTS } from '../data/initialData';
-import { supabase, getVoterId } from '../lib/supabase';
+import { supabase, getVoterId, peekVoterId } from '../lib/supabase';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
+import { fileWithBloomerang } from '../lib/bloomerang';
+import { useModalDialog } from '../lib/useModalDialog';
+import { PrivacyNote } from './FormStatus';
 
 
-const INPUT_CLS = 'w-full bg-paper border border-chalkboard/10 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-apple/20 outline-none transition-all placeholder:text-chalkboard/30';
-const LABEL_CLS = 'block text-[10px] uppercase tracking-[0.15em] font-bold text-chalkboard/40 mb-1.5';
+const INPUT_CLS = 'w-full bg-paper border border-chalkboard/30 rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:text-chalkboard/65';
+const LABEL_CLS = 'block text-[0.625rem] uppercase tracking-[0.15em] font-bold text-chalkboard/70 mb-1.5';
 
 import type { Project } from '../data/initialData';
 
@@ -35,7 +39,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
   // Load votes from Supabase on mount
   useEffect(() => {
     if (!supabase) return;
-    const voterId = getVoterId();
+    const voterId = peekVoterId();
 
     (async () => {
       try {
@@ -109,7 +113,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
       saveLS(STORAGE_KEYS.projects, updated);
       setVotedProjects(prev => {
         const next = [...prev, id];
-        localStorage.setItem('mi_teacher_fund_votes', JSON.stringify(next));
+        try { localStorage.setItem('mi_teacher_fund_votes', JSON.stringify(next)); } catch { /* not remembered */ }
         return next;
       });
       setLoading(null);
@@ -155,25 +159,33 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
       if (!error) submitted = true;
     }
 
-    if (submitted) {
-      setFormStatus('success');
-      setTimeout(() => {
-        setShowForm(false);
-        setFormStatus('idle');
-        setForm({ teacherName: '', schoolName: '', projectTitle: '', description: '', email: '' });
-      }, 3000);
-    } else {
-      // Final fallback: open mailto so submission is never lost
-      const subject = encodeURIComponent(`Project Submission — ${form.projectTitle} (${form.schoolName})`);
-      const body = encodeURIComponent(`Teacher Name: ${form.teacherName}\nSchool: ${form.schoolName}\nProject: ${form.projectTitle}\n\nDescription:\n${form.description}\n\nReply to: ${form.email}`);
-      window.open(`mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`);
-      setFormStatus('success');
-      setTimeout(() => {
-        setShowForm(false);
-        setFormStatus('idle');
-        setForm({ teacherName: '', schoolName: '', projectTitle: '', description: '', email: '' });
-      }, 3000);
+    // Filed with the CRM too. Never awaited and never shown: the teacher is
+    // told the outcome of the delivery above, not of the CRM.
+    void fileWithBloomerang('project', {
+      name: form.teacherName,
+      email: form.email,
+      note: `Classroom project: ${form.projectTitle} (${form.schoolName}) — ${form.description}`,
+    });
+
+    // Only claim success when something actually received it. If both
+    // deliveries failed the teacher is told so, with an email link that
+    // carries the whole submission, instead of a cheerful "submitted" over a
+    // pop-up that a blocker may have swallowed.
+    setFormStatus(submitted ? 'success' : 'error');
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    if (formStatus === 'success') {
+      setFormStatus('idle');
+      setForm({ teacherName: '', schoolName: '', projectTitle: '', description: '', email: '' });
     }
+  };
+
+  const mailtoProject = () => {
+    const subject = encodeURIComponent(`Project Submission — ${form.projectTitle} (${form.schoolName})`);
+    const body = encodeURIComponent(`Teacher Name: ${form.teacherName}\nSchool: ${form.schoolName}\nProject: ${form.projectTitle}\n\nDescription:\n${form.description}\n\nReply to: ${form.email}`);
+    return `mailto:hello@fundingmichiganteachers.org?subject=${subject}&body=${body}`;
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -210,12 +222,12 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                       <School size={28} />
                     </div>
                     <div>
-                      <h4 className="font-serif font-bold text-lg leading-none">{project.school_name}</h4>
+                      <p className="font-serif font-bold text-lg leading-none">{project.school_name}</p>
                       <p className="text-xs font-bold text-muted uppercase tracking-widest mt-1.5">{project.teacher_name}</p>
                     </div>
                   </div>
                   <div className={cn(
-                    "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] border",
+                    "px-4 py-1.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.2em] border",
                     isSubmitCard
                       ? "bg-ruler/10 text-ruler border-ruler/20"
                       : "bg-pencil/20 text-ink border-pencil/30"
@@ -225,14 +237,14 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                 </div>
 
                 <h3 className="text-xl font-serif font-bold mb-3 leading-tight group-hover:text-apple transition-colors">{project.title}</h3>
-                <p className="text-chalkboard/60 text-sm mb-6 leading-relaxed font-light">
+                <p className="text-chalkboard/70 text-sm mb-6 leading-relaxed font-light">
                   {project.description}
                 </p>
 
                 {!isSubmitCard && (
                   <div className="space-y-3">
                     <div className="flex justify-between items-end text-sm font-bold">
-                      <div className="text-muted uppercase tracking-widest text-[10px]">Funding Progress</div>
+                      <div className="text-muted uppercase tracking-widest text-[0.625rem]">Funding Progress</div>
                       <div className="text-apple font-mono text-lg">${project.raised.toLocaleString()} <span className="text-muted font-light text-sm">/ ${project.goal.toLocaleString()}</span></div>
                     </div>
                     <div className="h-4 bg-chalkboard/5 rounded-full overflow-hidden p-1 shadow-inner">
@@ -242,9 +254,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                         viewport={{ once: true }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         className="h-full bg-apple rounded-full shadow-lg relative overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-white/20 animate-pulse" />
-                      </motion.div>
+                      />
                     </div>
                   </div>
                 )}
@@ -307,85 +317,107 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
       {/* Submit Project Modal */}
       <AnimatePresence>
         {showForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 py-8"
-            onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.97 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="bg-chalkboard p-8 text-white flex items-center justify-between">
+          <ProjectDialog onClose={closeForm}>
+              <div className="bg-chalkboard p-8 text-white flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-bold leading-none">Submit Your Project</h2>
-                  <p className="text-white/50 text-sm mt-2">Tell us what your classroom needs to empower your students — we'll work to make it happen.</p>
+                  <h2 id="project-form-title" className="text-2xl font-bold leading-none">Submit Your Project</h2>
+                  <p className="text-white/75 text-sm mt-2">Tell us what your classroom needs to empower your students — we'll work to make it happen.</p>
                 </div>
-                <button onClick={() => setShowForm(false)} aria-label="Close form" className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                <button onClick={closeForm} aria-label="Close form" className="p-2 hover:bg-white/10 rounded-xl transition-colors shrink-0">
                   <X size={20} />
                 </button>
               </div>
 
+              {formStatus === 'success' ? (
+                <div className="p-8 text-center" role="status">
+                  <CheckCircle2 size={28} className="text-apple mx-auto mb-3" aria-hidden="true" />
+                  <p className="font-serif font-bold text-xl mb-2">We received your project.</p>
+                  <p className="text-sm text-chalkboard/75 leading-relaxed mb-6">We'll be in touch at {form.email} soon.</p>
+                  <button onClick={closeForm} data-autofocus className="bg-chalkboard text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-apple transition-colors">
+                    Close
+                  </button>
+                </div>
+              ) : (
               <form onSubmit={handleFormSubmit} className="p-8 space-y-5">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={LABEL_CLS}>Your Name</label>
-                    <input required value={form.teacherName} onChange={e => setForm({ ...form, teacherName: e.target.value })} className={INPUT_CLS} placeholder="Ms. Johnson" />
+                    <label htmlFor="pf-name" className={LABEL_CLS}>Your Name</label>
+                    <input id="pf-name" autoComplete="name" required value={form.teacherName} onChange={e => setForm({ ...form, teacherName: e.target.value })} className={INPUT_CLS} placeholder="Ms. Johnson" />
                   </div>
                   <div>
-                    <label className={LABEL_CLS}>School Name</label>
-                    <input required value={form.schoolName} onChange={e => setForm({ ...form, schoolName: e.target.value })} className={INPUT_CLS} placeholder="Okemos High School" />
+                    <label htmlFor="pf-school" className={LABEL_CLS}>School Name</label>
+                    <input id="pf-school" autoComplete="organization" required value={form.schoolName} onChange={e => setForm({ ...form, schoolName: e.target.value })} className={INPUT_CLS} placeholder="Okemos High School" />
                   </div>
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Project Title</label>
-                  <input required value={form.projectTitle} onChange={e => setForm({ ...form, projectTitle: e.target.value })} className={INPUT_CLS} placeholder="e.g. New Lab Equipment" />
+                  <label htmlFor="pf-title" className={LABEL_CLS}>Project Title</label>
+                  <input id="pf-title" required value={form.projectTitle} onChange={e => setForm({ ...form, projectTitle: e.target.value })} className={INPUT_CLS} placeholder="e.g. New Lab Equipment" />
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>What Does Your Classroom Need?</label>
-                  <textarea required rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={cn(INPUT_CLS, 'resize-none')} placeholder="e.g. classroom decorations, lab supplies, art materials — and why it matters for your students." />
+                  <label htmlFor="pf-need" className={LABEL_CLS}>What Does Your Classroom Need?</label>
+                  <textarea id="pf-need" required rows={4} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className={cn(INPUT_CLS, 'resize-none')} placeholder="e.g. classroom decorations, lab supplies, art materials — and why it matters for your students." />
                 </div>
                 <div>
-                  <label className={LABEL_CLS}>Your Email</label>
-                  <input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_CLS} placeholder="teacher@school.edu" />
+                  <label htmlFor="pf-email" className={LABEL_CLS}>Your Email</label>
+                  <input id="pf-email" autoComplete="email" required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className={INPUT_CLS} placeholder="teacher@school.edu" />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={formStatus === 'loading' || formStatus === 'success'}
+                  disabled={formStatus === 'loading'}
                   className="w-full bg-apple text-white py-4 rounded-2xl font-bold text-sm hover:bg-apple/90 transition-all active:scale-95 disabled:opacity-60 flex items-center justify-center gap-3 shadow-xl"
                 >
                   {formStatus === 'loading' ? (
-                    <Loader2 className="animate-spin" size={18} />
-                  ) : formStatus === 'success' ? (
-                    <><CheckCircle2 size={18} /><span>Submitted!</span></>
+                    <><Loader2 className="animate-spin" size={18} aria-hidden="true" /><span>Sending…</span></>
                   ) : (
-                    <><Send size={18} /><span>Submit Project</span></>
+                    <><Send size={18} aria-hidden="true" /><span>Submit Project</span></>
                   )}
                 </button>
 
-                {formStatus === 'success' && (
-                  <motion.p initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="text-center text-apple font-bold text-sm">
-                    We received your submission — we'll be in touch soon!
-                  </motion.p>
-                )}
                 {formStatus === 'error' && (
-                  <p className="text-center text-red-500 font-bold text-sm">
-                    Something went wrong. Please email us at{' '}
-                    <a href="mailto:hello@fundingmichiganteachers.org" className="underline">hello@fundingmichiganteachers.org</a>
+                  <p className="text-center text-apple font-bold text-sm" role="alert">
+                    We couldn't send that from here.{' '}
+                    <a href={mailtoProject()} className="underline">Email it to us instead</a>
+                    {' '}— your answers are already filled in.
                   </p>
                 )}
+                <PrivacyNote what="to review your project and reply" />
               </form>
-            </motion.div>
-          </motion.div>
+              )}
+          </ProjectDialog>
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+/** The project form's modal frame: a real dialog, rendered outside #root. */
+function ProjectDialog({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useModalDialog(ref, onClose);
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[80] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 py-8 overflow-y-auto"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        ref={ref}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="project-form-title"
+        initial={{ opacity: 0, y: 40, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.97 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden my-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        {children}
+      </motion.div>
+    </motion.div>,
+    document.body,
   );
 }

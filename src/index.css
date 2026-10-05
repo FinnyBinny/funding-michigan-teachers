@@ -3,6 +3,40 @@
    see that file for the names and how to add a theme. */
 @import "./theme/theme.css";
 
+/* Self-hosted fonts (public/fonts, licence there). They used to come from
+   Google Fonts, loaded after first paint, so every page painted in a fallback
+   face and then swapped — one reason pages looked different from load to
+   load. Same origin, preloaded in index.html, Latin subset only.
+
+   Fraunces carries its optical-size axis: font-optical-sizing (on by default)
+   draws headlines with display-size contrast and small text sturdier, which
+   is how the Google Fonts version looked. As before, only upright styles are
+   loaded; italics are the browser's slant of the upright, unchanged. */
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/fraunces-latin.woff2") format("woff2-variations"), url("/fonts/fraunces-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/plus-jakarta-sans-latin.woff2") format("woff2-variations"), url("/fonts/plus-jakarta-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Architects Daughter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/architects-daughter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", "Playfair Display", serif;
@@ -13,7 +47,12 @@
   --color-chalkboard: #1a1c1d;
   --color-paper: #fcfaf5;
   --color-pencil: #eebc5e;
-  --color-pencil-dark: #b8893e;
+  /* Was #b8893e: 3.0:1 on paper and 2.8:1 on the pencil tints it sits on,
+     under the 4.5:1 its small labels need. This is 5.1:1 on paper. */
+  --color-pencil-dark: #8a6420;
+  /* Apple red is 2.9:1 on the dark bands, too faint even for large text.
+     Use this lighter red for red text on chalkboard (5.6:1). */
+  --color-apple-on-dark: #e8705f;
   --color-apple: #c0392b;
   /* Ink blue. The old #2980b9 was a stock UI blue that also failed WCAG AA
      on cream (4.12:1) and under white button text (4.30:1). This clears both
@@ -297,11 +336,16 @@ svg.lucide {
 /* Mobile-only persistent donate ribbon — appears once the user scrolls
    past the hero. Provides a constant conversion path without disrupting
    the desktop reading rhythm. */
+/* Centred without a transform: the ribbon is a Motion element whose slide-in
+   writes its own inline transform, which wiped out translateX(-50%) and left
+   the ribbon starting at the middle of the screen, on top of the chat button. */
 .donate-ribbon {
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: fit-content;
   bottom: 1rem;
-  transform: translateX(-50%);
   z-index: 60;
   pointer-events: auto;
   transition: opacity 700ms var(--ease-fluid), transform 700ms var(--ease-fluid);
@@ -378,4 +422,54 @@ svg.lucide {
 ::selection {
   background: var(--color-pencil);
   color: var(--color-chalkboard);
+}
+
+/* ── Keyboard focus ──────────────────────────────────────────────────────────
+   One focus indicator for the whole site. Components used to remove the
+   browser's outline and draw faint tinted rings instead (1.2-2.3:1 against
+   their background, under the 3:1 WCAG asks for), and those vanished entirely
+   in Windows High Contrast, which drops box-shadows.
+
+   Two tones, so it shows on any background: a white inner ring for dark bands
+   and photos, an ink-blue outer ring for paper and white. The outline part
+   survives forced-colors mode, where the system recolours it.
+
+   Unlayered on purpose: unlayered CSS beats Tailwind's utility layer, so an
+   `outline-none` or `focus:ring-*` on a component cannot quietly undo it. */
+:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 0;
+  box-shadow: 0 0 0 6px var(--fmt-focus);
+}
+/* Headings and <main> are focused by script after a page change or a skip
+   link, so screen readers start there. A ring around the whole page there
+   is noise. */
+[tabindex="-1"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  background: var(--color-chalkboard);
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* Fixed bars at the bottom of a phone screen (the Donate ribbon, the shop's
+   order bar) must not sit on top of whatever keyboard focus scrolls to. */
+@media (max-width: 1023.98px) {
+  html {
+    scroll-padding-bottom: 6rem;
+  }
 }

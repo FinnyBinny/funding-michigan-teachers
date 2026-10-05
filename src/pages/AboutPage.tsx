@@ -3,7 +3,9 @@ import { motion } from 'motion/react';
 import { Check, ArrowRight, Mail, Heart } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
+import ContactForm from '../components/ContactForm';
 import { setPageMeta } from '../lib/seo';
+import { metaForPath } from '../../shared/pageMeta';
 import { STAT } from '../data/impactStats';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -40,20 +42,21 @@ const YEAR = [
 
 export default function AboutPage() {
   useEffect(() => {
-    window.scrollTo(0, 0);
-    setPageMeta({
-      title: 'About Us | Funding Michigan Teachers',
-      description:
-        'How a ninth grader\'s donut cart became a 501(c)(3). Funding Michigan Teachers is student-run, based in Okemos, and works in three Michigan high schools.',
-      path: '/about',
-    });
+    // /about#contact (the footer's Contact link) lands on the form; the page
+    // renders after the browser's own jump to the anchor, so do it here.
+    if (window.location.hash === '#contact') {
+      requestAnimationFrame(() => document.getElementById('contact')?.scrollIntoView());
+    } else {
+      window.scrollTo(0, 0);
+    }
+    setPageMeta(metaForPath('/about'));
   }, []);
 
   return (
     <div className="min-h-[100dvh] bg-paper overflow-x-hidden relative flex flex-col">
       <SiteHeader />
 
-      <main className="relative z-10 flex-1">
+      <main id="main" className="relative z-10 flex-1">
         {/* Hero */}
         <section className="px-4 sm:px-6 pt-28 sm:pt-36 pb-14">
           <div className="pointer-events-none absolute top-0 left-0 w-[600px] h-[600px] bg-apple/[0.06] rounded-full blur-[140px] -translate-x-1/3 -translate-y-1/3" />
@@ -63,12 +66,15 @@ export default function AboutPage() {
             transition={{ duration: 0.7, ease: EASE }}
             className="max-w-3xl mx-auto relative"
           >
-            <p className="text-[10px] uppercase tracking-[0.24em] font-bold text-chalkboard/50 mb-5">
-              Student-Led · 501(c)(3) · Founded Okemos 2023
-            </p>
-            <h1 className="font-serif font-bold text-[clamp(2.25rem,7vw,3.75rem)] leading-[1.03] tracking-[-0.02em] mb-6">
-              Michigan teachers give everything. <span className="text-apple italic font-normal">We give back.</span>
+            {/* The H1 says what this page is. It used to repeat the homepage's
+                headline, so /about had no heading saying "About" and search
+                saw two pages with the same H1. The tagline stays, as a line. */}
+            <h1 className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-5 font-sans">
+              About Funding Michigan Teachers <span className="font-normal">· Student-led 501(c)(3) · Founded Okemos 2023</span>
             </h1>
+            <p className="font-serif font-bold text-[clamp(2.25rem,7vw,3.75rem)] leading-[1.03] tracking-[-0.02em] mb-6">
+              Michigan teachers give everything. <span className="text-apple italic font-normal">We give back.</span>
+            </p>
             <p className="text-xl text-chalkboard/70 font-light leading-relaxed mb-4">
               Funding Michigan teachers so no educator pays out of pocket, and every educator knows
               their work matters.
@@ -127,17 +133,38 @@ export default function AboutPage() {
                 difference in their own communities.
               </p>
             </div>
+            {/* This photo's one featured slot on the site. */}
+            <figure className="mt-9">
+              <img
+                src="/images/coffee-bar-biggby-opt.jpg"
+                alt="A coffee bar on two tables, with drink dispensers and syrups, in front of a whiteboard reading You guys rock!"
+                width={900}
+                height={675}
+                loading="lazy"
+                decoding="async"
+                className="w-full rounded-[1.5rem] ring-1 ring-chalkboard/10 object-cover aspect-[4/3]"
+              />
+              <figcaption className="mt-3 text-sm text-chalkboard/70">
+                An FMT Coffee Bar for staff, set up by the student team, with coffee donated by Biggby.
+              </figcaption>
+            </figure>
 
             {/* Founder */}
             <div className="mt-10 flex flex-col sm:flex-row items-start gap-6 bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-7">
               <div className="w-full sm:w-40 shrink-0 rounded-2xl overflow-hidden">
+                {/* 160px square beside the text from 640px up; full width,
+                    192px tall, on a phone — so the browser picks by size. */}
                 <picture>
-                  <source srcSet="/images/finn-and-mrs-freeman-1280.avif" type="image/avif" />
+                  <source
+                    type="image/avif"
+                    srcSet="/images/finn-and-mrs-freeman-480.avif 480w, /images/finn-and-mrs-freeman-1280.avif 960w"
+                    sizes="(min-width: 640px) 160px, 100vw"
+                  />
                   <img
                     src="/images/finn-and-mrs-freeman-1280.jpg"
                     alt="Finn Regan with Mrs. Freeman at Okemos High School"
-                    width={1280}
-                    height={960}
+                    width={960}
+                    height={1280}
                     loading="lazy"
                     decoding="async"
                     className="w-full h-48 sm:h-40 object-cover object-top"
@@ -145,7 +172,7 @@ export default function AboutPage() {
                 </picture>
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-chalkboard/50 mb-1.5">
+                <p className="text-[0.625rem] uppercase tracking-[0.22em] font-bold text-chalkboard/70 mb-1.5">
                   Founder &amp; Executive Director
                 </p>
                 <h3 className="font-serif font-bold text-xl mb-2">Finn Regan</h3>
@@ -203,7 +230,7 @@ export default function AboutPage() {
         <section className="px-4 sm:px-6 py-14 bg-white/60">
           <div className="max-w-3xl mx-auto">
             <h2 className="font-serif font-bold text-2xl sm:text-3xl mb-3">Our year</h2>
-            <p className="text-chalkboard/60 font-light mb-8">
+            <p className="text-chalkboard/70 font-light mb-8">
               What a school year with FMT looks like. Individual staff meetings and one-off events
               get added throughout the year.
             </p>
@@ -213,7 +240,7 @@ export default function AboutPage() {
                   key={row.when}
                   className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 bg-white ring-1 ring-chalkboard/8 rounded-2xl px-5 py-4"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-apple w-full sm:w-32 shrink-0">
+                  <p className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-apple w-full sm:w-32 shrink-0">
                     {row.when}
                   </p>
                   <p className="text-sm text-chalkboard/75 font-light leading-snug">{row.what}</p>
@@ -248,11 +275,18 @@ export default function AboutPage() {
             </div>
             <a
               href={`mailto:${EMAIL}`}
-              className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-chalkboard/60 hover:text-apple transition-colors"
+              className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-chalkboard/70 hover:text-apple transition-colors"
             >
               <Mail size={14} />
               {EMAIL}
             </a>
+          </div>
+        </section>
+        {/* The contact form, moved here from the bottom of the homepage. The
+            footer's Contact link points at it. */}
+        <section id="contact" className="px-4 sm:px-6 py-14 bg-white/60 scroll-mt-24">
+          <div className="max-w-5xl mx-auto">
+            <ContactForm />
           </div>
         </section>
       </main>

@@ -14,7 +14,14 @@
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
 import {
-  MERCH_COLORS, findProduct, unitPrice, orderTotal, validateCart, findCode,
+  MIN_GIFT, MAX_GIFT,
+  coverFee, decodeDesignation, designationFromLegacyFund, encodeDesignation, schoolFundLabel,
+  type Designation,
+} from '../shared/donations';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '../shared/supabasePublic';
+import { NOT_FOUND_META, canonicalUrl, metaForPath } from '../shared/pageMeta';
+import {
+  MERCH_COLORS, findProduct, priceOrder, validateCart, findCode,
   CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
 
@@ -102,6 +109,12 @@ export interface Env {
    * regenerating a key that was never the problem.
    */
   BLOOMERANG_API_KEY?: SecretValue;
+  /**
+   * Stripe webhook signing secret (whsec_…), set as a Secret. It proves a
+   * call to /api/stripe-webhook really came from Stripe. Absent, the webhook
+   * answers 503 and nothing else is affected.
+   */
+  STRIPE_WEBHOOK_SECRET?: SecretValue;
 }
 
 /**
@@ -137,57 +150,176 @@ function isAssetPath(pathname: string): boolean {
 }
 
 /**
- * Serves the SPA shell under a status other than 200 — the app renders the
- * matching page client-side while the response still carries an honest code
- * (404 for a path that doesn't exist, 403 for a blocked visitor).
+ * The homepage's hero photo, preloaded on the homepage only.
+ *
+ * It was a <link rel=preload> in index.html, the shell every route shares, so
+ * every desktop page downloaded the homepage's 175KB photo. A Link header
+ * changes nothing in the body, so the shell's ETag stays valid, and Cloudflare
+ * can send it ahead as an Early Hint. Desktop only, like the photo itself.
+ */
+const HERO_PRELOAD =
+  '</images/finn-and-mrs-freeman-1280.avif>; rel=preload; as=image; type="image/avif"; media="(min-width: 1024px)"';
+
+function withHeroPreload(request: Request, res: Response): Response {
+  if (new URL(request.url).pathname !== '/' || !res.ok) return res;
+  const headers = new Headers(res.headers);
+  headers.append('Link', HERO_PRELOAD);
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/**
+ * Security headers on every page. There were none.
+ *
+ * Enforced: no framing by other sites (clickjacking), no MIME sniffing, a
+ * referrer that leaves out paths and query strings, HTTPS only, and no camera,
+ * microphone or location.
+ *
+ * The full Content-Security-Policy is REPORT-ONLY for now: it names every
+ * origin the site loads from (Stripe, Google Analytics, Bloomerang, Supabase,
+ * FormBold), and the browser console says if anything else tries. Once a
+ * week on the live site shows no reports, including a real checkout with
+ * Apple Pay, rename the header to Content-Security-Policy to enforce it. It
+ * is also what PCI's SAQ A asks of a page that embeds a payment form.
+ */
+const CSP = [
+  "default-src 'self'",
+  // 'unsafe-inline' only for the Bloomerang tag's onerror attribute.
+  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.js.stripe.com https://www.googletagmanager.com https://api.bloomerang.co",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self'",
+  "connect-src 'self' https://zvzlgawpezovdwmnvwlg.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://api.bloomerang.co https://formbold.com",
+  "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+  "frame-ancestors 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
+const SECURITY_HEADERS: Record<string, string> = {
+  'Content-Security-Policy': "frame-ancestors 'self'",
+  'Content-Security-Policy-Report-Only': CSP,
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
+
+/** True when a request's Origin is the host it was sent to. */
+function sameOrigin(request: Request): boolean {
+  const origin = request.headers.get('Origin');
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === new URL(request.url).host;
+  } catch {
+    return false;
+  }
+}
+
+/** djb2, as base36: a short, stable tag for a route in an ETag. */
+function routeTag(input: string): string {
+  let h = 5381;
+  for (let i = 0; i < input.length; i++) h = ((h << 5) + h + input.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+/** The opaque part of an ETag, without W/ or quotes. */
+function etagValue(tag: string): string {
+  return tag.trim().replace(/^W\//, '').replace(/^"|"$/g, '');
+}
+
+/**
+ * Serves the SPA shell for a page, with that page's own head.
+ *
+ * Every page is the same index.html underneath. It used to go out exactly as
+ * built, carrying the homepage's title, description, canonical and social
+ * tags whatever the URL, so a crawler that does not run JavaScript (link
+ * previews, AI crawlers, Google's first pass) saw /donate as a copy of the
+ * homepage. The head is now rewritten per route from shared/pageMeta.ts, the
+ * same table the pages use, so what the server sends and what the page sets
+ * agree and the canonical never changes after render.
+ *
+ * Also applies a saved theme as a class on <html>, and serves 404 and 403
+ * under honest status codes.
+ *
+ * Caching: each route gets its own ETag, the asset's plus a route tag, so a
+ * repeat visit to the same page still revalidates to a bodyless 304 and two
+ * pages never answer for each other.
  */
 async function shellWithStatus(request: Request, env: Env, status: number): Promise<Response> {
   // '/' rather than '/index.html': with html_handling at its default the asset
   // service answers '/index.html' with a 307 to '/', and leaning on the binding
   // to follow its own redirect is a dependency worth not having.
+  const url = new URL(request.url);
   const shellUrl = new URL('/', request.url).toString();
 
-  // A real page forwards the caller's headers so If-None-Match still earns a
-  // 304. The shell is ~15KB and every page view fetches it; dropping the
-  // validator here would make all of them unconditional.
+  const meta =
+    status === 404 ? { ...NOT_FOUND_META, path: url.pathname }
+      : status === 403 ? metaForPath('/restricted')
+        : metaForPath(url.pathname);
   const theme = themeFromCookie(request);
+  const tag = routeTag(`${meta.path}|${theme ?? ''}|${status}`);
+
+  // A conditional request carries the ETag we issued for this route. Turn it
+  // back into the asset's own tag so the asset service can say 304. Error
+  // pages are never served from a validator.
   const headers = new Headers(request.headers);
-  if (status !== 200 || theme) {
-    // A 304 must never come back under a 404 or 403, and a page we are about
-    // to rewrite needs its full body — a 304 has none to put a class on.
-    headers.delete('If-None-Match');
-    headers.delete('If-Modified-Since');
+  const ifNoneMatch = request.headers.get('If-None-Match');
+  headers.delete('If-None-Match');
+  headers.delete('If-Modified-Since');
+  if (status === 200 && ifNoneMatch) {
+    const ours = ifNoneMatch.split(',').map(etagValue).find((v) => v.endsWith(`.${tag}`));
+    if (ours) {
+      const asset = ours.slice(0, -(tag.length + 1));
+      // One value, as the asset service sends it. It did not answer 304 to a
+      // list of strong and weak forms.
+      headers.set('If-None-Match', `"${asset}"`);
+    }
   }
 
-  const res = await env.ASSETS.fetch(
+  const assetRes = await env.ASSETS.fetch(
     new Request(shellUrl, { method: request.method === 'HEAD' ? 'HEAD' : 'GET', headers }),
   );
-  // The default visitor, with no saved theme, gets the asset untouched, so
-  // its ETag and the 304s that come with it keep working.
-  if (status === 200 && !theme) return res;
+  const res = withHeroPreload(request, assetRes);
+  const assetEtag = res.headers.get('ETag');
 
   const out = new Headers(res.headers);
-  // The shell's ETag belongs to the untouched 200. Carried onto a 404, a 403
-  // or a rewritten page it would let a later conditional request be answered
-  // 304 for a body it does not describe.
   out.delete('ETag');
+  out.delete('Content-Length');
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) out.set(name, value);
   if (status !== 200) {
     out.set('Cache-Control', 'no-store');
-  } else {
-    // Rewritten per visitor: never shared, always revalidated.
-    out.set('Cache-Control', 'private, no-cache');
+  } else if (assetEtag) {
+    out.set('ETag', `W/"${etagValue(assetEtag)}.${tag}"`);
+    if (theme) out.set('Cache-Control', 'private, no-cache');
   }
   if (theme) out.append('Vary', 'Cookie');
 
+  if (res.status === 304) {
+    return new Response(null, { status: 304, headers: out });
+  }
+
   const response = new Response(res.body, { status, headers: out });
-  if (!theme) return response;
+  const robots = meta.noindex ? 'noindex, nofollow' : 'index, follow';
+  const canonical = canonicalUrl(meta.path);
+  const setContent = (value: string) => ({ element(el: Element) { el.setAttribute('content', value); } });
+
   return new HTMLRewriter()
     .on('html', {
       element(el) {
+        if (!theme) return;
         const existing = el.getAttribute('class');
         el.setAttribute('class', existing ? `${existing} theme-${theme}` : `theme-${theme}`);
       },
     })
+    .on('title', { element(el) { el.setInnerContent(meta.title); } })
+    .on('meta[name="description"]', setContent(meta.description))
+    .on('meta[name="robots"]', setContent(robots))
+    .on('link[rel="canonical"]', { element(el) { el.setAttribute('href', canonical); } })
+    .on('meta[property="og:url"]', setContent(canonical))
+    .on('meta[property="og:title"]', setContent(meta.title))
+    .on('meta[property="og:description"]', setContent(meta.description))
+    .on('meta[name="twitter:title"]', setContent(meta.title))
+    .on('meta[name="twitter:description"]', setContent(meta.description))
     .transform(response);
 }
 
@@ -224,6 +356,176 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+/** A placeholder card that invites teachers to submit a project; not a fund. */
+const PROJECT_PLACEHOLDER = 'Submit a Project';
+
+type ResolvedDesignation =
+  | { ok: true; d: Designation; label: string; teacher: string; verified: boolean }
+  | { ok: false; error: string };
+
+/**
+ * Turns what the browser sent into a designation the Worker trusts.
+ *
+ * A school fund is checked against the school registry. A classroom project
+ * is looked up by id in the projects table, and its title and teacher come
+ * from there — never from the request — so a forged id cannot put a made-up
+ * project on someone's receipt.
+ *
+ * If the database cannot be reached, the gift still goes through: it is
+ * recorded against the requested project id with designation_verified=false,
+ * so it can be routed by hand. Losing a donation to a lookup timeout would be
+ * the worse failure.
+ */
+async function resolveDesignation(
+  raw: unknown,
+  legacyFund: { title?: unknown } | null | undefined,
+): Promise<ResolvedDesignation> {
+  let d: Designation | null;
+  if (raw !== undefined && raw !== null) {
+    d = decodeDesignation(raw);
+    if (!d) return { ok: false, error: 'That fund is not one we recognise.' };
+  } else {
+    // Links from before designations existed: ?fund=Okemos Mid-Year Refill.
+    const title = typeof legacyFund?.title === 'string' ? legacyFund.title : null;
+    d = designationFromLegacyFund(title) ?? { kind: 'general' };
+  }
+
+  if (d.kind === 'general') {
+    return { ok: true, d, label: "Where it's needed most", teacher: '', verified: true };
+  }
+  if (d.kind === 'school') {
+    const label = schoolFundLabel(d.slug);
+    return label
+      ? { ok: true, d, label, teacher: '', verified: true }
+      : { ok: false, error: 'That school fund is not one we recognise.' };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2500);
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/projects?select=id,title,teacher_name&id=eq.${d.id}`,
+      {
+        headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}` },
+        signal: controller.signal,
+      },
+    );
+    if (!res.ok) throw new Error(`projects lookup ${res.status}`);
+    const rows = (await res.json()) as Array<{ title?: string; teacher_name?: string }>;
+    const row = rows[0];
+    if (!row?.title || row.teacher_name === PROJECT_PLACEHOLDER) {
+      return { ok: false, error: 'That classroom project is no longer accepting gifts.' };
+    }
+    return { ok: true, d, label: row.title.slice(0, 120), teacher: (row.teacher_name ?? '').slice(0, 80), verified: true };
+  } catch {
+    return { ok: true, d, label: `Classroom project #${d.id}`, teacher: '', verified: false };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Everything sent to Stripe for a donation, as a pure function of decisions
+ * already made and checked, so the money-handling shape can be tested without
+ * a network (scripts/test-donation-session.mts).
+ */
+export function donationSessionParams(o: {
+  giftCents: number;
+  feeCents: number;
+  frequency: 'once' | 'monthly';
+  label: string;
+  teacher: string;
+  verified: boolean;
+  designation: Designation;
+  origin: string;
+}): Stripe.Checkout.SessionCreateParams {
+  const { giftCents, frequency, label, teacher, verified, origin } = o;
+  const fee = o.feeCents;
+  const general = o.designation.kind === 'general';
+  const recurring = frequency === 'monthly' ? { recurring: { interval: 'month' as const } } : {};
+  const every = frequency === 'monthly' ? 'Monthly gift' : 'Gift';
+
+  // Recorded on the payment (and on the subscription, for monthly gifts) so a
+  // designated gift can be found, reported on and delivered to the right
+  // classroom from the Stripe dashboard alone.
+  const metadata: Record<string, string> = {
+    designation: encodeDesignation(o.designation),
+    designation_label: label,
+    designation_verified: String(verified),
+    gift_amount_cents: String(giftCents),
+    fee_covered_cents: String(fee),
+    ...(teacher ? { teacher } : {}),
+  };
+  const description = `${every} — ${label}${teacher ? ` (${teacher})` : ''}${fee ? ` · donor covered $${(fee / 100).toFixed(2)} in fees` : ''}`;
+  // The IRS asks for this on the acknowledgment of any gift of $250 or more;
+  // it is true of every gift here, so it is on every one.
+  const noGoods = 'No goods or services were provided in exchange for this gift.';
+
+  return {
+    ui_mode: 'embedded_page',
+    mode: frequency === 'monthly' ? 'subscription' : 'payment',
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: general
+              ? frequency === 'monthly' ? 'Monthly donation to Funding Michigan Teachers' : 'Donation to Funding Michigan Teachers'
+              : `${every} to ${label}`,
+            description: teacher
+              ? `For ${teacher}'s classroom project · Funding Michigan Teachers, 501(c)(3), EIN 93-4485967. ${noGoods}`
+              : `Funding Michigan Teachers, 501(c)(3), EIN 93-4485967. ${noGoods}`,
+          },
+          unit_amount: giftCents,
+          ...recurring,
+        },
+        quantity: 1,
+      },
+      // The covered fee is its own line, so the donor sees exactly what it
+      // is on the checkout and the receipt, and FMT's records keep the gift
+      // and the fee apart.
+      ...(fee
+        ? [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: 'Card processing fee, covered by you',
+                description: 'So Funding Michigan Teachers receives your full gift',
+              },
+              unit_amount: fee,
+              ...recurring,
+            },
+            quantity: 1,
+          }]
+        : []),
+    ],
+    return_url: `${origin}/donate?stripe_session_id={CHECKOUT_SESSION_ID}`,
+    ...(frequency === 'once' ? { submit_type: 'donate' as const } : {}),
+    metadata,
+    ...(frequency === 'once'
+      ? { payment_intent_data: { description, metadata } }
+      : { subscription_data: { description, metadata } }),
+    custom_text: {
+      submit: {
+        // A designated gift is a preference FMT honours, not a gift to a
+        // person: under IRS rules the charity must keep control of how it is
+        // used, or the gift is not deductible. See DonatePage's picker note.
+        message: [
+          teacher
+            ? `Your gift supports ${teacher}'s classroom project.`
+            : general
+              ? 'Your gift goes where Michigan teachers need it most.'
+              : `Your gift supports the ${label}.`,
+          frequency === 'monthly'
+            ? 'Change or cancel any time by emailing hello@fundingmichiganteachers.org.'
+            : '',
+        ].filter(Boolean).join(' '),
+      },
+    },
+  };
+}
+
 async function createCheckoutSession(request: Request, env: Env): Promise<Response> {
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Stripe is not configured on the server (missing STRIPE_SECRET_KEY).' }, 500);
@@ -232,6 +534,11 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
   let body: {
     amount?: number;
     frequency?: 'once' | 'monthly';
+    /** 'general' | 'school:<slug>' | 'project:<id>' — see shared/donations.ts */
+    designation?: string;
+    /** Only a yes/no. The fee itself is always computed here. */
+    coverFee?: boolean;
+    /** Older links: { title } of a fund, mapped onto a designation. */
     fund?: { title?: string; teacher?: string } | null;
   };
   try {
@@ -240,72 +547,45 @@ async function createCheckoutSession(request: Request, env: Env): Promise<Respon
     return json({ error: 'Invalid request body' }, 400);
   }
 
-  const amount = Number(body.amount);
-  const frequency = body.frequency === 'monthly' ? 'monthly' : 'once';
+  const amount = body.amount;
+  if (body.frequency !== 'monthly' && body.frequency !== 'once') {
+    return json({ error: 'Invalid frequency' }, 400);
+  }
+  const frequency = body.frequency;
 
-  if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
+  // A number of whole cents within the limits the page also enforces.
+  if (
+    typeof amount !== 'number' || !Number.isFinite(amount) ||
+    amount < MIN_GIFT || amount > MAX_GIFT ||
+    Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6
+  ) {
     return json({ error: 'Invalid donation amount' }, 400);
   }
 
-  // Designated gift to one teacher's classroom fund. Trimmed and length-capped
-  // because it comes from a query string and is shown on the Stripe receipt.
-  const clean = (s: unknown, max: number) =>
-    typeof s === 'string' ? s.trim().slice(0, max) : '';
-  const fundTitle = clean(body.fund?.title, 120);
-  const fundTeacher = clean(body.fund?.teacher, 80);
+  const designation = await resolveDesignation(body.designation, body.fund);
+  if ('error' in designation) return json({ error: designation.error }, 400);
+  const { label, teacher, verified } = designation;
+
+  const giftCents = Math.round(amount * 100);
+  const fee = body.coverFee === true ? coverFee(giftCents).feeCents : 0;
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
   });
-  const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
-  const unitAmount = Math.round(amount * 100);
+  // Where Stripe sends the visitor back: this site, read from the request
+  // itself. It used to copy the Origin header, which the caller controls.
+  const origin = new URL(request.url).origin;
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded_page',
-      mode: frequency === 'monthly' ? 'subscription' : 'payment',
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: fundTitle
-                ? `${frequency === 'monthly' ? 'Monthly gift' : 'Gift'} to ${fundTitle}`
-                : frequency === 'monthly'
-                  ? 'Monthly donation to Funding Michigan Teachers'
-                  : 'Donation to Funding Michigan Teachers',
-              description: fundTeacher
-                ? `${fundTeacher}'s classroom fund · Funding Michigan Teachers · 501(c)(3) EIN 93-4485967 · at least 80¢ of every dollar goes to teachers`
-                : '501(c)(3) nonprofit · EIN 93-4485967 · at least 80¢ of every dollar goes to teachers',
-            },
-            unit_amount: unitAmount,
-            ...(frequency === 'monthly' ? { recurring: { interval: 'month' as const } } : {}),
-          },
-          quantity: 1,
-        },
-      ],
-      return_url: `${origin}/donate?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      ...(frequency === 'once' ? { submit_type: 'donate' as const } : {}),
-      // Recorded on the Stripe payment so designated gifts can be reported on
-      // and routed to the right classroom.
-      ...(fundTitle
-        ? { metadata: { designated_fund: fundTitle, teacher: fundTeacher } }
-        : {}),
-      custom_text: {
-        submit: {
-          message: fundTeacher
-            ? `Your gift goes to ${fundTeacher}'s classroom.`
-            : 'At least 80¢ of every dollar goes directly to Michigan teachers.',
-        },
-      },
-    });
+    const session = await stripe.checkout.sessions.create(
+      donationSessionParams({ giftCents, feeCents: fee, frequency, label, teacher, verified, designation: designation.d, origin }),
+    );
 
     return json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error('Stripe checkout session creation failed:', err);
-    const message = err instanceof Error ? err.message : 'Unknown error creating checkout session';
-    return json({ error: message }, 500);
+    // Stripe's own message stays in the Worker log; the page gets a plain one.
+    return json({ error: 'Checkout could not start. Please try again, or email hello@fundingmichiganteachers.org.' }, 500);
   }
 }
 
@@ -345,7 +625,13 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   // fault whatever the server's own configuration is, so it earns a 400 rather
   // than being masked by a 500 about a missing key — and rejecting it here
   // costs nothing.
-  let body: { lines?: CartLine[]; fulfilment?: Fulfilment; code?: string };
+  let body: {
+    lines?: (CartLine & { atCost?: boolean })[];
+    fulfilment?: Fulfilment;
+    code?: string;
+    educator?: boolean;
+    coverFee?: boolean;
+  };
   try {
     body = await request.json();
   } catch {
@@ -356,98 +642,76 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
   const problem = validateCart(lines);
   if (problem) return json({ error: problem }, 400);
 
-  // The code is re-checked here, not trusted from the page. A browser that
-  // claims educator pricing without a valid code simply does not get it.
+  // The code is looked up here, never taken from the page. Only its kind goes
+  // into pricing, and only once this lookup has found it.
   const code = findCode(env.MERCH_CODES, String(body.code ?? ''));
-  const educatorPricing = code?.kind === 'educator';
-  let freeTeeRemaining = code?.kind === 'free-tee' ? 1 : 0;
 
   if (!env.STRIPE_SECRET_KEY) {
     return json({ error: 'Payments are not configured on the server.' }, 500);
   }
 
   const fulfilment: Fulfilment = body.fulfilment === 'delivery' ? 'delivery' : 'pickup';
-  const { delivery } = orderTotal(lines, fulfilment);
+  // Educator pricing is an honour-system box (see PricingOptions). A page
+  // cached from before this change sends it per line as atCost instead.
+  const educator = body.educator === true || lines.some((l) => l.atCost === true);
+  const priced = priceOrder(lines, {
+    fulfilment,
+    educator,
+    codeKind: code?.kind ?? null,
+    coverFee: body.coverFee === true,
+  });
+
+  // Stripe cannot take a $0 payment. The page sends a free tee on its own by
+  // email instead; this only catches a page that did not.
+  if (priced.total === 0) {
+    return json({ error: 'Nothing to pay — email hello@fundingmichiganteachers.org with your size and color and we will get your shirt to you.' }, 400);
+  }
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     httpClient: Stripe.createFetchHttpClient(),
   });
-  const origin = request.headers.get('origin') ?? 'https://www.fundingmichiganteachers.org';
+  // Where Stripe sends the visitor back: this site, read from the request
+  // itself. It used to copy the Origin header, which the caller controls.
+  const origin = new URL(request.url).origin;
 
-  const items: {
+  const items = priced.items.map((it) => ({
     price_data: {
-      currency: string;
-      product_data: { name: string; description: string };
-      unit_amount: number;
-    };
-    quantity: number;
-  }[] = [];
-
-  for (const l of lines) {
-    const product = findProduct(l.productId)!;
-    const color = MERCH_COLORS.find((c) => c.id === l.colorId)!;
-    const atCost = educatorPricing || l.atCost;
-
-    // A free-tee code covers exactly one shirt. The rest of the line is
-    // charged normally rather than the whole line going free.
-    let freeHere = 0;
-    if (freeTeeRemaining > 0 && product.id === 'tee') {
-      freeHere = Math.min(freeTeeRemaining, l.qty);
-      freeTeeRemaining -= freeHere;
-    }
-
-    if (freeHere > 0) {
-      items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${product.name} — ${color.name}, ${l.size}`,
-            description: 'Teacher of the Month — on us.',
-          },
-          unit_amount: 0,
-        },
-        quantity: freeHere,
-      });
-    }
-
-    if (l.qty - freeHere > 0) {
-      items.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${product.name} — ${color.name}, ${l.size}`,
-            description: atCost
-              ? 'Educator pricing: sold at our cost, no margin to FMT.'
-              : 'Funding Michigan Teachers · 501(c)(3) EIN 93-4485967',
-          },
-          unit_amount: unitPrice(product, atCost),
-        },
-        quantity: l.qty - freeHere,
-      });
-    }
-  }
-
-  if (delivery > 0) {
-    items.push({
-      price_data: {
-        currency: 'usd',
-        product_data: { name: 'Local delivery', description: 'Free on orders over $50.' },
-        unit_amount: delivery,
-      },
-      quantity: 1,
-    });
-  }
+      currency: 'usd',
+      product_data: { name: it.name, description: it.description },
+      unit_amount: it.unitAmount,
+    },
+    quantity: it.quantity,
+  }));
 
   // A compact packing list, because Stripe truncates long metadata values and
   // the line items alone do not say which press setting each shirt needs.
-  const packing = lines
-    .map((l) => {
-      const p = findProduct(l.productId)!;
-      const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
-      return `${l.qty}x ${p.name}/${c.name}/${l.size}${l.atCost ? ' (educator)' : ''}`;
-    })
-    .join('; ')
-    .slice(0, 480);
+  const packingLines = lines.map((l) => {
+    const p = findProduct(l.productId)!;
+    const c = MERCH_COLORS.find((x) => x.id === l.colorId)!;
+    return `${l.qty}x ${p.name}/${c.name}/${l.size}`;
+  });
+  const suffix = educator || code?.kind === 'educator' ? ' (educator pricing)' : '';
+  // Stripe caps metadata values at 500 characters. A cut list would silently
+  // drop shirts, so it says how many it left off.
+  let packing = packingLines.join('; ') + suffix;
+  if (packing.length > 480) {
+    let kept = 0;
+    let text = '';
+    for (const line of packingLines) {
+      const next = text ? `${text}; ${line}` : line;
+      if (next.length > 420) break;
+      text = next;
+      kept++;
+    }
+    packing = `${text}; …and ${packingLines.length - kept} more, see line items${suffix}`;
+  }
+  const metadata = {
+    order_type: 'merch',
+    fulfilment,
+    packing,
+    code: code?.code ?? '',
+    fee_covered_cents: String(priced.fee),
+  };
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -461,7 +725,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
         : {}),
       phone_number_collection: { enabled: true },
       return_url: `${origin}/shop?stripe_session_id={CHECKOUT_SESSION_ID}`,
-      metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
+      metadata,
       /**
        * The packing list on the PaymentIntent, not just the session.
        *
@@ -474,7 +738,7 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
        */
       payment_intent_data: {
         description: `${packing} — ${fulfilment === 'delivery' ? 'DELIVERY' : 'pickup'}`,
-        metadata: { order_type: 'merch', fulfilment, packing, code: code?.code ?? '' },
+        metadata,
       },
       custom_text: {
         submit: {
@@ -488,8 +752,8 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
     return json({ clientSecret: session.client_secret });
   } catch (err) {
     console.error('Merch checkout session failed:', err);
-    const message = err instanceof Error ? err.message : 'Unknown error creating checkout session';
-    return json({ error: message }, 500);
+    // Stripe's own message stays in the Worker log; the page gets a plain one.
+    return json({ error: 'Checkout could not start. Please try again, or email hello@fundingmichiganteachers.org.' }, 500);
   }
 }
 
@@ -513,15 +777,38 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
  * browser console can say so.
  */
 async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
-  let body: { form?: string; name?: string; email?: string; phone?: string; note?: string };
+  let body: CrmInput;
   try {
     body = await request.json();
   } catch {
     return json({ error: 'Invalid request body' }, 400);
   }
+  return fileInCrm(env, body);
+}
 
-  const email = String(body.email ?? '').trim();
+interface CrmInput { form?: string; name?: string; email?: string; phone?: string; note?: string }
+
+/**
+ * Finds or creates the person in Bloomerang and records what happened as an
+ * interaction on their timeline. Used by the site's forms (/api/crm) and by
+ * the Stripe webhook for completed gifts and orders.
+ */
+async function fileInCrm(env: Env, body: CrmInput): Promise<Response> {
+  const email = String(body.email ?? '').trim().slice(0, 254);
   if (!email.includes('@')) return json({ error: 'A valid email is required' }, 400);
+  // Bounded, so nobody can push megabytes into a donor record.
+  body.name = String(body.name ?? '').slice(0, 200);
+  body.phone = String(body.phone ?? '').slice(0, 40);
+  body.note = String(body.note ?? '').slice(0, 4000);
+  body.form = String(body.form ?? 'Website form').slice(0, 120);
+
+  // What went wrong is written to the Worker log (Cloudflare dashboard →
+  // the Worker → Logs), not sent back: the response used to carry the CRM
+  // account ID and Bloomerang's raw error text to whoever called this.
+  const fail = (stage: string, detail: unknown, status = 502) => {
+    console.error('[crm] not filed', { stage, detail });
+    return json({ filed: false, stage }, status);
+  };
 
   // Resolved once per request, not once per call: this handler makes up to
   // three Bloomerang requests, and under Secrets Store each .get() is a real
@@ -530,7 +817,8 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
   if (!apiKey) {
     // Not configured yet. Not an error worth alarming anyone about — the
     // submission reached FMT by email regardless.
-    return json({ filed: false, reason: 'BLOOMERANG_API_KEY is not set on the Worker' }, 503);
+    console.error('[crm] BLOOMERANG_API_KEY is not set on the Worker');
+    return json({ filed: false, stage: 'not-configured' }, 503);
   }
 
   const api = async (path: string, init?: RequestInit) => {
@@ -555,10 +843,17 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
   const lastName = parts.length ? parts[parts.length - 1] : '';
 
   try {
-    // 1. Is this person already in the CRM?
-    const found = await api(`constituents/search?search=${encodeURIComponent(email)}&take=1`);
-    let accountId: number | undefined =
-      (found.body as { Results?: { Id?: number }[] } | null)?.Results?.[0]?.Id;
+    // 1. Is this person already in the CRM? Bloomerang's search is a loose
+    // text search, so take several results and accept only an exact email
+    // match: reusing the first hit could attach a teacher's request to
+    // someone else's record.
+    const found = await api(`constituents/search?search=${encodeURIComponent(email)}&take=25`);
+    if (!found.ok) return fail('search', { status: found.status, raw: found.raw });
+    type Hit = { Id?: number; PrimaryEmail?: { Value?: string } | null };
+    const hits = (found.body as { Results?: Hit[] } | null)?.Results ?? [];
+    let accountId: number | undefined = hits.find(
+      (h) => h.PrimaryEmail?.Value?.trim().toLowerCase() === email.toLowerCase(),
+    )?.Id;
 
     // 2. Create them if not.
     if (!accountId) {
@@ -572,42 +867,108 @@ async function fileInBloomerang(request: Request, env: Env): Promise<Response> {
           ...(body.phone ? { PrimaryPhone: { Type: 'Home', Number: body.phone } } : {}),
         }),
       });
-      if (!created.ok) {
-        return json({ filed: false, stage: 'constituent', status: created.status, detail: created.raw }, 502);
-      }
+      if (!created.ok) return fail('constituent', { status: created.status, raw: created.raw });
       accountId = (created.body as { Id?: number } | null)?.Id;
     }
 
-    if (!accountId) {
-      return json({ filed: false, stage: 'constituent', detail: 'no account id returned' }, 502);
-    }
+    if (!accountId) return fail('constituent', 'no account id returned');
 
     // 3. Record what they actually sent.
     const interaction = await api('interaction', {
       method: 'POST',
       body: JSON.stringify({
         AccountId: accountId,
-        Channel: 'Email',
+        // A form on the website, sent by them: Website, inbound. It was filed
+        // as an Email FMT had sent.
+        Channel: 'Website',
+        IsInbound: true,
         Purpose: 'Other',
         Subject: String(body.form ?? 'Website form'),
         Note: String(body.note ?? ''),
-        Date: new Date().toISOString().slice(0, 10),
+        // Michigan's date, not UTC's: an evening submission was dated tomorrow.
+        Date: new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Detroit' }).format(new Date()),
       }),
     });
 
     if (!interaction.ok) {
-      // The person is in the CRM even if the note did not attach, which is
-      // worth saying rather than reporting a flat failure.
-      return json(
-        { filed: 'partial', accountId, stage: 'interaction', status: interaction.status, detail: interaction.raw },
-        502,
-      );
+      // The person is in the CRM even if the note did not attach.
+      console.error('[crm] constituent filed, note not attached', { status: interaction.status, raw: interaction.raw });
+      return json({ filed: 'partial', stage: 'interaction' }, 502);
     }
 
-    return json({ filed: true, accountId });
+    return json({ filed: true });
   } catch (err) {
-    return json({ filed: false, detail: err instanceof Error ? err.message : 'unknown error' }, 502);
+    return fail('network', err instanceof Error ? err.message : 'unknown error');
   }
+}
+
+/**
+ * Stripe → Bloomerang. When a checkout completes, the donor or buyer is
+ * filed in the CRM with what they gave or bought.
+ *
+ * Without this, the people FMT most needs to thank and ask again, its
+ * donors, never reached Bloomerang at all: only form submissions did.
+ *
+ * Recorded as an interaction ("Website — donation: $25 to the Okemos
+ * Mid-Year Refill"), not a Bloomerang gift transaction: a transaction needs
+ * the ids of FMT's Bloomerang funds, which are not known here yet. Once they
+ * are, this is the place to add a POST to v2/transaction.
+ *
+ * Setup: Stripe Dashboard → Developers → Webhooks → Add endpoint
+ * https://www.fundingmichiganteachers.org/api/stripe-webhook, event
+ * checkout.session.completed; copy its signing secret into the Worker as the
+ * Secret STRIPE_WEBHOOK_SECRET.
+ */
+async function stripeWebhook(request: Request, env: Env): Promise<Response> {
+  const secret = await readSecret(env.STRIPE_WEBHOOK_SECRET);
+  if (!secret || !env.STRIPE_SECRET_KEY) {
+    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET or STRIPE_SECRET_KEY is not set');
+    return json({ error: 'Not configured' }, 503);
+  }
+  const signature = request.headers.get('Stripe-Signature');
+  if (!signature) return json({ error: 'Missing signature' }, 400);
+
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  const payload = await request.text();
+  let event: Stripe.Event;
+  try {
+    event = await stripe.webhooks.constructEventAsync(
+      payload, signature, secret, undefined, Stripe.createSubtleCryptoProvider(),
+    );
+  } catch {
+    // Not from Stripe, or tampered with.
+    return json({ error: 'Invalid signature' }, 400);
+  }
+
+  if (event.type !== 'checkout.session.completed') return json({ received: true });
+
+  const session = event.data.object as Stripe.Checkout.Session;
+  const email = session.customer_details?.email;
+  if (!email) return json({ received: true, filed: false });
+
+  const meta = session.metadata ?? {};
+  const isOrder = meta.order_type === 'merch';
+  const money = (cents: number | null | undefined) => `$${((cents ?? 0) / 100).toFixed(2)}`;
+  const giftCents = Number(meta.gift_amount_cents) || session.amount_total || 0;
+  const note = isOrder
+    ? `Shop order, ${money(session.amount_total)}: ${meta.packing ?? ''} (${meta.fulfilment ?? 'pickup'}).`
+    : [
+        `${session.mode === 'subscription' ? 'Monthly gift' : 'Gift'} of ${money(giftCents)}`,
+        meta.designation_label ? ` to ${meta.designation_label}` : '',
+        Number(meta.fee_covered_cents) > 0 ? `, plus ${money(Number(meta.fee_covered_cents))} to cover the card fee` : '',
+        `. Stripe ${session.id}.`,
+      ].join('');
+
+  const res = await fileInCrm(env, {
+    form: isOrder ? 'Website — shop order' : 'Website — donation',
+    name: session.customer_details?.name ?? '',
+    email,
+    phone: session.customer_details?.phone ?? '',
+    note,
+  });
+  // Always 200 to Stripe once the event is genuine: a CRM that is down is
+  // logged (fileInCrm does) rather than retried into duplicate records.
+  return json({ received: true, filed: res.ok });
 }
 
 async function checkoutSessionStatus(request: Request, env: Env): Promise<Response> {
@@ -627,11 +988,16 @@ async function checkoutSessionStatus(request: Request, env: Env): Promise<Respon
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const gift = Number(session.metadata?.gift_amount_cents);
     return json({
       status: session.status,
       paymentStatus: session.payment_status,
       amountTotal: session.amount_total,
       mode: session.mode,
+      // The gift without any covered fee, so the thank-you page and ad
+      // conversions count what the donor gave, and where it went.
+      giftCents: Number.isFinite(gift) && gift > 0 ? gift : null,
+      designationLabel: session.metadata?.designation_label ?? null,
     });
   } catch (err) {
     console.error('Stripe session status lookup failed:', err);
@@ -678,6 +1044,20 @@ export default {
         return shellWithStatus(request, env, 403);
       }
       return Response.redirect(new URL('/restricted', url).toString(), 302);
+    }
+
+    // Stripe calls this one itself, so it sits before the same-origin gate;
+    // its signature is what proves where it came from.
+    if (path === '/api/stripe-webhook' && request.method === 'POST') {
+      return stripeWebhook(request, env);
+    }
+
+    // Every POST to the API must come from this site's own pages. It is not
+    // a lock (a script can fake the header), but it stops another website
+    // from using a visitor's browser to file people into the CRM or open
+    // checkout sessions. Rate limits belong in the Cloudflare dashboard.
+    if (path.startsWith('/api/') && request.method === 'POST' && !sameOrigin(request)) {
+      return json({ error: 'Forbidden' }, 403);
     }
 
     if (path === '/api/create-checkout-session' && request.method === 'POST') {

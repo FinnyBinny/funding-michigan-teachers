@@ -110,6 +110,7 @@ const PAGES = [
 
   // ── Outside the scheme ─────────────────────────────────────────────────
   { path: '/privacy', type: 'legal', changefreq: 'yearly', sources: ['src/pages/PrivacyPage.tsx'] },
+  { path: '/accessibility', type: 'legal', changefreq: 'yearly', sources: ['src/pages/AccessibilityPage.tsx'] },
 ];
 
 const PRIORITY = { primary: '1.0', hub: '0.8', page: '0.6', legal: '0.3' };

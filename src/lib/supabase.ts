@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../../shared/supabasePublic';
 
 /**
  * Supabase connection.
@@ -18,8 +19,9 @@ import { createClient } from '@supabase/supabase-js';
  * vanished from the deployed site while still appearing to work locally. The
  * VITE_* overrides below still apply if they are ever set at build time.
  */
-const FALLBACK_URL = 'https://zvzlgawpezovdwmnvwlg.supabase.co';
-const FALLBACK_ANON_KEY = 'sb_publishable_N3fEhiPqKwmodLPXxyI9iQ_y-UiCVtI';
+// Shared with the Worker, which reads project names from the same project.
+const FALLBACK_URL = SUPABASE_URL;
+const FALLBACK_ANON_KEY = SUPABASE_PUBLISHABLE_KEY;
 
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) || FALLBACK_URL;
@@ -33,11 +35,33 @@ export const supabase =
     : null;
 
 /** Returns a stable anonymous voter ID for this browser (stored in localStorage). */
-export function getVoterId(): string {
-  let id = localStorage.getItem('fmt_voter_id');
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem('fmt_voter_id', id);
+let memoryVoterId: string | null = null;
+
+/**
+ * This browser's voter ID if it has one, without creating it. Loading the
+ * homepage used to create and store an ID for every visitor before anyone
+ * voted; now one exists only after a vote.
+ */
+export function peekVoterId(): string | null {
+  try {
+    return localStorage.getItem('fmt_voter_id') ?? memoryVoterId;
+  } catch {
+    return memoryVoterId;
   }
-  return id;
+}
+
+export function getVoterId(): string {
+  // localStorage throws when a browser blocks site storage; the vote still
+  // counts, it just is not remembered after this visit.
+  try {
+    let id = localStorage.getItem('fmt_voter_id');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('fmt_voter_id', id);
+    }
+    return id;
+  } catch {
+    memoryVoterId ??= crypto.randomUUID();
+    return memoryVoterId;
+  }
 }

@@ -14,16 +14,28 @@ const dir = new URL('../public/images/', import.meta.url).pathname;
 await mkdir(dir, { recursive: true });
 
 const jobs = [
-  // Header/footer logo: rendered at 40-48px, so 96px covers 2x screens.
+  // Header/footer logo: rendered at 40-48px. 96px covers 2x screens, 192px
+  // covers 3x phones (served by srcset).
   { src: 'fmt-logo-lc.png', out: 'fmt-logo-96.avif', w: 96, h: 96, avif: { quality: 60 } },
   { src: 'fmt-logo-lc.png', out: 'fmt-logo-96.png', w: 96, h: 96, png: { compressionLevel: 9 } },
+  { src: 'fmt-logo-lc.png', out: 'fmt-logo-192.avif', w: 192, h: 192, avif: { quality: 60 } },
+  { src: 'fmt-logo-lc.png', out: 'fmt-logo-192.png', w: 192, h: 192, png: { compressionLevel: 9 } },
   // Structured-data logo (Google wants a reasonably sized square).
   { src: 'fmt-logo-lc.png', out: 'fmt-logo-512.png', w: 512, h: 512, png: { compressionLevel: 9 } },
   // Homepage hero (desktop-only, rendered ~600px tall in a 5/12 column).
-  { src: 'finn-and-mrs-freeman-opt.jpg', out: 'finn-and-mrs-freeman-1280.avif', w: 1280, avif: { quality: 55 } },
-  { src: 'finn-and-mrs-freeman-opt.jpg', out: 'finn-and-mrs-freeman-1280.jpg', w: 1280, jpeg: { quality: 74, mozjpeg: true } },
-  // Social share image (og:image says 1200×630 — make that true).
-  { src: 'finn-and-mrs-freeman-opt.jpg', out: 'finn-and-mrs-freeman-og.jpg', w: 1200, h: 630, jpeg: { quality: 78, mozjpeg: true } },
+  // The source is portrait, 960x1280; "1280" is its height.
+  { src: 'finn-and-mrs-freeman-opt.jpg', out: 'finn-and-mrs-freeman-1280.avif', w: 1280, h: 1280, avif: { quality: 55 } },
+  { src: 'finn-and-mrs-freeman-opt.jpg', out: 'finn-and-mrs-freeman-1280.jpg', w: 1280, h: 1280, jpeg: { quality: 74, mozjpeg: true } },
+  // The About page's founder thumbnail: 160px square on desktop.
+  { src: 'finn-and-mrs-freeman-opt.jpg', out: 'finn-and-mrs-freeman-480.avif', w: 480, h: 640, avif: { quality: 55 } },
+  // The social share image is NOT made here any more: a 1200x630 crop of a
+  // portrait photo loses the people. It is a designed card, rendered from
+  // scripts/og-card.html (see the comment at the top of that file).
+  // Partner photos: AVIF twins of the committed JPEGs. These were once made
+  // without auto-orienting, so two of them shipped sideways.
+  { src: 'IMG_3714(CFA)-opt.jpg', out: 'IMG_3714(CFA).avif', w: 900, h: 900, avif: { quality: 55 } },
+  { src: 'IMG_4369(DNK)-opt.jpg', out: 'IMG_4369(DNK).avif', w: 900, h: 900, avif: { quality: 55 } },
+  { src: 'IMG_5678(NBC)-opt.jpg', out: 'IMG_5678(NBC).avif', w: 900, h: 900, avif: { quality: 55 } },
   // Below-fold photos still shipping at print resolution.
   { src: 'may-chick-fil-a-cards.jpg', out: 'may-chick-fil-a-cards-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
   { src: 'may-staff-meeting.jpg', out: 'may-staff-meeting-opt.jpg', w: 900, jpeg: { quality: 74, mozjpeg: true } },
@@ -35,10 +47,9 @@ const jobs = [
   //
   // The tee came off a phone: EXIF-rotated upright to 4284x5712, then cropped
   // to the subject, because a full-length shot leaves the artwork unreadable
-  // at card size. `rotate: true` reapplies the orientation tag; `crop` is that
-  // framing in upright pixels.
+  // at card size. `crop` is that framing in upright pixels.
   {
-    src: 'shop-tee-src.jpg', out: 'shop-tee.jpg', w: 800, optional: true, rotate: true,
+    src: 'shop-tee-src.jpg', out: 'shop-tee.jpg', w: 800, optional: true,
     crop: { left: 1118, top: 1885, width: 1919, height: 2399 },
     jpeg: { quality: 78, mozjpeg: true },
   },
@@ -65,14 +76,18 @@ for (const j of jobs) {
     console.log(`${j.out}  skipped (no ${j.src})`);
     continue;
   }
-  let img = sharp(dir + j.src);
+  // Always auto-orient. A phone photo stores its pixels sideways plus an EXIF
+  // note saying which way is up; browsers obey the note on a JPEG but every
+  // derived file (AVIF, crops, the share image) must have the pixels turned
+  // for real, or it ships sideways. That happened to three files.
+  let img = sharp(dir + j.src).rotate();
   // Orientation first, then crop — the crop is expressed in upright pixels.
-  if (j.rotate) img = img.rotate();
   if (j.crop) img = sharp(await img.toBuffer()).extract(j.crop);
   img = img.resize({
     width: j.w,
     height: j.h,
-    fit: j.h ? 'cover' : 'inside',
+    // w and h together are a bounding box unless `cover` asks for a crop.
+    fit: j.cover ? 'cover' : 'inside',
     position: 'attention',
     withoutEnlargement: true,
   });
