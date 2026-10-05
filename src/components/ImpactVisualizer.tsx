@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'motion/react';
-import SupplyBasket from './SupplyBasket';
 import {
   Pencil, NotebookPen, Paintbrush, BookOpen, UtensilsCrossed,
   FlaskConical, GraduationCap, Sparkles,
@@ -118,20 +117,10 @@ export default function ImpactVisualizer({ amount, onAmountChange, frequency = '
                 <span>$300+</span>
               </div>
 
-              {/* The supply basket — fills with chips as the slider moves */}
+              {/* Classroom-grant readout. The supply basket that used to sit
+                  here is on the donate page now, under the amount tiles. */}
               <div className="mt-8 pt-6 border-t border-chalkboard/8">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
-                    Your supply basket
-                  </span>
-                  <span className="font-hand text-sm text-chalkboard/70 -rotate-1">
-                    {amount >= GRANT_SIZE ? 'overflowing!!' : amount >= 100 ? 'filling up fast' : 'slide to fill it…'}
-                  </span>
-                </div>
-                <SupplyBasket amount={amount} />
-
-                {/* Classroom-grant readout */}
-                <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70">
                     <GraduationCap size={13} strokeWidth={1.5} className="text-apple" />
                     One full classroom grant
