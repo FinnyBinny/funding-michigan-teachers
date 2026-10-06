@@ -10,7 +10,8 @@ import { metaForPath } from '../../shared/pageMeta';
 import { track } from '../lib/analytics';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
-const EMAIL = 'hello@fundingmichiganteachers.org';
+// Internship questions go straight to the program supervisor, Finn Regan.
+const EMAIL = 'finn@fundingmichiganteachers.org';
 
 /**
  * The Youth Internship Program, for students who want to apply.
@@ -127,7 +128,7 @@ export default function InternshipPage() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <ApplyButton where="hero" />
               <a href={`mailto:${EMAIL}?subject=Youth%20Internship%20question`} className="text-base sm:text-lg font-bold text-chalkboard/75 hover:text-apple underline underline-offset-4 decoration-chalkboard/25 min-h-[44px] inline-flex items-center">
-                Questions? Email us
+                Questions? Email Finn
               </a>
             </div>
           </motion.div>
@@ -242,7 +243,7 @@ export default function InternshipPage() {
             </p>
             <ApplyButton where="closing" />
             <p className="mt-6 text-sm text-white/70">
-              Questions about the program? Email{' '}
+              Questions about the program? Email Finn at{' '}
               <a href={`mailto:${EMAIL}?subject=Youth%20Internship%20question`} className="underline underline-offset-2 hover:text-white">{EMAIL}</a>.
             </p>
           </div>
