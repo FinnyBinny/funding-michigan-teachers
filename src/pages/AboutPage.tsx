@@ -6,6 +6,7 @@ import SiteFooter from '../components/SiteFooter';
 import ContactForm from '../components/ContactForm';
 import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
+import { navLinkProps } from '../lib/navigate';
 import { STAT } from '../data/impactStats';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
@@ -282,6 +283,27 @@ export default function AboutPage() {
             </a>
           </div>
         </section>
+        {/* Students who want in: the internship is the way onto the team. */}
+        <section className="px-4 sm:px-6 py-14" aria-labelledby="join-heading">
+          <div className="max-w-3xl mx-auto bg-chalkboard rounded-[2rem] p-8 sm:p-10">
+            <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-white/70 mb-3">For students</p>
+            <h2 id="join-heading" className="font-serif font-bold text-2xl sm:text-3xl text-white mb-3">Join the team</h2>
+            <p className="text-white/75 font-light leading-relaxed mb-7">
+              Our Youth Internship Program runs October to June, about 5 hours a week, in three
+              positions: storytelling, operations and school outreach.
+            </p>
+            <a
+              {...navLinkProps('/internship')}
+              className="group inline-flex items-center gap-3 bg-white text-chalkboard pl-6 pr-2 py-2.5 rounded-full font-bold text-base sm:text-lg min-h-[56px]"
+            >
+              See the internship
+              <span className="w-9 h-9 rounded-full bg-chalkboard/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                <ArrowRight size={16} aria-hidden="true" />
+              </span>
+            </a>
+          </div>
+        </section>
+
         {/* The contact form, moved here from the bottom of the homepage. The
             footer's Contact link points at it. */}
         <section id="contact" className="px-4 sm:px-6 py-14 bg-white/60 scroll-mt-24">
