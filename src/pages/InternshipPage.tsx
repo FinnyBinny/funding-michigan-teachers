@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
-  ArrowUpRight, CalendarDays, Clock, Award, Users, Camera, ClipboardList, Handshake, HeartHandshake,
+  ArrowDown, ArrowUpRight, CalendarDays, Clock, Award, Users, Camera, ClipboardList, Handshake, HeartHandshake,
 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
@@ -23,10 +23,13 @@ const EMAIL = 'finn@fundingmichiganteachers.org';
  * internal goals and metrics, the work-log and sign-off process, the
  * strategic plans, and anyone's phone number.
  *
- * Applications go to a Google Form, so nothing is collected on this site;
- * the privacy policy says so.
+ * Applications go to a Google Form, shown inside the page at #apply (and
+ * linkable on its own for anyone the embed gives trouble), so nothing is
+ * collected on this site; the privacy policy says so. The CSP's frame-src
+ * allows docs.google.com for it.
  */
-const INTERNSHIP_FORM_URL = 'GOOGLE_FORM_URL';
+const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe1ov-6sFf_Qa9n-GQ4EEbn5LZpqsNmaVWj37CLkiAwsZKpwg/viewform';
+const FORM_EMBED_URL = `${FORM_URL}?embedded=true`;
 
 const POSITIONS = [
   {
@@ -79,17 +82,20 @@ const VALUES = [
 function ApplyButton({ where }: { where: string }) {
   return (
     <a
-      href={INTERNSHIP_FORM_URL}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={() => track('internship_apply_clicked', { location: where })}
+      href="#apply"
+      onClick={(e) => {
+        e.preventDefault();
+        track('internship_apply_clicked', { location: where });
+        const target = document.getElementById('apply');
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('apply-heading')?.focus({ preventScroll: true });
+      }}
       className="group inline-flex items-center justify-center gap-3 bg-apple text-white pl-7 sm:pl-9 pr-2.5 py-3 rounded-full font-bold text-base sm:text-lg uppercase tracking-[0.1em] sm:tracking-[0.16em] whitespace-nowrap shadow-[0_15px_40px_rgba(192,57,43,0.35)] active:scale-[0.98] min-h-[60px]"
     >
       Apply now
-      <span className="w-10 h-10 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-        <ArrowUpRight size={17} aria-hidden="true" />
+      <span className="w-10 h-10 rounded-full bg-white/15 group-hover:bg-white/25 flex items-center justify-center transition-transform group-hover:translate-y-0.5">
+        <ArrowDown size={17} aria-hidden="true" />
       </span>
-      <span className="sr-only">(opens the application in Google Forms, in a new tab)</span>
     </a>
   );
 }
@@ -218,7 +224,7 @@ export default function InternshipPage() {
             <h2 id="steps-heading" className="font-serif font-bold text-2xl sm:text-3xl mb-6">How applying works</h2>
             <ol className="space-y-5">
               {[
-                ['Apply', 'Fill out the application. It opens in Google Forms.'],
+                ['Apply', 'Fill out the application at the bottom of this page. It is a Google Form.'],
                 ['If you’re selected', 'You get the program handbook and sign an acceptance form. Under 18? A parent or guardian signs too.'],
                 ['Get started', 'Onboarding, your position, and your first team check-in.'],
               ].map(([title, body], i) => (
@@ -234,18 +240,40 @@ export default function InternshipPage() {
           </div>
         </section>
 
-        {/* Closing call to action */}
-        <section className="px-4 sm:px-6 pb-20">
-          <div className="max-w-3xl mx-auto bg-chalkboard rounded-[2rem] p-8 sm:p-10 text-center">
-            <h2 className="font-serif font-bold text-2xl sm:text-3xl text-white mb-3">Ready to help teachers?</h2>
-            <p className="text-white/75 font-light mb-7">
-              October 3, 2026 to June 5, 2027 · about 5 hours a week · about 175 service hours
-            </p>
-            <ApplyButton where="closing" />
-            <p className="mt-6 text-sm text-white/70">
-              Questions about the program? Email Finn at{' '}
-              <a href={`mailto:${EMAIL}?subject=Youth%20Internship%20question`} className="underline underline-offset-2 hover:text-white">{EMAIL}</a>.
-            </p>
+        {/* The application: the Google Form, inside the page */}
+        <section id="apply" className="px-4 sm:px-6 pb-20 scroll-mt-24" aria-labelledby="apply-heading">
+          <div className="max-w-3xl mx-auto bg-chalkboard rounded-[2rem] p-3 sm:p-4">
+            <div className="text-center px-5 pt-7 pb-6 sm:px-8 sm:pt-9">
+              <h2 id="apply-heading" tabIndex={-1} className="font-serif font-bold text-2xl sm:text-3xl text-white mb-3 outline-none">
+                Ready to help teachers? Apply here.
+              </h2>
+              <p className="text-white/75 font-light">
+                October 3, 2026 to June 5, 2027 · about 5 hours a week · about 175 service hours
+              </p>
+            </div>
+            <div className="bg-white rounded-[1.5rem] overflow-hidden">
+              <iframe
+                src={FORM_EMBED_URL}
+                title="Youth Internship application (Google Form)"
+                loading="lazy"
+                className="block w-full h-[1250px] sm:h-[1110px] border-0"
+              >
+                Loading…
+              </iframe>
+            </div>
+            <div className="text-center px-5 pt-6 pb-5 text-sm text-white/75 space-y-2">
+              <p>
+                Form not loading?{' '}
+                <a href={FORM_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold underline underline-offset-2 hover:text-white">
+                  Open it in Google Forms <ArrowUpRight size={14} aria-hidden="true" />
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              </p>
+              <p>
+                Questions about the program? Email Finn at{' '}
+                <a href={`mailto:${EMAIL}?subject=Youth%20Internship%20question`} className="underline underline-offset-2 hover:text-white">{EMAIL}</a>.
+              </p>
+            </div>
           </div>
         </section>
       </main>

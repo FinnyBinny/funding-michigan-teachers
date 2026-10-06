@@ -127,6 +127,11 @@ export default function PrivacyPage() {
                   checkout, and may set its own cookies there to prevent fraud.
                 </li>
                 <li>
+                  <strong className="text-chalkboard">Google Forms</strong> shows the internship application
+                  inside the Youth Internship page. When it loads, Google may set its own cookies, under
+                  Google's privacy policy.
+                </li>
+                <li>
                   <strong className="text-chalkboard">Cloudflare</strong>, which hosts the site, processes your IP
                   address and request details to deliver pages and block abuse, and keeps short-term logs.
                 </li>
