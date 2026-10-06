@@ -186,6 +186,7 @@ const ForSchoolsPage = lazyPage(() => import('./pages/ForSchoolsPage.tsx'));
 const AccessPage = lazyPage(() => import('./pages/AccessPage.tsx'));
 const DonatePage = lazyPage(() => import('./pages/DonatePage.tsx'));
 const ReturnablesPage = lazyPage(() => import('./pages/ReturnablesPage.tsx'));
+const InternshipPage = lazyPage(() => import('./pages/InternshipPage.tsx'));
 const AboutPage = lazyPage(() => import('./pages/AboutPage.tsx'));
 const ForTeachersPage = lazyPage(() => import('./pages/ForTeachersPage.tsx'));
 const ShopPage = lazyPage(() => import('./pages/ShopPage.tsx'));
@@ -271,6 +272,7 @@ function Router() {
   else if (path === '/donate') page = <DonatePage />;
   else if (path === '/access') page = <AccessPage />;
   else if (path === '/returnables') page = <ReturnablesPage />;
+  else if (path === '/internship') page = <InternshipPage />;
   else if (path === '/about') page = <AboutPage />;
   else if (path === '/for-teachers') page = <ForTeachersPage />;
   else if (path === '/shop') page = <ShopPage />;

@@ -682,6 +682,6 @@ export const FAQ_DATA = [
   },
   {
     question: 'How can I volunteer or get involved?',
-    answer: 'We\'d love your help! You can volunteer at events, help spread the word, or even join our student leadership team. Send us a message through the Contact form below.',
+    answer: 'We\'d love your help! Students can apply to our Youth Internship Program for a real role in storytelling, operations or school outreach: see the Internship page. You can also volunteer at events or help spread the word. Send us a message through the Contact form.',
   },
 ];

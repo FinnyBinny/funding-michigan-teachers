@@ -189,7 +189,7 @@ const CSP = [
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
   "connect-src 'self' https://zvzlgawpezovdwmnvwlg.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://api.bloomerang.co https://formbold.com",
-  "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
+  "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://docs.google.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

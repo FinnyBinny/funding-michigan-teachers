@@ -21,6 +21,7 @@ export const KNOWN_ROUTES = [
   '/for-schools',
   '/sponsors',
   '/returnables',
+  '/internship',
   '/privacy',
   '/accessibility',
   '/access',

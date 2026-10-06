@@ -86,6 +86,11 @@ export default function PrivacyPage() {
                   school and room, whether you would like a collection box, and any note you add.
                 </li>
                 <li>
+                  <strong className="text-chalkboard">Youth Internship applications</strong>: made on Google Forms,
+                  not on this site, so Google's privacy policy covers what you enter there. We receive your
+                  answers and use them to review your application and contact you about it.
+                </li>
+                <li>
                   <strong className="text-chalkboard">Donations</strong>: processed by Stripe. Your card details
                   go to Stripe and never reach us. We receive your name, email, the amount, where you chose
                   to send it, whether it is monthly, and whether you covered the card fee, so we can thank
@@ -120,6 +125,11 @@ export default function PrivacyPage() {
                 <li>
                   <strong className="text-chalkboard">Stripe</strong> loads its payment script when you open a
                   checkout, and may set its own cookies there to prevent fraud.
+                </li>
+                <li>
+                  <strong className="text-chalkboard">Google Forms</strong> shows the internship application
+                  inside the Youth Internship page. When it loads, Google may set its own cookies, under
+                  Google's privacy policy.
                 </li>
                 <li>
                   <strong className="text-chalkboard">Cloudflare</strong>, which hosts the site, processes your IP
@@ -186,7 +196,7 @@ export default function PrivacyPage() {
               <ul className="list-disc list-outside pl-5 space-y-1.5">
                 <li><a href="https://stripe.com/privacy" className="text-apple underline" target="_blank" rel="noopener noreferrer">Stripe</a>: donations and shop payments.</li>
                 <li><a href="https://bloomerang.com/privacy-policy/" className="text-apple underline" target="_blank" rel="noopener noreferrer">Bloomerang</a>: our donor database, holding form submissions, donations and orders, plus website-visit tracking.</li>
-                <li><a href="https://policies.google.com/privacy" className="text-apple underline" target="_blank" rel="noopener noreferrer">Google</a>: Google Analytics.</li>
+                <li><a href="https://policies.google.com/privacy" className="text-apple underline" target="_blank" rel="noopener noreferrer">Google</a>: Google Analytics, and Google Forms for internship applications.</li>
                 <li><a href="https://supabase.com/privacy" className="text-apple underline" target="_blank" rel="noopener noreferrer">Supabase</a>: our database for site content and a backup copy of form submissions.</li>
                 <li><a href="https://formbold.com/privacy" className="text-apple underline" target="_blank" rel="noopener noreferrer">FormBold</a>: delivers form submissions to our inbox.</li>
                 <li><a href="https://www.cloudflare.com/privacypolicy/" className="text-apple underline" target="_blank" rel="noopener noreferrer">Cloudflare</a>: hosting and security.</li>

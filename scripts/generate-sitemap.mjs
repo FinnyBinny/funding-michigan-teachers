@@ -107,6 +107,7 @@ const PAGES = [
   })),
   { path: '/shop', type: 'page', changefreq: 'monthly', sources: ['src/pages/ShopPage.tsx', 'shared/merch.ts'] },
   { path: '/returnables', type: 'page', changefreq: 'monthly', sources: ['src/pages/ReturnablesPage.tsx'] },
+  { path: '/internship', type: 'page', changefreq: 'monthly', sources: ['src/pages/InternshipPage.tsx'] },
 
   // ── Outside the scheme ─────────────────────────────────────────────────
   { path: '/privacy', type: 'legal', changefreq: 'yearly', sources: ['src/pages/PrivacyPage.tsx'] },

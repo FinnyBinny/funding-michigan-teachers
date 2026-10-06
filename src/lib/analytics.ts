@@ -31,7 +31,8 @@ export type AnalyticsEvent =
   | 'merch_added_to_order'
   | 'merch_checkout_started'
   | 'merch_purchase_completed'  // a shop order actually cleared Stripe
-  | 'faq_opened';
+  | 'faq_opened'
+  | 'internship_apply_clicked'; // opened the Google Form from /internship
 
 /**
  * Google Analytics 4 measurement ID (looks like "G-XXXXXXXXXX").
