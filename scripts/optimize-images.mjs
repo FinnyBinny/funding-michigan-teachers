@@ -64,6 +64,15 @@ const jobs = [
     crop: { left: 0, top: 30, width: 1086, height: 1357 },
     jpeg: { quality: 78, mozjpeg: true },
   },
+  // Door decorating competition photos (/door-decorating). Phone portraits,
+  // shown at most ~600px wide in the gallery, so 900 covers 1.5x screens; the
+  // -320 thumbnail is the gallery's phone size. Sources are not in the repo;
+  // drop one in as door-decorating/door-N-src.jpg to redo it.
+  ...[1, 2, 3, 4, 5].flatMap((n) => [
+    { src: `door-decorating/door-${n}-src.jpg`, out: `door-decorating/door-${n}.jpg`, w: 900, optional: true, jpeg: { quality: 74, mozjpeg: true } },
+    { src: `door-decorating/door-${n}-src.jpg`, out: `door-decorating/door-${n}.avif`, w: 900, optional: true, avif: { quality: 55 } },
+    { src: `door-decorating/door-${n}-src.jpg`, out: `door-decorating/door-${n}-320.jpg`, w: 320, optional: true, jpeg: { quality: 70, mozjpeg: true } },
+  ]),
 ];
 
 for (const j of jobs) {

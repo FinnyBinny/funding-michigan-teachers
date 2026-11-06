@@ -38,6 +38,8 @@ export const FORMBOLD = {
   // Teacher supply requests. Same inbox for now, tagged
   // Form: 'Teacher supply request' — nothing to set up before the page works.
   supplies: '6QXyV',
+  // Door decorating competition entries, tagged Form: 'Door decorating entry'.
+  doorDecorating: '6QXyV',
 } as const;
 
 export async function submitToFormBold(formId: string, fields: Record<string, unknown>): Promise<boolean> {

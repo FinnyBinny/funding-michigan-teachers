@@ -93,6 +93,28 @@ Bloomerang, so send thank-yous and the Impact Report from Bloomerang.
 **Data kept out on purpose:** returnables pickups are filed with name, email, phone and
 town only. Street addresses and "bags on the porch" notes stay with the pickup request.
 
+## Door decorating competition (`/door-decorating`)
+
+Photos live in `public/images/door-decorating/` (made by `scripts/optimize-images.mjs`
+from `door-N-src.jpg` originals, which are not committed). Entries post to
+`FORMBOLD.doorDecorating`, to `contact_submissions` (type `door-decorating`) and to
+Bloomerang as "Website — door decorating entry". Winners' date comes from the event
+calendar (`src/data/initialData.ts`, event 15).
+
+## FormBold MCP server (for Claude Code)
+
+`.mcp.json` registers FormBold's MCP server for anyone running Claude Code in this
+repo. It needs a private token, read from the environment so it is never committed:
+
+```bash
+export FORMBOLD_API_TOKEN=...   # FormBold dashboard → Settings → API
+```
+
+Start Claude Code in the repo and approve the project server when asked. For a
+Claude Code **cloud** environment, the environment's network policy must also allow
+`api.formbold.com`, and the token goes in that environment's secrets as
+`FORMBOLD_API_TOKEN`.
+
 ## Images
 
 `node scripts/optimize-images.mjs` regenerates the display-sized AVIF/JPEG variants in
