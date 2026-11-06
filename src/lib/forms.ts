@@ -38,6 +38,13 @@ export const FORMBOLD = {
   // Teacher supply requests. Same inbox for now, tagged
   // Form: 'Teacher supply request' — nothing to set up before the page works.
   supplies: '6QXyV',
+  // Mid-Year Refill orders: their own "Mid-Year Refill Orders" form
+  // (created November 2026). The Worker's Stripe webhook posts each PAID
+  // order here, server to server, with the item list, quantities and an
+  // Amazon cart link. Its spam filter is deliberately OFF in FormBold so a
+  // paid order can never land in the spam folder. The Worker imports this
+  // table too, so one id change covers both.
+  refill: 'oJbxe',
   // Door decorating competition entries: their own "Door Decorating
   // Entries" form (created November 2026), so they stop mixing with the
   // general inbox. Still tagged Form: 'Door decorating entry'.

@@ -70,7 +70,8 @@ begin
     select * from (values
       ('events', 'events'), ('projects', 'projects'), ('donors', 'donors'),
       ('locations', 'locations'), ('stories', 'stories'), ('sponsors', 'sponsors'),
-      ('food_partners', 'food_partners'), ('teachers_of_month', 'tom')
+      ('food_partners', 'food_partners'), ('teachers_of_month', 'tom'),
+      ('refill_wishlists', 'refill_wishlists')
     ) as v(tbl, prefix)
   loop
     execute format('drop policy if exists %I on public.%I', t.prefix || '_insert', t.tbl);
@@ -81,6 +82,15 @@ begin
     execute format('create policy %I on public.%I for delete to authenticated using (public.is_admin())', t.prefix || '_delete', t.tbl);
   end loop;
 end $$;
+
+-- ── 4. Refill orders: the Worker may add one, only admins may read or edit ──
+-- Each row holds a donor's name and email, so "signed in" is not enough.
+drop policy if exists "refill_orders_read"   on public.refill_orders;
+drop policy if exists "refill_orders_update" on public.refill_orders;
+create policy "refill_orders_read"
+  on public.refill_orders for select to authenticated using (public.is_admin());
+create policy "refill_orders_update"
+  on public.refill_orders for update to authenticated using (public.is_admin()) with check (public.is_admin());
 
 -- Check: this should list your admin account(s) and nothing else.
 select u.email from public.admin_users a join auth.users u on u.id = a.user_id;

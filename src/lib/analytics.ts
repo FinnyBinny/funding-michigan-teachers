@@ -31,6 +31,12 @@ export type AnalyticsEvent =
   | 'merch_added_to_order'
   | 'merch_checkout_started'
   | 'merch_purchase_completed'  // a shop order actually cleared Stripe
+  | 'refill_view'               // /refill: walked the shops or opened the wish lists
+  | 'refill_list_chosen'
+  | 'refill_shop_entered'
+  | 'refill_added_to_basket'
+  | 'refill_checkout_started'
+  | 'refill_purchase_completed' // conversion — a refill order cleared Stripe
   | 'door_decorating_entry'     // conversion — someone entered, offered help or a prize
   | 'faq_opened'
   | 'internship_apply_clicked'; // opened the Google Form from /internship

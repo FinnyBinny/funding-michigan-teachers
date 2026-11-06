@@ -24,6 +24,11 @@ import {
   MERCH_COLORS, findProduct, priceOrder, validateCart, findCode,
   CODE_LABEL, type CartLine, type Fulfilment,
 } from '../shared/merch';
+import {
+  priceRefillOrder, validateRefillCart, normalizeRefillLines, encodeRefillLines, decodeRefillLines,
+  describeRefillLines, amazonCartUrl, findRefillItem, findRefillList, type RefillLine,
+} from '../shared/refill';
+import { FORMBOLD } from '../src/lib/forms';
 
 /**
  * A Secrets Store binding, as the dashboard's Bindings → "Add a binding" →
@@ -758,6 +763,212 @@ async function createMerchSession(request: Request, env: Env): Promise<Response>
 }
 
 /**
+ * Mid-Year Refill checkout.
+ *
+ * The browser sends item ids and quantities, an optional school, an optional
+ * list it set out to fill, and the cover-the-fee yes/no. Never a price: every
+ * amount comes from shared/refill.ts, the same table the page shows.
+ *
+ * The basket rides along in metadata as item ids (encodeRefillLines), which
+ * is what the webhook below turns into the purchase list.
+ */
+async function createRefillSession(request: Request, env: Env): Promise<Response> {
+  let body: {
+    lines?: RefillLine[];
+    coverFee?: boolean;
+    designation?: string;
+    listId?: string;
+    /** A database wish list: its id and the label the page showed. */
+    wishlist?: { id?: number; label?: string };
+  };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid request body' }, 400);
+  }
+
+  const lines = normalizeRefillLines(Array.isArray(body.lines) ? body.lines : []);
+  const problem = validateRefillCart(lines);
+  if (problem) return json({ error: problem }, 400);
+
+  // A school is a preference, checked against the registry like a donation's.
+  const designation = decodeDesignation(body.designation ?? 'general');
+  if (!designation || designation.kind === 'project') {
+    return json({ error: 'That school is not one we recognise.' }, 400);
+  }
+  const designationLabel = designation.kind === 'school' ? schoolFundLabel(designation.slug) ?? '' : '';
+
+  if (!env.STRIPE_SECRET_KEY) {
+    return json({ error: 'Payments are not configured on the server.' }, 500);
+  }
+
+  const priced = priceRefillOrder(lines, { coverFee: body.coverFee === true });
+  if (priced.total === 0) return json({ error: 'The basket is empty.' }, 400);
+
+  // Which list the shopper was filling, if any: FMT's own bundle by id, or a
+  // teacher's wish list from the database (its id, and the label the page
+  // showed, bounded, so the receipt can say whose room it was for).
+  const bundle = typeof body.listId === 'string' ? findRefillList(body.listId) : undefined;
+  const wishlistId = Number.isInteger(body.wishlist?.id) && (body.wishlist!.id as number) > 0 ? String(body.wishlist!.id) : '';
+  const wishlistLabel = wishlistId ? String(body.wishlist?.label ?? '').replace(/[\r\n]+/g, ' ').slice(0, 80) : '';
+  const listLabel = bundle ? bundle.name : wishlistLabel;
+
+  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { httpClient: Stripe.createFetchHttpClient() });
+  const origin = new URL(request.url).origin;
+
+  const items = priced.items.map((it) => ({
+    price_data: {
+      currency: 'usd',
+      product_data: { name: it.name, description: it.description },
+      unit_amount: it.unitAmount,
+    },
+    quantity: it.quantity,
+  }));
+
+  const packing = describeRefillLines(lines);
+  const metadata = {
+    order_type: 'refill',
+    // Item ids and quantities: the purchase list, in under 500 characters.
+    refill_lines: encodeRefillLines(lines).slice(0, 500),
+    refill_list: bundle ? bundle.id : wishlistId ? `wishlist:${wishlistId}` : '',
+    refill_list_label: listLabel,
+    designation: encodeDesignation(designation),
+    designation_label: designationLabel,
+    // The supplies alone, so the thank-you page and ad conversions count the
+    // gift and not the covered fee.
+    gift_amount_cents: String(priced.subtotal),
+    fee_covered_cents: String(priced.fee),
+  };
+  const where = designationLabel ? ` for the ${designationLabel}` : '';
+  const description = `Mid-Year Refill${where}: ${packing}`.slice(0, 1000);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      ui_mode: 'embedded_page',
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: items,
+      return_url: `${origin}/refill?stripe_session_id={CHECKOUT_SESSION_ID}`,
+      metadata,
+      // On the PaymentIntent too, so the Payments list in Stripe reads as a
+      // shopping list without opening the session.
+      payment_intent_data: { description, metadata },
+      custom_text: {
+        submit: {
+          message: 'Your gift buys exactly these supplies. We deliver them to classrooms the week of January 12th and email you when they land.',
+        },
+      },
+    });
+    return json({ clientSecret: session.client_secret });
+  } catch (err) {
+    console.error('Refill checkout session failed:', err);
+    return json({ error: 'Checkout could not start. Please try again, or email hello@fundingmichiganteachers.org.' }, 500);
+  }
+}
+
+/**
+ * A paid refill order, recorded where the people doing the shopping will
+ * find it.
+ *
+ * Two copies, both best-effort and both idempotent on the Stripe session id,
+ * because Stripe retries a webhook it did not get a 200 for:
+ *
+ *   1. The refill_orders table in Supabase, written with the publishable key
+ *      under an insert-only policy (SUPABASE_REFRESH.sql). The admin panel
+ *      reads these, sums the open ones, and offers the Amazon cart link.
+ *   2. An email through FormBold, with the item list and the same link, so
+ *      the order reaches the inbox even if nobody opens the admin panel.
+ *
+ * Neither ever fails the webhook. A copy that could not be written is logged,
+ * and Stripe's own record remains the source of truth.
+ */
+async function recordRefillOrder(session: Stripe.Checkout.Session): Promise<{ db: boolean; email: boolean }> {
+  const meta = session.metadata ?? {};
+  const lines = decodeRefillLines(meta.refill_lines);
+  const name = session.customer_details?.name ?? '';
+  const email = session.customer_details?.email ?? '';
+  const amountTotal = session.amount_total ?? 0;
+  const giftCents = Number(meta.gift_amount_cents) || amountTotal;
+  const cart = amazonCartUrl(lines);
+  const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+
+  const dbWrite = (async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    try {
+      // on_conflict + ignore-duplicates: a retried webhook is a no-op, not a
+      // second row that would double every quantity on the shopping list.
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/refill_orders?on_conflict=stripe_session_id`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=ignore-duplicates,return=minimal',
+        },
+        body: JSON.stringify({
+          stripe_session_id: session.id,
+          donor_name: name.slice(0, 200),
+          donor_email: email.slice(0, 254),
+          amount_total_cents: amountTotal,
+          gift_cents: giftCents,
+          lines,
+          designation: meta.designation ?? 'general',
+          designation_label: meta.designation_label ?? '',
+          list_ref: meta.refill_list ?? '',
+          list_label: meta.refill_list_label ?? '',
+          status: 'paid',
+        }),
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`refill_orders insert ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return true;
+    } catch (err) {
+      console.error('[refill] could not record order in Supabase:', err);
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  })();
+
+  const emailWrite = (async () => {
+    try {
+      const itemLines = lines.map((l) => {
+        const it = findRefillItem(l.itemId)!;
+        return `${l.qty} × ${it.name} (${it.pack})${it.asin ? ` — ASIN ${it.asin}` : ' — ASIN not set in shared/refill.ts'}`;
+      });
+      const res = await fetch(`https://formbold.com/s/${FORMBOLD.refill}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          Form: 'Mid-Year Refill order',
+          subject: `Refill order ${money(giftCents)} — ${name || email}${meta.designation_label ? ` (${meta.designation_label})` : ''}`,
+          name,
+          email,
+          _replyto: email,
+          total: money(amountTotal),
+          supplies: money(giftCents),
+          school: meta.designation_label || 'Where needed most',
+          list: meta.refill_list_label || '',
+          items: itemLines.join('\n'),
+          amazonCart: cart.url ?? 'No items have an ASIN yet — add them in shared/refill.ts',
+          missingAsin: cart.skipped.map((l) => findRefillItem(l.itemId)?.name).filter(Boolean).join(', '),
+          stripeSession: session.id,
+        }),
+      });
+      if (!res.ok) throw new Error(`FormBold ${res.status}`);
+      return true;
+    } catch (err) {
+      console.error('[refill] could not email the order:', err);
+      return false;
+    }
+  })();
+
+  const [db, emailed] = await Promise.all([dbWrite, emailWrite]);
+  return { db, email: emailed };
+}
+
+/**
  * Files a form submission into Bloomerang, server to server.
  *
  * Replaces calling Bloomerang from the visitor's browser. That worked only
@@ -943,15 +1154,31 @@ async function stripeWebhook(request: Request, env: Env): Promise<Response> {
   if (event.type !== 'checkout.session.completed') return json({ received: true });
 
   const session = event.data.object as Stripe.Checkout.Session;
-  const email = session.customer_details?.email;
-  if (!email) return json({ received: true, filed: false });
-
   const meta = session.metadata ?? {};
   const isOrder = meta.order_type === 'merch';
+  const isRefill = meta.order_type === 'refill';
+
+  // The purchase list first, before anything that could return early: it is
+  // the part of a refill order someone has to act on.
+  const recorded = isRefill ? await recordRefillOrder(session) : null;
+
+  const email = session.customer_details?.email;
+  if (!email) return json({ received: true, filed: false, ...(recorded ? { refill: recorded } : {}) });
+
   const money = (cents: number | null | undefined) => `$${((cents ?? 0) / 100).toFixed(2)}`;
   const giftCents = Number(meta.gift_amount_cents) || session.amount_total || 0;
+
   const note = isOrder
     ? `Shop order, ${money(session.amount_total)}: ${meta.packing ?? ''} (${meta.fulfilment ?? 'pickup'}).`
+    : isRefill
+    ? [
+        `Mid-Year Refill gift of ${money(giftCents)}`,
+        meta.designation_label ? ` to the ${meta.designation_label}` : '',
+        meta.refill_list_label ? ` (${meta.refill_list_label})` : '',
+        `: ${describeRefillLines(decodeRefillLines(meta.refill_lines))}`,
+        Number(meta.fee_covered_cents) > 0 ? `, plus ${money(Number(meta.fee_covered_cents))} to cover the card fee` : '',
+        `. Stripe ${session.id}.`,
+      ].join('')
     : [
         `${session.mode === 'subscription' ? 'Monthly gift' : 'Gift'} of ${money(giftCents)}`,
         meta.designation_label ? ` to ${meta.designation_label}` : '',
@@ -960,7 +1187,7 @@ async function stripeWebhook(request: Request, env: Env): Promise<Response> {
       ].join('');
 
   const res = await fileInCrm(env, {
-    form: isOrder ? 'Website — shop order' : 'Website — donation',
+    form: isOrder ? 'Website — shop order' : isRefill ? 'Website — Mid-Year Refill order' : 'Website — donation',
     name: session.customer_details?.name ?? '',
     email,
     phone: session.customer_details?.phone ?? '',
@@ -968,7 +1195,7 @@ async function stripeWebhook(request: Request, env: Env): Promise<Response> {
   });
   // Always 200 to Stripe once the event is genuine: a CRM that is down is
   // logged (fileInCrm does) rather than retried into duplicate records.
-  return json({ received: true, filed: res.ok });
+  return json({ received: true, filed: res.ok, ...(recorded ? { refill: recorded } : {}) });
 }
 
 async function checkoutSessionStatus(request: Request, env: Env): Promise<Response> {
@@ -1068,6 +1295,9 @@ export default {
     }
     if (path === '/api/create-merch-session' && request.method === 'POST') {
       return createMerchSession(request, env);
+    }
+    if (path === '/api/create-refill-session' && request.method === 'POST') {
+      return createRefillSession(request, env);
     }
     if (path === '/api/crm' && request.method === 'POST') {
       return fileInBloomerang(request, env);

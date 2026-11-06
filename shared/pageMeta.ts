@@ -79,6 +79,11 @@ export const PAGE_META: Record<string, RouteMeta> = {
     description:
       "FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. What's left after materials buys classroom supplies.",
   },
+  '/refill': {
+    title: 'Mid-Year Refill Store | Funding Michigan Teachers',
+    description:
+      "Restock a Michigan classroom in January. Walk our virtual supply shops or pick a teacher's wish list, check out, and we buy and deliver every item.",
+  },
   '/door-decorating': {
     title: 'Door Decorating Competition | Funding Michigan Teachers',
     description:

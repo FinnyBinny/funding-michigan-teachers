@@ -44,6 +44,7 @@ const PAGES = [
   { label: 'Partner Schools', path: '/schools' },
   { label: 'For Businesses', path: '/sponsors' },
   { label: 'Shop', path: '/shop' },
+  { label: 'Refill Store', path: '/refill' },
 ];
 
 /** Section anchors offered in the mobile menu on the homepage only. */
@@ -163,7 +164,7 @@ export default function SiteHeader({ isHome = false, onDark = false }: { isHome?
           </a>
 
           {/* Desktop nav — real pages, every page */}
-          <div className="hidden xl:flex items-center gap-8 font-medium text-xs uppercase tracking-[0.15em] whitespace-nowrap">
+          <div className="hidden xl:flex items-center gap-6 2xl:gap-8 font-medium text-xs uppercase tracking-[0.15em] whitespace-nowrap">
             {PAGES.map((item) => (
               <a
                 key={item.path}
