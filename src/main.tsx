@@ -190,6 +190,7 @@ const InternshipPage = lazyPage(() => import('./pages/InternshipPage.tsx'));
 const AboutPage = lazyPage(() => import('./pages/AboutPage.tsx'));
 const ForTeachersPage = lazyPage(() => import('./pages/ForTeachersPage.tsx'));
 const ShopPage = lazyPage(() => import('./pages/ShopPage.tsx'));
+const DoorDecoratingPage = lazyPage(() => import('./pages/DoorDecoratingPage.tsx'));
 const PrivacyPage = lazyPage(() => import('./pages/PrivacyPage.tsx'));
 const AccessibilityPage = lazyPage(() => import('./pages/AccessibilityPage.tsx'));
 const SchoolsIndexPage = lazyPage(() => import('./pages/SchoolsIndexPage.tsx'));
@@ -276,6 +277,7 @@ function Router() {
   else if (path === '/about') page = <AboutPage />;
   else if (path === '/for-teachers') page = <ForTeachersPage />;
   else if (path === '/shop') page = <ShopPage />;
+  else if (path === '/door-decorating') page = <DoorDecoratingPage />;
   else if (path === '/privacy') page = <PrivacyPage />;
   else if (path === '/accessibility') page = <AccessibilityPage />;
   else if (path === '/restricted') page = <RestrictedPage />;

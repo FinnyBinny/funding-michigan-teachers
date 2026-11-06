@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "formbold": {
+      "type": "http",
+      "url": "https://api.formbold.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${FORMBOLD_API_TOKEN}"
+      }
+    }
+  }
+}

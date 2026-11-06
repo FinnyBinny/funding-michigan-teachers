@@ -38,6 +38,7 @@ export const BLOOMERANG_FORMS = {
   project: 'Website — classroom project submission',
   returnables: 'Website — returnables pickup request',
   classroomReturnables: 'Website — classroom returnables sign-up',
+  doorDecorating: 'Website — door decorating entry',
 } as const;
 
 export type BloomerangForm = keyof typeof BLOOMERANG_FORMS;

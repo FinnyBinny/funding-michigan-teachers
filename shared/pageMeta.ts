@@ -79,6 +79,11 @@ export const PAGE_META: Record<string, RouteMeta> = {
     description:
       "FMT t-shirts, crewnecks and hoodies, printed locally and hand-pressed by our students. What's left after materials buys classroom supplies.",
   },
+  '/door-decorating': {
+    title: 'Door Decorating Competition | Funding Michigan Teachers',
+    description:
+      'Our fourth annual door decorating competition at Okemos High School, December 2026, with over $500 in prizes. Photos, how it works and how to enter.',
+  },
   '/sponsors': {
     title: 'Sponsor Local Teachers | Funding Michigan Teachers',
     description:

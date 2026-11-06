@@ -187,9 +187,11 @@ export const EVENTS: Event[] = [
     id: 15,
     title: 'Door Decorating Competition',
     date: '2026-12-18',
-    description: 'The door decorating competition returns, with prizes for the winning classrooms.',
+    description: 'Our fourth annual door decorating competition, with over $500 in prizes for the winning classrooms.',
     location: 'Okemos High School',
     type: 'competition',
+    ctaLabel: 'Photos, rules and entry',
+    ctaUrl: '/door-decorating',
     inquiry: true,
   },
   {

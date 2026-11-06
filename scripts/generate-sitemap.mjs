@@ -106,6 +106,12 @@ const PAGES = [
     sources: ['src/pages/SchoolPage.tsx', s.file, 'src/data/initialData.ts'],
   })),
   { path: '/shop', type: 'page', changefreq: 'monthly', sources: ['src/pages/ShopPage.tsx', 'shared/merch.ts'] },
+  {
+    path: '/door-decorating',
+    type: 'page',
+    changefreq: 'monthly',
+    sources: ['src/pages/DoorDecoratingPage.tsx', 'public/images/door-decorating'],
+  },
   { path: '/returnables', type: 'page', changefreq: 'monthly', sources: ['src/pages/ReturnablesPage.tsx'] },
   { path: '/internship', type: 'page', changefreq: 'monthly', sources: ['src/pages/InternshipPage.tsx'] },
 

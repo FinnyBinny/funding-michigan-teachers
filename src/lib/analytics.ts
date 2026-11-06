@@ -31,6 +31,7 @@ export type AnalyticsEvent =
   | 'merch_added_to_order'
   | 'merch_checkout_started'
   | 'merch_purchase_completed'  // a shop order actually cleared Stripe
+  | 'door_decorating_entry'     // conversion — someone entered, offered help or a prize
   | 'faq_opened'
   | 'internship_apply_clicked'; // opened the Google Form from /internship
 
