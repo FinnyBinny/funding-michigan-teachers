@@ -107,6 +107,12 @@ const PAGES = [
   })),
   { path: '/shop', type: 'page', changefreq: 'monthly', sources: ['src/pages/ShopPage.tsx', 'shared/merch.ts'] },
   {
+    path: '/refill',
+    type: 'page',
+    changefreq: 'weekly',
+    sources: ['src/pages/RefillPage.tsx', 'src/components/refill', 'shared/refill.ts'],
+  },
+  {
     path: '/door-decorating',
     type: 'page',
     changefreq: 'monthly',

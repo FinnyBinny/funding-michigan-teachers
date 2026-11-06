@@ -237,6 +237,62 @@ create policy "Allow anonymous inserts"
 create policy "Allow authenticated reads"
   on public.contact_submissions for select to authenticated using (true);
 
+-- Mid-Year Refill orders: one row per PAID Stripe checkout, written by the
+-- Cloudflare Worker's Stripe webhook (worker/index.ts, recordRefillOrder)
+-- with the publishable key. Insert-only for the public key — the Worker can
+-- add a row and nothing else; only a signed-in admin can read them (the admin
+-- panel's purchase list) or mark them bought. `lines` is the basket as
+-- [{"itemId":"pencils-72","qty":2}], resolved against shared/refill.ts.
+create table if not exists public.refill_orders (
+  id                 bigint generated always as identity primary key,
+  created_at         timestamptz default now(),
+  stripe_session_id  text not null unique,
+  donor_name         text,
+  donor_email        text,
+  amount_total_cents integer not null default 0,
+  gift_cents         integer not null default 0,
+  lines              jsonb not null default '[]'::jsonb,
+  designation        text not null default 'general',
+  designation_label  text,
+  list_ref           text,
+  list_label         text,
+  status             text not null default 'paid',   -- 'paid' | 'ordered' | 'delivered'
+  purchased_at       timestamptz,
+  notes              text
+);
+alter table public.refill_orders enable row level security;
+drop policy if exists "refill_orders_insert" on public.refill_orders;
+drop policy if exists "refill_orders_read"   on public.refill_orders;
+drop policy if exists "refill_orders_update" on public.refill_orders;
+create policy "refill_orders_insert" on public.refill_orders for insert to anon, authenticated with check (true);
+create policy "refill_orders_read"   on public.refill_orders for select to authenticated using (true);
+create policy "refill_orders_update" on public.refill_orders for update to authenticated using (true) with check (true);
+
+-- Teacher wish lists for the Mid-Year Refill store: the "just pick a
+-- teacher's list" path on /refill. Added by an admin once a teacher has sent
+-- a supply request (the /for-teachers form) and said we may show it. `label`
+-- is what the public sees ("Ms. F., Room 214" or "A biology teacher") — only
+-- as much of a name as the teacher allowed. `items` matches refill_orders.lines.
+create table if not exists public.refill_wishlists (
+  id          bigint generated always as identity primary key,
+  created_at  timestamptz default now(),
+  label       text not null,
+  school      text not null,
+  note        text,
+  items       jsonb not null default '[]'::jsonb,
+  active      boolean not null default true,
+  display_order integer not null default 0
+);
+alter table public.refill_wishlists enable row level security;
+drop policy if exists "refill_wishlists_read"   on public.refill_wishlists;
+drop policy if exists "refill_wishlists_insert" on public.refill_wishlists;
+drop policy if exists "refill_wishlists_update" on public.refill_wishlists;
+drop policy if exists "refill_wishlists_delete" on public.refill_wishlists;
+create policy "refill_wishlists_read"   on public.refill_wishlists for select using (true);
+create policy "refill_wishlists_insert" on public.refill_wishlists for insert to authenticated with check (true);
+create policy "refill_wishlists_update" on public.refill_wishlists for update to authenticated using (true) with check (true);
+create policy "refill_wishlists_delete" on public.refill_wishlists for delete to authenticated using (true);
+
 -- ── 2. Remove stale content ─────────────────────────────────────────────────
 
 -- The placeholder event that was supposed to be deleted months ago.

@@ -99,6 +99,12 @@ jobs:
       - name: Test shop pricing
         run: npx tsx scripts/test-merch-pricing.mts
 
+      # The Mid-Year Refill store prices baskets with priceRefillOrder() on
+      # both sides, carries them through Stripe metadata, and turns paid
+      # orders into an Amazon cart link. All of that is checked here.
+      - name: Test refill pricing and order round-trip
+        run: npx tsx scripts/test-refill-pricing.mts
+
       # Filing in Bloomerang: the Stripe webhook (signed test events) and the
       # form path, with Bloomerang mocked. Exact-email matching, no forged
       # events, no cross-site posts.

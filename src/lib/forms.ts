@@ -38,6 +38,12 @@ export const FORMBOLD = {
   // Teacher supply requests. Same inbox for now, tagged
   // Form: 'Teacher supply request' — nothing to set up before the page works.
   supplies: '6QXyV',
+  // Mid-Year Refill orders: the Worker's Stripe webhook posts each PAID order
+  // here (item list, quantities and an Amazon cart link), so the purchase
+  // list arrives in the inbox without anyone opening the admin panel. Same
+  // inbox for now, tagged Form: 'Mid-Year Refill order'. The Worker imports
+  // this table too, so one id change covers both.
+  refill: '6QXyV',
   // Door decorating competition entries, tagged Form: 'Door decorating entry'.
   doorDecorating: '6QXyV',
 } as const;

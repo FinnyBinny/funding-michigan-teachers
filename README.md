@@ -93,6 +93,27 @@ Bloomerang, so send thank-yous and the Impact Report from Bloomerang.
 **Data kept out on purpose:** returnables pickups are filed with name, email, phone and
 town only. Street addresses and "bags on the porch" notes stay with the pickup request.
 
+## Mid-Year Refill store (`/refill`)
+
+A supporter walks a street of seven supply shops (or picks a wish list), fills a
+basket, and pays through Stripe embedded checkout. FMT buys the supplies and
+delivers them the week of January 12th.
+
+| Piece | Where |
+|---|---|
+| Shops, items, prices, **Amazon ASINs**, bundles | `shared/refill.ts` — the only place money is decided; the page and the Worker both import it |
+| Checkout | `POST /api/create-refill-session` in `worker/index.ts`; returns to `/refill?stripe_session_id=…` |
+| What happens after a payment | The Stripe webhook (`recordRefillOrder`) writes the order to the `refill_orders` table **and** emails it through FormBold (`FORMBOLD.refill`) with an Amazon add-to-cart link |
+| The purchase list | `/access` → **Mid-Year Refill** tab: sums every paid order, "Add all to Amazon cart" (Amazon's add-to-cart form, one click for the whole list), "Copy list", "Mark as ordered" |
+| Teacher wish lists | Same tab. Shown on `/refill` only after the teacher has said we may show them; the label is what the public sees |
+| Tests | `npx tsx scripts/test-refill-pricing.mts` (runs in CI) |
+
+**Before the January launch:** every `asin` in `shared/refill.ts` is empty. The store
+works without them (orders are recorded by item id and the admin list names each
+item), but the one-click Amazon cart only carries items whose ASIN is filled in. Paste
+each product's ASIN — the `B0…` code in its Amazon URL — and check the price next to it.
+Run `SUPABASE_REFRESH.sql` (new tables) and `SUPABASE_LOCKDOWN.sql` (admin-only reads) once.
+
 ## Door decorating competition (`/door-decorating`)
 
 Photos live in `public/images/door-decorating/` (made by `scripts/optimize-images.mjs`

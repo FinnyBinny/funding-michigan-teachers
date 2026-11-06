@@ -20,6 +20,7 @@ const NAV = [
   { label: 'For Businesses', path: '/sponsors' },
   { label: 'Donate', path: '/donate' },
   { label: 'Shop', path: '/shop' },
+  { label: 'Mid-Year Refill', path: '/refill' },
 ];
 
 const UTILITY = [
