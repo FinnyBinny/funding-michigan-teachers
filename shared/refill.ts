@@ -68,6 +68,10 @@ export const REFILL_ITEMS: readonly RefillItem[] = [
   { id: 'highlighters-12', shop: 'write', name: 'Highlighters, assorted', pack: '12-pack', price: 699, asin: '' },
   { id: 'erasers-30', shop: 'write', name: 'Pink erasers', pack: '30-pack', price: 799, asin: '' },
   { id: 'sharpies-12', shop: 'write', name: 'Sharpie permanent markers', pack: '12-pack', price: 1099, asin: '' },
+  // Added from teacher requests (November 2026). The ASINs are the products
+  // the teachers themselves linked; prices are estimates like the rest.
+  { id: 'gel-pens-color-8', shop: 'write', name: 'BIC Gel-ocity gel pens, assorted colors', pack: '8-pack', price: 999, asin: 'B01N5TKJBH' },
+  { id: 'g2-pens-color', shop: 'write', name: 'Pilot G2 gel pens, assorted colors', pack: '8-pack', price: 1299, asin: '' },
   // ── Paper & Post ──
   { id: 'copy-paper-ream', shop: 'paper', name: 'Copy paper', pack: '1 ream (500 sheets)', price: 899, asin: '' },
   { id: 'copy-paper-case', shop: 'paper', name: 'Copy paper', pack: 'case of 10 reams', price: 5499, asin: '' },
@@ -75,6 +79,7 @@ export const REFILL_ITEMS: readonly RefillItem[] = [
   { id: 'sticky-notes-12', shop: 'paper', name: 'Sticky notes', pack: '12 pads', price: 1199, asin: '' },
   { id: 'index-cards-1000', shop: 'paper', name: 'Index cards', pack: '1,000 cards', price: 1299, asin: '' },
   { id: 'folders-25', shop: 'paper', name: 'Two-pocket folders', pack: '25-pack', price: 1499, asin: '' },
+  { id: 'dictionary-thesaurus', shop: 'paper', name: "Merriam-Webster's Dictionary & Thesaurus, hardcover", pack: '1 book', price: 1699, asin: '0877793522' },
   // ── The Tissue Depot ──
   { id: 'tissues-12', shop: 'clean', name: 'Facial tissues', pack: '12 boxes', price: 2199, asin: '' },
   { id: 'sanitizer-1l', shop: 'clean', name: 'Hand sanitizer pump', pack: '1 litre', price: 1099, asin: '' },
@@ -83,6 +88,7 @@ export const REFILL_ITEMS: readonly RefillItem[] = [
   { id: 'bandages-100', shop: 'clean', name: 'Adhesive bandages', pack: '100-count', price: 699, asin: '' },
   // ── Art Corner ──
   { id: 'markers-class', shop: 'art', name: 'Crayola washable markers', pack: 'classpack of 200', price: 3499, asin: '' },
+  { id: 'markers-basics', shop: 'art', name: 'Amazon Basics washable markers', pack: '1 pack, assorted colors', price: 899, asin: 'B0DPM79QWL' },
   { id: 'crayons-class', shop: 'art', name: 'Crayola crayons', pack: 'classpack of 400', price: 2999, asin: '' },
   { id: 'colored-pencils-12x12', shop: 'art', name: 'Colored pencils', pack: '12 boxes of 12', price: 1999, asin: '' },
   { id: 'glue-sticks-30', shop: 'art', name: 'Glue sticks', pack: '30-pack', price: 1299, asin: '' },

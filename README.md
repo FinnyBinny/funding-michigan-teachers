@@ -113,6 +113,8 @@ works without them (orders are recorded by item id and the admin list names each
 item), but the one-click Amazon cart only carries items whose ASIN is filled in. Paste
 each product's ASIN — the `B0…` code in its Amazon URL — and check the price next to it.
 Run `SUPABASE_REFRESH.sql` (new tables) and `SUPABASE_LOCKDOWN.sql` (admin-only reads) once.
+Then run `REFILL_WISHLISTS_DRAFTS.sql`: five teacher wish lists drafted from real
+requests, all hidden until switched on in the admin panel.
 
 ## Door decorating competition (`/door-decorating`)
 
