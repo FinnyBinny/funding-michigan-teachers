@@ -87,15 +87,14 @@ check('a full basket misses nothing', missingFromList(list, [...list.items]).len
 check('a partial basket reports the shortfall', missingFromList(list, [{ itemId: list.items[0].itemId, qty: list.items[0].qty - 1 }])[0].qty === 1);
 
 // ── Amazon cart ──
-const noAsin = amazonCartUrl([pencils()]);
+// notebooks-12 has no ASIN yet (see shared/refill.ts); pencils-72 does.
+const notebooks = (qty = 1): RefillLine => ({ itemId: 'notebooks-12', qty });
+const noAsin = amazonCartUrl([notebooks()]);
 check('items without an ASIN are skipped, and reported', noAsin.url === null && noAsin.skipped.length === 1);
-// Borrow a fake ASIN for one check, then put it back.
-const item = REFILL_ITEMS.find((i) => i.id === 'pencils-72')! as { asin: string };
-const original = item.asin;
-item.asin = 'B000TEST01';
-const withAsin = amazonCartUrl([pencils(3), tissues()]);
-check('cart link carries ASIN and quantity', withAsin.url === 'https://www.amazon.com/gp/aws/cart/add.html?ASIN.1=B000TEST01&Quantity.1=3' && withAsin.skipped.length === 1, withAsin.url ?? 'null');
-item.asin = original;
+const pencilAsin = findRefillItem('pencils-72')!.asin;
+const withAsin = amazonCartUrl([pencils(3), notebooks()]);
+check('cart link carries ASIN and quantity', withAsin.url === `https://www.amazon.com/gp/aws/cart/add.html?ASIN.1=${pencilAsin}&Quantity.1=3` && withAsin.skipped.length === 1, withAsin.url ?? 'null');
+check('cart link numbers several items in order', amazonCartUrl([pencils(2), tissues(1)]).url?.includes('ASIN.2=') === true);
 
 const agg = aggregateRefillLines([[pencils(2), tissues()], [pencils(1)]]);
 check('orders aggregate into one shopping list', agg.find((l) => l.itemId === 'pencils-72')?.qty === 3 && agg.find((l) => l.itemId === 'tissues-12')?.qty === 1);

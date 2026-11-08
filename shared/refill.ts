@@ -18,11 +18,13 @@
  * into one "add everything to my Amazon cart" link (Amazon's documented
  * add-to-cart form, see amazonCartUrl) and the same list arrives by email.
  *
- * ⚠️  Every `asin` below is EMPTY until someone pastes the real one in. The
- * site works without them — orders are recorded by item id, and the admin
- * list names each item — but the one-click Amazon cart only carries items
- * whose ASIN is filled in, and flags the rest. Prices are estimates of what
- * the pack costs on Amazon; update them alongside the ASIN.
+ * ASINs and prices were researched in November 2026 from Amazon listings,
+ * Amazon search snapshots and deal posts (Amazon pages themselves could not
+ * be opened). Prices are typical non-sale prices rounded to .99, not live
+ * prices: check each on Amazon before launch and correct it here. Two items
+ * (notebooks-12, folders-25) still have no ASIN; the cart link flags them.
+ * A pack size below follows the actual Amazon product, which is why a few
+ * ids (erasers-30, ziploc-200) no longer match their counts exactly.
  *
  * Imports only shared/fees.ts, so the Worker can bundle it.
  */
@@ -62,57 +64,57 @@ export interface RefillItem {
 
 export const REFILL_ITEMS: readonly RefillItem[] = [
   // ── The Pencil Pantry ──
-  { id: 'pencils-72', shop: 'write', name: 'Ticonderoga #2 pencils', pack: '72-pack', price: 1699, asin: '' },
-  { id: 'pens-60', shop: 'write', name: 'Ballpoint pens, blue and black', pack: '60-pack', price: 999, asin: '' },
-  { id: 'dry-erase-12', shop: 'write', name: 'Expo dry-erase markers', pack: '12-pack', price: 1299, asin: '' },
-  { id: 'highlighters-12', shop: 'write', name: 'Highlighters, assorted', pack: '12-pack', price: 699, asin: '' },
-  { id: 'erasers-30', shop: 'write', name: 'Pink erasers', pack: '30-pack', price: 799, asin: '' },
-  { id: 'sharpies-12', shop: 'write', name: 'Sharpie permanent markers', pack: '12-pack', price: 1099, asin: '' },
+  { id: 'pencils-72', shop: 'write', name: 'Ticonderoga #2 pencils', pack: '72-pack', price: 1299, asin: 'B079STQWBM' },
+  { id: 'pens-60', shop: 'write', name: 'BIC Round Stic ballpoint pens, blue', pack: '60-count', price: 1299, asin: 'B0012YVGOW' },
+  { id: 'dry-erase-12', shop: 'write', name: 'Expo low-odor dry-erase markers, chisel tip', pack: '12-count, assorted colors', price: 999, asin: 'B0004F7GUI' },
+  { id: 'highlighters-12', shop: 'write', name: 'Sharpie pocket highlighters, assorted colors', pack: '12-count', price: 999, asin: 'B0C1HQZ4VY' },
+  { id: 'erasers-30', shop: 'write', name: 'Paper Mate Pink Pearl erasers', pack: '24-count', price: 899, asin: 'B00006IFAS' },
+  { id: 'sharpies-12', shop: 'write', name: 'Sharpie fine point permanent markers, black', pack: '12-count', price: 1199, asin: 'B00006IFHD' },
   // Added from teacher requests (November 2026). The ASINs are the products
   // the teachers themselves linked; prices are estimates like the rest.
   { id: 'gel-pens-color-8', shop: 'write', name: 'BIC Gel-ocity gel pens, assorted colors', pack: '8-pack', price: 999, asin: 'B01N5TKJBH' },
-  { id: 'g2-pens-color', shop: 'write', name: 'Pilot G2 gel pens, assorted colors', pack: '8-pack', price: 1299, asin: '' },
+  { id: 'g2-pens-color', shop: 'write', name: 'Pilot G2 gel pens, assorted colors', pack: '8-pack', price: 1499, asin: 'B08XYCDH17' },
   // ── Paper & Post ──
-  { id: 'copy-paper-ream', shop: 'paper', name: 'Copy paper', pack: '1 ream (500 sheets)', price: 899, asin: '' },
-  { id: 'copy-paper-case', shop: 'paper', name: 'Copy paper', pack: 'case of 10 reams', price: 5499, asin: '' },
+  { id: 'copy-paper-ream', shop: 'paper', name: 'Amazon Basics copy paper', pack: '1 ream (500 sheets)', price: 899, asin: 'B01FV0F8H8' },
+  { id: 'copy-paper-case', shop: 'paper', name: 'Amazon Basics copy paper', pack: 'case of 10 reams', price: 3999, asin: 'B01FV0F13E' },
   { id: 'notebooks-12', shop: 'paper', name: 'Spiral notebooks, wide ruled', pack: '12-pack', price: 1599, asin: '' },
-  { id: 'sticky-notes-12', shop: 'paper', name: 'Sticky notes', pack: '12 pads', price: 1199, asin: '' },
-  { id: 'index-cards-1000', shop: 'paper', name: 'Index cards', pack: '1,000 cards', price: 1299, asin: '' },
+  { id: 'sticky-notes-12', shop: 'paper', name: 'Post-it Super Sticky pop-up notes, 3x3', pack: '12 pads', price: 1199, asin: 'B000TSE48W' },
+  { id: 'index-cards-1000', shop: 'paper', name: 'Amazon Basics index cards, 3x5 blank', pack: '1,000 cards', price: 1199, asin: 'B07X5CSNVH' },
   { id: 'folders-25', shop: 'paper', name: 'Two-pocket folders', pack: '25-pack', price: 1499, asin: '' },
   { id: 'dictionary-thesaurus', shop: 'paper', name: "Merriam-Webster's Dictionary & Thesaurus, hardcover", pack: '1 book', price: 1699, asin: '0877793522' },
   // ── The Tissue Depot ──
-  { id: 'tissues-12', shop: 'clean', name: 'Facial tissues', pack: '12 boxes', price: 2199, asin: '' },
-  { id: 'sanitizer-1l', shop: 'clean', name: 'Hand sanitizer pump', pack: '1 litre', price: 1099, asin: '' },
-  { id: 'wipes-3', shop: 'clean', name: 'Disinfecting wipes', pack: '3 canisters', price: 1299, asin: '' },
-  { id: 'paper-towels-6', shop: 'clean', name: 'Paper towels', pack: '6 rolls', price: 1499, asin: '' },
-  { id: 'bandages-100', shop: 'clean', name: 'Adhesive bandages', pack: '100-count', price: 699, asin: '' },
+  { id: 'tissues-12', shop: 'clean', name: 'Kleenex facial tissues', pack: '12 boxes of 125', price: 2299, asin: 'B0040ZOD68' },
+  { id: 'sanitizer-1l', shop: 'clean', name: 'Purell gel hand sanitizer pump', pack: '1 litre', price: 1899, asin: 'B087781VTJ' },
+  { id: 'wipes-3', shop: 'clean', name: 'Clorox disinfecting wipes', pack: '3 canisters of 75', price: 1299, asin: 'B00B71EKSY' },
+  { id: 'paper-towels-6', shop: 'clean', name: 'Bounty paper towels', pack: '6 double rolls', price: 1499, asin: 'B0DQLQGL9P' },
+  { id: 'bandages-100', shop: 'clean', name: 'Band-Aid flexible fabric bandages', pack: '100-count', price: 899, asin: 'B00B6A6XOK' },
   // ── Art Corner ──
-  { id: 'markers-class', shop: 'art', name: 'Crayola washable markers', pack: 'classpack of 200', price: 3499, asin: '' },
+  { id: 'markers-class', shop: 'art', name: 'Crayola broad line washable markers', pack: 'classpack of 200', price: 5999, asin: 'B00006IFJ7' },
   { id: 'markers-basics', shop: 'art', name: 'Amazon Basics washable markers', pack: '1 pack, assorted colors', price: 899, asin: 'B0DPM79QWL' },
-  { id: 'crayons-class', shop: 'art', name: 'Crayola crayons', pack: 'classpack of 400', price: 2999, asin: '' },
-  { id: 'colored-pencils-12x12', shop: 'art', name: 'Colored pencils', pack: '12 boxes of 12', price: 1999, asin: '' },
-  { id: 'glue-sticks-30', shop: 'art', name: 'Glue sticks', pack: '30-pack', price: 1299, asin: '' },
-  { id: 'construction-paper-500', shop: 'art', name: 'Construction paper', pack: '500 sheets', price: 1499, asin: '' },
-  { id: 'scissors-12', shop: 'art', name: 'Student scissors', pack: '12-pack', price: 1499, asin: '' },
-  { id: 'tape-6', shop: 'art', name: 'Scotch tape with dispensers', pack: '6 rolls', price: 1199, asin: '' },
+  { id: 'crayons-class', shop: 'art', name: 'Crayola crayons', pack: 'classpack of 400, large size', price: 5799, asin: 'B00006IFAI' },
+  { id: 'colored-pencils-12x12', shop: 'art', name: 'Crayola colored pencils', pack: '12 boxes of 12', price: 3299, asin: 'B08CHJ6D77' },
+  { id: 'glue-sticks-30', shop: 'art', name: "Elmer's glue sticks", pack: '30-pack', price: 1499, asin: 'B0013CDGT6' },
+  { id: 'construction-paper-500', shop: 'art', name: 'Prang construction paper, 9x12', pack: '500 sheets', price: 1999, asin: 'B0013CDJTS' },
+  { id: 'scissors-12', shop: 'art', name: 'Fiskars blunt-tip student scissors', pack: '12-pack', price: 3699, asin: 'B0006HUJP8' },
+  { id: 'tape-6', shop: 'art', name: 'Scotch Magic tape with dispensers', pack: '6 rolls', price: 1399, asin: 'B0000DH8HQ' },
   // ── The STEM Shed ──
-  { id: 'batteries-aa-48', shop: 'stem', name: 'AA batteries', pack: '48-pack', price: 1899, asin: '' },
-  { id: 'goggles-12', shop: 'stem', name: 'Safety goggles', pack: '12-pack', price: 2499, asin: '' },
-  { id: 'rulers-30', shop: 'stem', name: '12-inch rulers', pack: '30-pack', price: 1299, asin: '' },
-  { id: 'graph-paper-500', shop: 'stem', name: 'Graph paper', pack: '500 sheets', price: 1299, asin: '' },
-  { id: 'calculator-ti30', shop: 'stem', name: 'TI-30XS scientific calculator', pack: '1 calculator', price: 1999, asin: '' },
-  { id: 'whiteboards-12', shop: 'stem', name: 'Lap whiteboards', pack: '12-pack', price: 2999, asin: '' },
+  { id: 'batteries-aa-48', shop: 'stem', name: 'Amazon Basics AA batteries', pack: '48-pack', price: 1499, asin: 'B00MNV8E0C' },
+  { id: 'goggles-12', shop: 'stem', name: 'Safety goggles', pack: '12-pack', price: 1699, asin: 'B08LF1619K' },
+  { id: 'rulers-30', shop: 'stem', name: '12-inch clear plastic rulers', pack: '30-pack', price: 999, asin: 'B0B5MLTG7J' },
+  { id: 'graph-paper-500', shop: 'stem', name: 'Graph paper', pack: '500 sheets', price: 1299, asin: 'B0042SUMW2' },
+  { id: 'calculator-ti30', shop: 'stem', name: 'TI-30XS scientific calculator', pack: '1 calculator', price: 1999, asin: 'B01JB72V18' },
+  { id: 'whiteboards-12', shop: 'stem', name: 'Lap whiteboards with markers and erasers', pack: '12-pack', price: 1799, asin: 'B0G1YCGQCS' },
   // ── The Snack Shack ──
-  { id: 'granola-60', shop: 'snacks', name: 'Granola bars', pack: '60 bars', price: 2499, asin: '' },
-  { id: 'goldfish-30', shop: 'snacks', name: 'Goldfish crackers', pack: '30 bags', price: 1699, asin: '' },
-  { id: 'fruit-snacks-90', shop: 'snacks', name: 'Fruit snacks', pack: '90 pouches', price: 1999, asin: '' },
+  { id: 'granola-60', shop: 'snacks', name: 'Nature Valley granola bars', pack: '60 bars (30 two-bar pouches)', price: 1299, asin: 'B00HG9KV6G' },
+  { id: 'goldfish-30', shop: 'snacks', name: 'Goldfish crackers', pack: '30 bags', price: 1599, asin: 'B0116WQ62G' },
+  { id: 'fruit-snacks-90', shop: 'snacks', name: "Welch's fruit snacks", pack: '90 pouches', price: 3599, asin: 'B084WCTBCL' },
   // ── Tidy Town ──
-  { id: 'bins-6', shop: 'organize', name: 'Storage bins with lids', pack: '6-pack', price: 2499, asin: '' },
-  { id: 'binder-clips-150', shop: 'organize', name: 'Binder clips, assorted', pack: '150-count', price: 999, asin: '' },
-  { id: 'ziploc-200', shop: 'organize', name: 'Zip-top bags', pack: '200-count', price: 1299, asin: '' },
-  { id: 'hanging-folders-25', shop: 'organize', name: 'Hanging file folders', pack: '25-pack', price: 1699, asin: '' },
-  { id: 'command-hooks-20', shop: 'organize', name: 'Command hooks', pack: '20-pack', price: 1499, asin: '' },
-  { id: 'stapler-kit', shop: 'organize', name: 'Stapler with staples', pack: 'stapler + 5,000 staples', price: 1499, asin: '' },
+  { id: 'bins-6', shop: 'organize', name: 'IRIS storage bins with lids, 19 qt', pack: '6-pack', price: 4499, asin: 'B07PFLRXN4' },
+  { id: 'binder-clips-150', shop: 'organize', name: 'Binder clips, assorted', pack: '150-count', price: 999, asin: 'B07QWL9LW7' },
+  { id: 'ziploc-200', shop: 'organize', name: 'Ziploc gallon freezer bags', pack: '120 bags (4 boxes of 30)', price: 1999, asin: 'B07PZ8HLWD' },
+  { id: 'hanging-folders-25', shop: 'organize', name: 'Amazon Basics hanging file folders', pack: '25-pack', price: 1399, asin: 'B08KW1FGFY' },
+  { id: 'command-hooks-20', shop: 'organize', name: 'Command medium hooks', pack: '20 hooks, 24 strips', price: 1599, asin: 'B018IZAME2' },
+  { id: 'stapler-kit', shop: 'organize', name: 'Swingline stapler value pack', pack: 'stapler + 5,000 staples', price: 1499, asin: 'B00006IFKW' },
 ];
 
 /** One line of a basket: an item id and how many packs. */
