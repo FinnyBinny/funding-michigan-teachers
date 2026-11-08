@@ -24,7 +24,6 @@ const NAV = [
 
 const UTILITY = [
   { label: 'Bring FMT to your school', path: '/for-schools' },
-  { label: 'Door Decorating', path: '/door-decorating' },
   { label: 'Returnables', path: '/returnables' },
   { label: 'Youth Internship', path: '/internship' },
   { label: 'Privacy', path: '/privacy' },

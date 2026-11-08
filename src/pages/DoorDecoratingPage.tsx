@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import {
-  ArrowDown, Trophy, CalendarDays, School, Sparkles, Send, Loader2, CheckCircle2, PartyPopper, Gift,
+  ArrowDown, ArrowLeft, Trophy, CalendarDays, School, Sparkles, Send, Loader2, CheckCircle2, PartyPopper, Gift,
 } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
@@ -15,7 +15,7 @@ import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
 import { navLinkProps } from '../lib/navigate';
 import { cn } from '../lib/utils';
-import { SCHOOLS } from '../../shared/schools';
+import { SCHOOLS, schoolPath } from '../../shared/schools';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
@@ -135,7 +135,11 @@ export default function DoorDecoratingPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     setPageMeta(metaForPath('/door-decorating'));
-    setPageStructuredData(breadcrumbs([['Door Decorating Competition', '/door-decorating']]));
+    setPageStructuredData(breadcrumbs([
+      ['Partner Schools', '/schools'],
+      ['Okemos High School', schoolPath('okemos')],
+      ['Door Decorating Competition', '/door-decorating'],
+    ]));
     return () => setPageStructuredData(null);
   }, []);
 
@@ -217,6 +221,12 @@ export default function DoorDecoratingPage() {
             transition={{ duration: 0.7, ease: EASE }}
             className="max-w-3xl mx-auto relative"
           >
+            {/* An Okemos event: the page sits under Partner Schools → Okemos. */}
+            <nav aria-label="Breadcrumb" className="mb-5">
+              <a {...navLinkProps(schoolPath('okemos'))} className="inline-flex items-center gap-1.5 text-sm font-bold text-chalkboard/70 hover:text-apple min-h-[44px]">
+                <ArrowLeft size={14} aria-hidden="true" /> Okemos High School
+              </a>
+            </nav>
             <p className="text-[0.625rem] uppercase tracking-[0.24em] font-bold text-chalkboard/70 mb-5">
               Door Decorating Competition · December 2026
             </p>

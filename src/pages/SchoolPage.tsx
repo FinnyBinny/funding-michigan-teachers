@@ -512,7 +512,15 @@ export default function SchoolPage({ school }: { school: School }) {
                                 </span>
                               )}
                               <span>
-                                <span className="block font-bold leading-snug">{e.title}</span>
+                                {/* An event with its own page (the door decorating
+                                    competition) links to it from here. */}
+                                {e.ctaUrl ? (
+                                  <a href={e.ctaUrl} className="block font-bold leading-snug underline underline-offset-4 decoration-white/30 hover:decoration-white">
+                                    {e.title}
+                                  </a>
+                                ) : (
+                                  <span className="block font-bold leading-snug">{e.title}</span>
+                                )}
                                 <span className="block text-sm text-white/70 font-light leading-relaxed mt-1">
                                   {e.description}
                                 </span>
@@ -564,7 +572,7 @@ export default function SchoolPage({ school }: { school: School }) {
               {school.initiatives.map((it, i) => (
                 <FeatureCard
                   key={it.title}
-                  icon={it.ctaHref.startsWith('/donate') ? Heart : Package}
+                  icon={it.ctaHref.startsWith('/donate') ? Heart : it.ctaHref.startsWith('/door-decorating') ? Trophy : Package}
                   title={it.title}
                   delay={i * 0.08}
                 >
