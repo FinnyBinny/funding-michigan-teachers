@@ -79,6 +79,17 @@ export const okemos: School = {
       secondaryHref: '/for-teachers?kind=mid-year-refill&school=Okemos%20High%20School',
     },
     {
+      // Okemos only: the competition has run here every December since 2023.
+      // Its page lives at /door-decorating and is reached from here rather
+      // than from the site footer.
+      title: 'Door Decorating Competition',
+      body: 'Our fourth annual competition, December 2026. Classrooms decorate their doors, the whole building votes, and the winning doors share over $500 in prizes.',
+      ctaLabel: 'Enter your door',
+      ctaHref: '/door-decorating',
+      secondaryLabel: 'Sponsor a prize',
+      secondaryHref: '/door-decorating#sponsor',
+    },
+    {
       title: 'Request classroom supplies',
       body: 'Teachers and staff at Okemos can ask for supplies with one short form.',
       ctaLabel: 'Request supplies for your room',
