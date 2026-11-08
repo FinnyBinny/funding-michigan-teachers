@@ -243,7 +243,10 @@ export default function SchoolPage({ school }: { school: School }) {
     ? { when: 'Thank you', title: `${school.sponsors[0].name}: ${school.sponsors[0].note ?? ''}`.replace(/: $/, ''), body: '' }
     : null);
 
-  const donateInitiative = school.initiatives.find((i) => i.ctaHref.startsWith('/donate'));
+  // The school's giving ask: the refill store (from December 2026) or, for a
+  // school without one, a donate link. Both drive the hero's Donate button.
+  const isGiving = (href: string) => href.startsWith('/donate') || href.startsWith('/refill');
+  const donateInitiative = school.initiatives.find((i) => isGiving(i.ctaHref));
   const requestHref = `/for-teachers?school=${encodeURIComponent(school.name)}`;
 
   // The school's palette, handed to CSS. Nothing below reads a hex directly.
@@ -572,7 +575,7 @@ export default function SchoolPage({ school }: { school: School }) {
               {school.initiatives.map((it, i) => (
                 <FeatureCard
                   key={it.title}
-                  icon={it.ctaHref.startsWith('/donate') ? Heart : it.ctaHref.startsWith('/door-decorating') ? Trophy : Package}
+                  icon={isGiving(it.ctaHref) ? Heart : it.ctaHref.startsWith('/door-decorating') ? Trophy : Package}
                   title={it.title}
                   delay={i * 0.08}
                 >
