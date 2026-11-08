@@ -17,6 +17,7 @@ import { fileWithBloomerang } from '../lib/bloomerang';
 import { SendFailed, PrivacyNote, useFocusOnMount } from '../components/FormStatus';
 import { STAT, TAW_CARD_VALUE } from '../data/impactStats';
 import { track } from '../lib/analytics';
+import Honeypot from '../components/Honeypot';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -835,6 +836,7 @@ function PilotInterestForm() {
       transition={{ duration: 0.8, ease: EASE }}
       className="max-w-2xl mx-auto bg-white/[0.04] ring-1 ring-white/10 rounded-[2rem] p-2 text-left"
     >
+      <Honeypot />
       <div className="bg-gradient-to-b from-[#161718] to-[#0e0f10] rounded-[calc(2rem-0.5rem)] p-7 md:p-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>

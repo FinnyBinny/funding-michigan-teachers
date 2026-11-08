@@ -12,6 +12,7 @@ import { SendFailed, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
 import { navLinkProps } from '../lib/navigate';
 import { cn } from '../lib/utils';
+import Honeypot from '../components/Honeypot';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
@@ -409,6 +410,7 @@ export default function ForTeachersPage() {
               <RequestReceived onAnother={() => setStatus('idle')} />
             ) : (
               <form onSubmit={handleSubmit} className="bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-8 space-y-5">
+                <Honeypot />
                 {/* "What is this for?" gets its own full-width row; inside the
                     two-column grid it left School alone on the next row and
                     cut its own longest option off. */}
@@ -809,6 +811,7 @@ function ClassroomReturnables() {
           <ClassroomSignedUp box={boxRequested} onAnother={() => setStatus('idle')} />
         ) : (
           <form onSubmit={handleSubmit} className="bg-white ring-1 ring-chalkboard/8 rounded-[1.75rem] p-6 sm:p-8 space-y-5">
+            <Honeypot />
             <div className="grid sm:grid-cols-2 gap-4 items-end">
               <div>
                 <label htmlFor="rc-name" className={LABEL}>Your name</label>

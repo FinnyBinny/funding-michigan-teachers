@@ -16,6 +16,7 @@ import { setPageMeta } from '../lib/seo';
 import { metaForPath } from '../../shared/pageMeta';
 import SiteFooter from '../components/SiteFooter';
 import { navLinkProps } from '../lib/navigate';
+import Honeypot from '../components/Honeypot';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -682,6 +683,7 @@ function PickupForm({ source }: { source: string }) {
       transition={{ duration: 0.8, ease: EASE }}
       className="max-w-2xl mx-auto bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-2 shadow-[0_20px_60px_rgba(0,0,0,0.06)]"
     >
+      <Honeypot />
       <div className="bg-white rounded-[calc(2rem-0.5rem)] p-6 sm:p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] space-y-6">
 
         {/* — You — */}

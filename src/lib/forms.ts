@@ -38,12 +38,33 @@ export const FORMBOLD = {
   // Teacher supply requests. Same inbox for now, tagged
   // Form: 'Teacher supply request' — nothing to set up before the page works.
   supplies: '6QXyV',
-  // Door decorating competition entries, tagged Form: 'Door decorating entry'.
-  doorDecorating: '6QXyV',
+  // Door decorating competition entries: their own "Door Decorating
+  // Entries" form (created November 2026), so they stop mixing with the
+  // general inbox. Still tagged Form: 'Door decorating entry'.
+  doorDecorating: 'oWpKp',
 } as const;
+
+/** The name of the hidden field only bots fill in (components/Honeypot.tsx). */
+export const HONEYPOT_NAME = 'fmt_hp_check';
+
+/**
+ * True when a bot has filled in a honeypot field on this page. Checked
+ * page-wide, so one bot-filled form stops every send from that page load.
+ * Never throws: a check that cannot run lets the submission through.
+ */
+export function honeypotTripped(): boolean {
+  try {
+    return [...document.querySelectorAll<HTMLInputElement>(`input[name="${HONEYPOT_NAME}"]`)]
+      .some((el) => el.value.trim() !== '');
+  } catch {
+    return false;
+  }
+}
 
 export async function submitToFormBold(formId: string, fields: Record<string, unknown>): Promise<boolean> {
   if (!formId) return false;
+  // A bot: report success so it moves on, and send nothing.
+  if (honeypotTripped()) return true;
   try {
     /**
      * Reply-To, set to whoever filled the form in.

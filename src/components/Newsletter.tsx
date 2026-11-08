@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Loader2, CheckCircle2, Sparkles, ChevronRight } from 'lucide-react';
 import { subscribeToImpactReport } from '../lib/newsletter';
 import { SendFailed } from './FormStatus';
+import Honeypot from './Honeypot';
 
 export default function Newsletter() {
   const [email, setEmail] = useState('');
@@ -59,6 +60,7 @@ export default function Newsletter() {
           >
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-[1.75rem] shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-6">
+                <Honeypot />
                 <div className="space-y-2">
                   <label htmlFor="newsletter-email" className="block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-white/70 ml-2">Email Address</label>
                   <div className="relative">

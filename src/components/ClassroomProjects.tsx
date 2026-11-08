@@ -10,6 +10,7 @@ import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { useModalDialog } from '../lib/useModalDialog';
 import { PrivacyNote } from './FormStatus';
+import Honeypot from './Honeypot';
 
 
 const INPUT_CLS = 'w-full bg-paper border border-chalkboard/30 rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:text-chalkboard/65';
@@ -339,6 +340,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
                 </div>
               ) : (
               <form onSubmit={handleFormSubmit} className="p-8 space-y-5">
+                <Honeypot />
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="pf-name" className={LABEL_CLS}>Your Name</label>
