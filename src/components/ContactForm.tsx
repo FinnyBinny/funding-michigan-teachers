@@ -6,6 +6,7 @@ import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { SendFailed, PrivacyNote } from './FormStatus';
 import { track } from '../lib/analytics';
+import Honeypot from './Honeypot';
 
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -106,6 +107,7 @@ export default function ContactForm() {
         className="bg-white p-6 sm:p-8 rounded-[1.75rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.08)] border border-chalkboard/5 relative"
       >
         <form onSubmit={handleSubmit} className="space-y-5">
+          <Honeypot />
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="contact-name" className="block text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 ml-2">Your Name</label>

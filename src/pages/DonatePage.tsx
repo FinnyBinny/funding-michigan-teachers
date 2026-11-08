@@ -22,6 +22,7 @@ import {
   coverFee as grossUp, decodeDesignation, designationFromLegacyFund, dollars,
   encodeDesignation, schoolFundLabel, schoolFunds,
 } from '../../shared/donations';
+import Honeypot from '../components/Honeypot';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 
@@ -666,6 +667,7 @@ function DonationThanks({ thanks }: { thanks: { giftCents: number | null; label:
             <p className="text-sm text-chalkboard/75" role="status">You're on the list for the Impact Report.</p>
           ) : (
             <form onSubmit={join} className="flex gap-2 mt-2">
+              <Honeypot />
               <label htmlFor="thanks-email" className="sr-only">Email address</label>
               <input
                 id="thanks-email" type="email" required autoComplete="email"

@@ -24,6 +24,7 @@
  * this or reports its failure. A CRM that is down must not make a teacher's
  * supply request look like it failed.
  */
+import { honeypotTripped } from './forms';
 
 /**
  * What each site form is filed as, used as the interaction subject so a
@@ -78,6 +79,8 @@ function report(detail: unknown) {
  * something the visitor can act on.
  */
 export async function fileWithBloomerang(form: BloomerangForm, fields: CrmFields): Promise<boolean> {
+  // A bot filled the honeypot: keep it out of the donor database.
+  if (honeypotTripped()) return true;
   try {
     const res = await fetch('/api/crm', {
       method: 'POST',

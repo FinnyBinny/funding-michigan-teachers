@@ -14,6 +14,7 @@ import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { SendFailed, PrivacyNote, useFocusOnMount } from '../components/FormStatus';
 import { track } from '../lib/analytics';
+import Honeypot from '../components/Honeypot';
 
 function navigate(path: string) {
   window.history.pushState({}, '', path);
@@ -402,6 +403,7 @@ function SponsorInterestForm() {
       transition={{ duration: 0.8 }}
       className="max-w-2xl mx-auto bg-chalkboard/[0.03] ring-1 ring-chalkboard/8 rounded-[2rem] p-2 text-left"
     >
+      <Honeypot />
       <div className="bg-white rounded-[calc(2rem-0.5rem)] p-7 md:p-9 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <div>

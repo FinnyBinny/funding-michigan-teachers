@@ -12,6 +12,7 @@ import { SendFailed, PrivacyNote, useFocusOnMount } from '../components/FormStat
 import { track } from '../lib/analytics';
 import { navLinkProps } from '../lib/navigate';
 import { SCHOOLS } from '../../shared/schools';
+import Honeypot from '../components/Honeypot';
 
 const EASE: [number, number, number, number] = [0.32, 0.72, 0, 1];
 const EMAIL = 'hello@fundingmichiganteachers.org';
@@ -316,6 +317,7 @@ export default function DoorDecoratingPage() {
                   </div>
                 ) : (
                   <form onSubmit={submit} className="space-y-4">
+                    <Honeypot />
                     <div>
                       <h2 className="font-serif font-bold text-2xl mb-1">Enter, help or sponsor</h2>
                       <p className="text-sm text-chalkboard/70 leading-relaxed">One short form for all three. We reply within a few days.</p>
