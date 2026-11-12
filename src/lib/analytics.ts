@@ -33,7 +33,9 @@ export type AnalyticsEvent =
   | 'merch_purchase_completed'  // a shop order actually cleared Stripe
   | 'door_decorating_entry'     // conversion — someone entered, offered help or a prize
   | 'faq_opened'
-  | 'internship_apply_clicked'; // opened the Google Form from /internship
+  | 'internship_apply_clicked' // opened the Google Form from /internship
+  | 'box_pickup_requested'      // a teacher tapped a collection box and asked for a pickup
+  | 'box_set_up';               // a teacher set up a new box on its first tap
 
 /**
  * Google Analytics 4 measurement ID (looks like "G-XXXXXXXXXX").

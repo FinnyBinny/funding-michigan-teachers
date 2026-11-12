@@ -26,6 +26,8 @@ User-agent: Google-Extended
 # lines, every parser reads this the same way.
 Disallow: /access
 Disallow: /restricted
+# Each classroom's collection-box link (NFC tag and QR code). Private.
+Disallow: /box/
 
 # Training-only scraper. Does not affect search results or citations.
 User-agent: CCBot

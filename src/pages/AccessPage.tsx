@@ -80,30 +80,34 @@ export default function AccessPage() {
   if (authed) {
     return (
       <div className="min-h-[100dvh] bg-paper">
-        {/* Floating control bar */}
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[80] flex items-center gap-2">
-          <button
-            onClick={() => navigate('/')}
-            className="group flex items-center gap-2 bg-white/85 backdrop-blur-xl border border-chalkboard/10 rounded-full pl-3 pr-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] text-chalkboard/70 shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:text-chalkboard transition-all"
-            style={{ transition: `all 600ms ${EASE}` }}
-          >
-            <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10 transition-colors">
-              <ArrowLeft size={13} />
-            </span>
-            Back to Site
-          </button>
-          <button
-            onClick={signOut}
-            className="bg-chalkboard text-white rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.18em] hover:bg-apple transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
-          >
-            Sign Out
-          </button>
-        </div>
-
-        {/* Always-open admin panel */}
-        <div className="pt-20">
-          <AdminPanel isOpen={true} preAuthed={true} onClose={() => navigate('/')} />
-        </div>
+        {/* Always-open admin panel. Back to Site and Sign Out sit above its
+            card, inside the panel's own scroll area: as a fixed bar they
+            covered the dashboard title on phones. */}
+        <AdminPanel
+          isOpen={true}
+          preAuthed={true}
+          onClose={() => navigate('/')}
+          toolbar={(
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => navigate('/')}
+                  className="group flex items-center gap-2 bg-white/85 backdrop-blur-xl border border-chalkboard/10 rounded-full pl-3 pr-5 py-2.5 text-xs whitespace-nowrap font-bold uppercase tracking-[0.18em] text-chalkboard/70 shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:text-chalkboard transition-all"
+                  style={{ transition: `all 600ms ${EASE}` }}
+                >
+                  <span className="w-7 h-7 rounded-full bg-chalkboard/5 flex items-center justify-center group-hover:bg-chalkboard/10 transition-colors">
+                    <ArrowLeft size={13} />
+                  </span>
+                  Back to Site
+                </button>
+                <button
+                  onClick={signOut}
+                  className="bg-chalkboard text-white rounded-full px-5 py-2.5 text-xs whitespace-nowrap font-bold uppercase tracking-[0.18em] hover:bg-apple transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
+                >
+                  Sign Out
+                </button>
+              </div>
+          )}
+        />
       </div>
     );
   }

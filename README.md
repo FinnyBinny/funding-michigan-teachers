@@ -93,6 +93,37 @@ Bloomerang, so send thank-yous and the Impact Report from Bloomerang.
 **Data kept out on purpose:** returnables pickups are filed with name, email, phone and
 town only. Street addresses and "bags on the porch" notes stay with the pickup request.
 
+## Returnables collection boxes (`/box/<code>`)
+
+Each collection box has an NFC tag and a QR code that open its own page. A teacher taps
+it, presses **Request a pickup**, and the box turns red in the admin dashboard (`/access`
+→ **Boxes**) and an email goes out. After emptying it, press **Mark picked up**: it goes
+back to green and the pickup is counted.
+
+**Setup (once):** after `SUPABASE_LOCKDOWN.sql`, run `SUPABASE_BOXES.sql` in the Supabase
+SQL Editor. It creates boxes 1 to 14, each with its own random link. More boxes: **Add a
+box** in the Boxes tab.
+
+**Assigning boxes:** nothing to do up front. A box nobody has set up asks for its school
+and room on its first tap. Or fill them in yourself with the pencil button in the Boxes
+tab. The circular-arrow button clears a box so it can move to another room; its link
+stays the same, so the tag never needs rewriting.
+
+**Writing the tags:** copy a box's link from the Boxes tab (or **Copy all links**). With
+an NTAG213 or NTAG215 sticker and the free NFC Tools app: Write → Add a record → URL →
+paste the link → Write, then hold the phone to the tag. Make the QR code from the same
+link.
+
+**Where the email goes:** `FORMBOLD.boxPickup` in `src/lib/forms.ts`. It shares the
+"Get in Touch" form for now, so its address is set in FormBold → that form → Settings →
+Email notifications (which also moves contact-form email). For a separate address,
+create a new FormBold form, point it at the address you want, and paste its ID into
+`boxPickup`.
+
+**Privacy:** the page can read and change only the box in its own link, through three
+database functions. Listing boxes or their history needs an admin login. Box pages are
+`noindex` and blocked in `robots.txt`.
+
 ## Door decorating competition (`/door-decorating`)
 
 Photos live in `public/images/door-decorating/` (made by `scripts/optimize-images.mjs`
