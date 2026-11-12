@@ -25,7 +25,15 @@ const OPEN = '<div id="root">';
 // a real browser. Components must not touch browser globals while rendering;
 // if one starts to, this fails the build with the offending line.
 
-const vite = await createServer({ server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
+// noDiscovery: this server only renders one module. Left on, Vite's
+// dependency scan crawls every HTML file in the repo (scripts/returnables-art
+// among them) and logs an error about packages only those tools use.
+const vite = await createServer({
+  server: { middlewareMode: true },
+  appType: 'custom',
+  logLevel: 'error',
+  optimizeDeps: { noDiscovery: true, include: [] },
+});
 try {
   const [{ default: App }, { MotionConfig }] = await Promise.all([
     vite.ssrLoadModule('/src/App.tsx'),
