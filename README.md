@@ -112,10 +112,13 @@ stays the same, so the tag never needs rewriting. Clearing starts the box's own 
 over, but every pickup is logged with the school, room and teacher it was for, so
 **Pickups by classroom** (bottom of the tab) keeps each classroom's total.
 
-**Writing the tags:** copy a box's link from the Boxes tab (or **Copy all links**). With
+**Writing the tags:** each box has two links in the Boxes tab, one for its NFC tag
+(ending `?from=tag`) and one for its QR code (ending `?from=qr`). The ending is how a
+tap or scan is counted: each link shows "Never tapped" until it is first opened, then
+how many times and when. Copy the tag link (or **Copy all links**). With
 an NTAG213 or NTAG215 sticker and the free NFC Tools app: Write → Add a record → URL →
-paste the link → Write, then hold the phone to the tag. Make the QR code from the same
-link.
+paste the link → Write, then hold the phone to the tag. Make the QR code from the
+box's QR link.
 
 **Where the email goes:** `FORMBOLD.boxPickup` in `src/lib/forms.ts`. It shares the
 "Get in Touch" form for now, so its address is set in FormBold → that form → Settings →

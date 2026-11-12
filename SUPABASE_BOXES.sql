@@ -63,6 +63,15 @@ update public.box_events e
   from public.returnable_boxes b
  where e.box_id = b.id and e.school is null and e.kind <> 'cleared';
 
+-- Has this box's tag (or QR code) ever been used? The link written to the
+-- NFC tag ends in ?from=tag and the QR code's in ?from=qr; opening either
+-- counts here. The plain link (no ending) counts nothing, so checking a box
+-- from the dashboard never looks like a tap.
+alter table public.returnable_boxes add column if not exists tag_scans int not null default 0;
+alter table public.returnable_boxes add column if not exists tag_last_scan timestamptz;
+alter table public.returnable_boxes add column if not exists qr_scans int not null default 0;
+alter table public.returnable_boxes add column if not exists qr_last_scan timestamptz;
+
 -- Only admins touch the tables directly. No policy for anyone else, so the
 -- public can do nothing but call the three functions below.
 alter table public.returnable_boxes enable row level security;
@@ -113,6 +122,21 @@ as $$
   )
   from returnable_boxes b
   where b.code = lower(trim(p_code));
+$$;
+
+-- Count one opening of the tag's or the QR code's link.
+create or replace function public.box_scan(p_code text, p_via text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update returnable_boxes
+     set tag_scans     = tag_scans + (p_via = 'tag')::int,
+         tag_last_scan = case when p_via = 'tag' then now() else tag_last_scan end,
+         qr_scans      = qr_scans + (p_via = 'qr')::int,
+         qr_last_scan  = case when p_via = 'qr' then now() else qr_last_scan end
+   where code = lower(trim(p_code)) and p_via in ('tag', 'qr');
 $$;
 
 -- First tap on a box nobody has set up: the teacher says where it lives.
@@ -201,11 +225,13 @@ end $$;
 
 revoke all on function public.box_lookup(text) from public;
 revoke all on function public.box_claim(text, text, text, text) from public;
+revoke all on function public.box_scan(text, text) from public;
 revoke all on function public.box_request_pickup(text) from public;
 revoke all on function public.box_mark_picked_up(bigint) from public;
 revoke all on function public.box_clear(bigint) from public;
 grant execute on function public.box_lookup(text) to anon, authenticated;
 grant execute on function public.box_claim(text, text, text, text) to anon, authenticated;
+grant execute on function public.box_scan(text, text) to anon, authenticated;
 grant execute on function public.box_request_pickup(text) to anon, authenticated;
 grant execute on function public.box_mark_picked_up(bigint) to authenticated;
 grant execute on function public.box_clear(bigint) to authenticated;
