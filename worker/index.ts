@@ -184,11 +184,13 @@ function withHeroPreload(request: Request, res: Response): Response {
 const CSP = [
   "default-src 'self'",
   // 'unsafe-inline' only for the Bloomerang tag's onerror attribute.
-  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.js.stripe.com https://www.googletagmanager.com https://api.bloomerang.co",
+  // Bloomerang's visit tracker loads more scripts from crm.bloomerang.co and
+  // jQuery from ajax.aspnetcdn.com; Cloudflare Web Analytics adds its beacon.
+  "script-src 'self' 'unsafe-inline' https://js.stripe.com https://*.js.stripe.com https://www.googletagmanager.com https://api.bloomerang.co https://crm.bloomerang.co https://ajax.aspnetcdn.com https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
-  "connect-src 'self' https://zvzlgawpezovdwmnvwlg.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://api.bloomerang.co https://formbold.com",
+  "connect-src 'self' https://zvzlgawpezovdwmnvwlg.supabase.co https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://api.bloomerang.co https://crm.bloomerang.co https://formbold.com https://cloudflareinsights.com",
   "frame-src https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://checkout.stripe.com https://docs.google.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
