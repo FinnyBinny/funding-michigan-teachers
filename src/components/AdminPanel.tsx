@@ -26,7 +26,7 @@ type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations' | 'sponsor
  * in-component password check shipped its password inside the public bundle
  * and is gone.
  */
-export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOpen: boolean; onClose: () => void; preAuthed?: boolean }) {
+export default function AdminPanel({ isOpen, onClose, preAuthed = true, toolbar }: { isOpen: boolean; onClose: () => void; preAuthed?: boolean; toolbar?: React.ReactNode }) {
   const authed = preAuthed;
   const [activeTab, setActiveTab] = useState<Tab>('stories');
   const [items, setItems] = useState<any[]>([]);
@@ -216,9 +216,10 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-start justify-center overflow-y-auto py-8 px-4"
+        className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex flex-col items-center justify-start overflow-y-auto py-8 px-4"
         onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       >
+        {toolbar && <div className="w-full max-w-6xl mb-4 shrink-0">{toolbar}</div>}
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
