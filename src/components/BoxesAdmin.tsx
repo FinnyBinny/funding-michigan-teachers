@@ -50,9 +50,18 @@ export default function BoxesAdmin() {
   const [copied, setCopied] = useState<string | null>(null);
   const [editing, setEditing] = useState<number | null>(null);
   const [form, setForm] = useState({ school: '', room: '', teacher: '' });
+  // Signed in, but not on the admin list (public.admin_users): the database
+  // then hides every box and refuses changes, which looks like an empty tab
+  // and 403s. Say so instead.
+  const [notAdmin, setNotAdmin] = useState<string | null>(null);
 
   const load = async () => {
     if (!supabase) { setError('Supabase is not configured.'); setBoxes([]); return; }
+    const [{ data: admin }, { data: who }] = await Promise.all([
+      supabase.rpc('is_admin'),
+      supabase.auth.getUser(),
+    ]);
+    setNotAdmin(admin === false ? (who.user?.email ?? 'this login') : null);
     const [b, e] = await Promise.all([
       supabase.from('returnable_boxes').select('id, box_number, code, school, room, teacher, status, requested_at').order('box_number'),
       supabase.from('box_events').select('box_id').eq('kind', 'picked_up'),
@@ -85,7 +94,7 @@ export default function BoxesAdmin() {
     setBusyId(id);
     const { error: err } = await op();
     setBusyId(null);
-    if (err) setError(err.message);
+    if (err) setError(`Couldn't save: ${err.message}`);
     await load();
   };
 
@@ -141,6 +150,16 @@ export default function BoxesAdmin() {
           </button>
         </div>
       </div>
+
+      {notAdmin && (
+        <div className="mb-4 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3 space-y-2">
+          <p className="font-bold">You're signed in as {notAdmin}, which isn't on the admin list, so the boxes are hidden and changes are refused.</p>
+          <p>Fix: in Supabase → SQL Editor, run this, then refresh this page:</p>
+          <code className="block bg-white/70 rounded-lg px-3 py-2 text-xs break-all select-all">
+            {`insert into public.admin_users (user_id) select id from auth.users where lower(email) = '${notAdmin.toLowerCase().replace(/'/g, "''")}' on conflict do nothing;`}
+          </code>
+        </div>
+      )}
 
       {error && <p className="mb-4 text-sm font-bold text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>}
 
