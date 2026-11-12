@@ -308,6 +308,9 @@ initAnalytics();
 // reducedMotion="user": every Motion animation on the site respects the
 // visitor's "reduce motion" setting. Without it only CSS animations did, and
 // the blur-in heroes, slide-ins and scroll effects ran regardless.
+// On the homepage #root already holds the page's HTML, rendered at build
+// time (scripts/prerender-home.mjs) so it shows before this code loads.
+// React draws the same page over it in one step.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">
