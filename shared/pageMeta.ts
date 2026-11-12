@@ -112,6 +112,11 @@ export function metaForPath(pathname: string): RouteMeta & { path: string } {
   const path = (pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname) || '/';
   const listed = PAGE_META[path];
   if (listed) return { ...listed, path };
+  // Box pages are links on a classroom's collection box: private to that
+  // room, never in search results.
+  if (path.startsWith('/box/')) {
+    return { path, title: `Returnables box | ${SITE_NAME}`, description: 'Request a pickup for this returnables collection box.', noindex: true };
+  }
   const slug = schoolSlugFromPath(path);
   const school = slug ? findSchool(slug) : undefined;
   if (school) {

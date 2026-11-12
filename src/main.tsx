@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { MotionConfig } from 'motion/react';
 import App from './App.tsx';
 import SiteHeader from './components/SiteHeader';
-import { isKnownRoute } from '../shared/routes';
+import { isKnownRoute, boxCodeFromPath } from '../shared/routes';
 import { findSchool, schoolSlugFromPath } from '../shared/schools';
 import { initAnalytics } from './lib/analytics';
 import { stripCheckoutReturn } from './lib/checkoutReturn';
@@ -195,6 +195,7 @@ const PrivacyPage = lazyPage(() => import('./pages/PrivacyPage.tsx'));
 const AccessibilityPage = lazyPage(() => import('./pages/AccessibilityPage.tsx'));
 const SchoolsIndexPage = lazyPage(() => import('./pages/SchoolsIndexPage.tsx'));
 const SchoolPage = lazyPage(() => import('./pages/SchoolPage.tsx'));
+const BoxPage = lazyPage(() => import('./pages/BoxPage.tsx'));
 const NotFoundPage = lazyPage(() => import('./pages/NotFoundPage.tsx'));
 const RestrictedPage = lazyPage(() => import('./pages/RestrictedPage.tsx'));
 
@@ -281,6 +282,8 @@ function Router() {
   else if (path === '/privacy') page = <PrivacyPage />;
   else if (path === '/accessibility') page = <AccessibilityPage />;
   else if (path === '/restricted') page = <RestrictedPage />;
+  // A returnables box's NFC / QR link (/box/<code>).
+  else if (boxCodeFromPath(path)) page = <BoxPage />;
   // Anything else is genuinely missing. The Worker pairs this with a real 404
   // status; previously every typo silently rendered the homepage at 200.
   else if (!isKnownRoute(path)) page = <NotFoundPage />;

@@ -47,5 +47,19 @@ export function isKnownRoute(pathname: string): boolean {
   if ((KNOWN_ROUTES as readonly string[]).includes(p)) return true;
   // /schools/<slug> for a school that exists. An invented slug is a real 404,
   // not a 200 that happens to render the 404 page.
+  if (BOX_PATH.test(p)) return true;
   return p.startsWith(`${SCHOOLS_BASE}/`) && SCHOOL_SLUGS.includes(p.slice(SCHOOLS_BASE.length + 1));
+}
+
+/**
+ * /box/<code>: a returnables collection box's tap-to-request page, the link
+ * written to its NFC tag and QR code. Codes are 12 hex characters
+ * (SUPABASE_BOXES.sql). Whether a code is a real box is the database's
+ * answer, so any well-formed code is a page; the page says if it is unknown.
+ */
+export const BOX_PATH = /^\/box\/[a-f0-9]{6,32}$/i;
+
+export function boxCodeFromPath(pathname: string): string | null {
+  const p = pathname.replace(/\/+$/, '');
+  return BOX_PATH.test(p) ? p.slice('/box/'.length).toLowerCase() : null;
 }

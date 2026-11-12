@@ -42,6 +42,18 @@ export const FORMBOLD = {
   // Entries" form (created November 2026), so they stop mixing with the
   // general inbox. Still tagged Form: 'Door decorating entry'.
   doorDecorating: 'oWpKp',
+  // Returnables collection boxes: the email sent when a teacher taps a box
+  // and requests a pickup (src/pages/BoxPage.tsx).
+  //
+  // Shares the "Get in Touch" form for now, so box emails go wherever that
+  // form's notifications go (FormBold → the form → Settings → Email
+  // notifications; changing it there moves contact-form email too, and
+  // takes effect at once, no deploy).
+  //
+  // TO SEND BOX EMAILS SOMEWHERE ELSE: create a new form in FormBold, set its
+  // notification address (e.g. hello@fundingmichiganteachers.org), and paste
+  // its ID here in place of '6QXyV'.
+  boxPickup: '6QXyV',
 } as const;
 
 /** The name of the hidden field only bots fill in (components/Honeypot.tsx). */

@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Plus, Save, Trash2, X, Layout, Users, Calendar,
   BookOpen, MapPin, Heart, Lock, Eye, EyeOff, Edit2, Loader2,
-  Building2, UtensilsCrossed, Award,
+  Building2, UtensilsCrossed, Award, Package,
 } from 'lucide-react';
+import BoxesAdmin from './BoxesAdmin';
 import { cn } from '../lib/utils';
 import { supabase } from '../lib/supabase';
 import { rowToEvent, rowToLocation } from '../hooks/useLocalData';
@@ -17,7 +18,7 @@ const lbl = 'block text-[0.625rem] uppercase tracking-widest font-bold opacity-4
 const btnSave = 'flex-[2] bg-apple text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-apple/90 transition-all';
 const btnCancel = 'flex-1 bg-chalkboard/10 text-chalkboard py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-chalkboard/20 transition-all';
 
-type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations' | 'sponsors' | 'food_partners' | 'teachers_of_month';
+type Tab = 'stories' | 'events' | 'projects' | 'donors' | 'locations' | 'sponsors' | 'food_partners' | 'teachers_of_month' | 'boxes';
 
 /**
  * Content dashboard. Authentication lives in AccessPage (real Supabase Auth) —
@@ -44,7 +45,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
 
 
   const loadItems = async (tab: Tab) => {
-    if (!supabase) { setItems([]); return; }
+    if (!supabase || tab === 'boxes') { setItems([]); return; } // Boxes loads its own
     const { data: rows, error } = await supabase.from(tab).select('*').order('id');
     if (error) {
       setOpError(`Couldn't load ${tab}: ${error.message}`);
@@ -204,6 +205,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
     { id: 'sponsors' as Tab, label: 'Sponsors', icon: Building2 },
     { id: 'food_partners' as Tab, label: 'Food Partners', icon: UtensilsCrossed },
     { id: 'teachers_of_month' as Tab, label: 'Teacher of Month', icon: Award },
+    { id: 'boxes' as Tab, label: 'Boxes', icon: Package },
   ];
 
   if (!isOpen) return null;
@@ -267,6 +269,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
               </div>
 
               {/* Form + List */}
+              {activeTab === 'boxes' ? <BoxesAdmin /> : (
               <div className="grid lg:grid-cols-2 divide-x divide-chalkboard/5">
                 {/* Left: Form */}
                 <div className="p-8">
@@ -503,6 +506,7 @@ export default function AdminPanel({ isOpen, onClose, preAuthed = true }: { isOp
                   </div>
                 </div>
               </div>
+              )}
 
               {/* Footer */}
               {opError ? (
