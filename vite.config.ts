@@ -20,7 +20,11 @@ export default defineConfig({
           // folded src/lib/supabase.ts into the main bundle, which made every
           // first page load wait for the whole library even though the
           // homepage only loads it afterwards (src/lib/db.ts).
-          if (/node_modules\/@supabase\//.test(id) || /src\/lib\/supabase\.ts$/.test(id) || /shared\/supabasePublic\.ts$/.test(id)) return 'supabase';
+          if (/node_modules\/@supabase\//.test(id) || /src\/lib\/supabase\.ts$/.test(id)) return 'supabase';
+          // The project's public URL and key, on their own: the box page needs
+          // them without the library (src/lib/boxApi.ts), and left alone the
+          // bundler files them inside the supabase chunk.
+          if (/shared\/supabasePublic\.ts$/.test(id)) return 'supabase-public';
           if (/node_modules\/lucide-react\//.test(id)) return 'lucide';
           if (/node_modules\/@stripe\//.test(id)) return 'stripe-client';
         },
