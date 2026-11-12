@@ -7,7 +7,7 @@ import type {
   Event, Donor, Project, Story, Location,
   Sponsor, FoodPartner, TeacherOfTheMonth,
 } from '../data/initialData';
-import { supabase } from '../lib/supabase';
+import { loadSupabase } from '../lib/db';
 
 export type { Event, Donor, Project, Story, Location, Sponsor, FoodPartner, TeacherOfTheMonth };
 
@@ -80,6 +80,7 @@ function fetchTableOnce(table: string): Promise<any[] | null> {
   let p = tableFetches.get(table);
   if (!p) {
     p = (async () => {
+      const supabase = await loadSupabase();
       if (!supabase) return null;
       const { data: rows, error } = await supabase.from(table).select('*').order('id');
       // Reachable DB → trust it, even when empty. Only fallback on hard error.
@@ -135,6 +136,7 @@ function useSupabaseArrayOrdered<T>(table: string, fallback: T[]): T[] {
 
   useEffect(() => {
     const fetchData = async () => {
+      const supabase = await loadSupabase();
       if (!supabase) return;
       const { data: rows, error } = await supabase
         .from(table)

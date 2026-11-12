@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { loadSupabase } from './db';
 import { submitToFormBold, FORMBOLD } from './forms';
 import { joinMailingList } from './bloomerang';
 import { track } from './analytics';
@@ -20,6 +20,7 @@ export async function subscribeToImpactReport(email: string, source = 'website')
     Source: source,
   })) submitted = true;
 
+  const supabase = await loadSupabase();
   if (supabase) {
     const { error } = await supabase.from('contact_submissions').insert({
       name: 'Newsletter Signup',

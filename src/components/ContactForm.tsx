@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Send, Loader2, CheckCircle2, Mail, MapPin, MessageSquare } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { loadSupabase } from '../lib/db';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { SendFailed, PrivacyNote } from './FormStatus';
@@ -36,6 +36,7 @@ export default function ContactForm() {
     })) submitted = true;
 
     // Also save to Supabase for records
+    const supabase = await loadSupabase();
     if (supabase) {
       const { error } = await supabase.from('contact_submissions').insert({
         name: form.name,

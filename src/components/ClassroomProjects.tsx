@@ -5,7 +5,8 @@ import { ThumbsUp, Heart, School, Loader2, CheckCircle2, Send, X, AlertCircle } 
 import { cn } from '../lib/utils';
 import { useProjects, readLS, saveLS, STORAGE_KEYS } from '../hooks/useLocalData';
 import { PROJECTS } from '../data/initialData';
-import { supabase, getVoterId, peekVoterId } from '../lib/supabase';
+import { loadSupabase } from '../lib/db';
+import { getVoterId, peekVoterId } from '../lib/voter';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { fileWithBloomerang } from '../lib/bloomerang';
 import { useModalDialog } from '../lib/useModalDialog';
@@ -35,14 +36,18 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
   const [votedProjects, setVotedProjects] = useState<number[]>([]);
   // voteCounts: real-time counts from Supabase (falls back to project.votes from localStorage)
   const [voteCounts, setVoteCounts] = useState<Record<number, number>>({});
-  const [supabaseReady, setSupabaseReady] = useState(!supabase); // true immediately when no supabase
+  const [supabaseReady, setSupabaseReady] = useState(false);
+  // Whether the database is configured; null until the client has loaded.
+  const [hasDb, setHasDb] = useState<boolean | null>(null);
 
   // Load votes from Supabase on mount
   useEffect(() => {
-    if (!supabase) return;
     const voterId = peekVoterId();
 
     (async () => {
+      const supabase = await loadSupabase();
+      setHasDb(!!supabase);
+      if (!supabase) { setSupabaseReady(true); return; }
       try {
         const { data } = await supabase.from('project_votes').select('project_id, voter_id');
         if (data) {
@@ -65,12 +70,12 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
 
   // localStorage fallback: load voted projects when Supabase is not configured
   useEffect(() => {
-    if (supabase) return;
+    if (hasDb !== false) return;
     try {
       const saved = localStorage.getItem('mi_teacher_fund_votes');
       if (saved) setVotedProjects(JSON.parse(saved));
     } catch { /* ignore */ }
-  }, []);
+  }, [hasDb]);
 
   const handleVote = async (id: number) => {
     if (votedProjects.includes(id)) {
@@ -81,6 +86,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
 
     let voted = false;
 
+    const supabase = await loadSupabase();
     if (supabase) {
       // ── Supabase path ──────────────────────────────────────────────────
       const voterId = getVoterId();
@@ -150,6 +156,7 @@ export default function ClassroomProjects({ onDonate }: ClassroomProjectsProps) 
     })) submitted = true;
 
     // Also save to Supabase for records
+    const supabase = await loadSupabase();
     if (supabase) {
       const { error } = await supabase.from('contact_submissions').insert({
         name: form.teacherName,

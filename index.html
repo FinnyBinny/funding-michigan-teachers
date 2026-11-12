@@ -146,20 +146,34 @@
 
     <!-- Bloomerang website visit tracking.
 
-         async, not defer. Deferred scripts run in document order, so a
-         deferred tracker placed before the app's module script made the whole
-         site wait for api.bloomerang.co: with Bloomerang 3s slow, first paint
-         moved from 0.3s to 3.3s. async runs whenever it arrives and holds
-         nothing up. A visit recorded a moment later is worth exactly as much.
+         Started only after the page has loaded and the browser is idle. The
+         tracker pulls in more scripts of its own (an unminified jQuery and
+         accounting.js from Bloomerang's servers); started at once, even
+         async, they competed with the site for a phone's bandwidth and CPU
+         and made the first seconds slow and janky on mobile. A visit
+         recorded a few seconds later is worth exactly as much.
 
          ApiKey here is the public web key — browser-facing by design, the
          same class as the Stripe publishable key. Not a private API key. -->
-    <script
-      src="https://api.bloomerang.co/v1/WebsiteVisit?ApiKey=pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b"
-      type="text/javascript"
-      async
-      onerror="console.warn('[Bloomerang] the visit tracker did not load: blocked by an extension or privacy setting, offline, or refused. Open the Network tab, filter WebsiteVisit, and read the status. Nothing else on the page is affected.')"
-    ></script>
+    <script>
+      (function () {
+        function start() {
+          var s = document.createElement('script');
+          s.src = 'https://api.bloomerang.co/v1/WebsiteVisit?ApiKey=pub_1e4d92ad-a318-11f1-9e81-0a3f1cc02b7b';
+          s.async = true;
+          s.onerror = function () {
+            console.warn('[Bloomerang] the visit tracker did not load: blocked by an extension or privacy setting, offline, or refused. Open the Network tab, filter WebsiteVisit, and read the status. Nothing else on the page is affected.');
+          };
+          document.head.appendChild(s);
+        }
+        function later() {
+          if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 5000 });
+          else setTimeout(start, 2000);
+        }
+        if (document.readyState === 'complete') later();
+        else window.addEventListener('load', later, { once: true });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
