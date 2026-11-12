@@ -235,6 +235,14 @@ export default function BoxPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
     setPageMeta(metaForPath(window.location.pathname));
+    // The NFC tag's link ends in ?from=tag and the QR code's in ?from=qr.
+    // Count the scan (the Boxes tab shows whether a tag has ever been
+    // used), then drop the ending so a refresh doesn't count twice.
+    const via = new URLSearchParams(window.location.search).get('from');
+    if (code && supabase && (via === 'tag' || via === 'qr')) {
+      void supabase.rpc('box_scan', { p_code: code, p_via: via }).then(() => undefined, () => undefined);
+      try { window.history.replaceState(null, '', window.location.pathname); } catch { /* ignore */ }
+    }
     void load();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

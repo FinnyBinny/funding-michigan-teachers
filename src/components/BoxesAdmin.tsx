@@ -24,6 +24,11 @@ interface BoxRow {
   teacher: string | null;
   status: 'ok' | 'full';
   requested_at: string | null;
+  // Absent until SUPABASE_BOXES.sql has been re-run with scan counting.
+  tag_scans?: number;
+  tag_last_scan?: string | null;
+  qr_scans?: number;
+  qr_last_scan?: string | null;
 }
 
 interface EventRow {
@@ -40,7 +45,8 @@ interface ClassroomTotal { school: string; room: string; teacher: string; pickup
 
 const SCHOOLS = ['Okemos High School', 'East Lansing High School', 'Haslett High School'];
 const inp = 'w-full bg-paper border border-chalkboard/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-apple/20 outline-none';
-const linkFor = (code: string) => `${ORIGIN}/box/${code}`;
+// The ending says how the page was opened, so scans can be counted.
+const linkFor = (code: string, via: 'tag' | 'qr' = 'tag') => `${ORIGIN}/box/${code}?from=${via}`;
 // "214" reads as Room 214; "Main office" stays as typed.
 const roomLabel = (room: string) => (/^\d/.test(room) ? `Room ${room}` : room);
 
@@ -78,7 +84,7 @@ export default function BoxesAdmin() {
     ]);
     setNotAdmin(admin === false ? (who.user?.email ?? 'this login') : null);
     const [b, e] = await Promise.all([
-      supabase.from('returnable_boxes').select('id, box_number, code, school, room, teacher, status, requested_at').order('box_number'),
+      supabase.from('returnable_boxes').select('*').order('box_number'),
       supabase.from('box_events').select('box_id, kind, created_at, school, room, teacher').in('kind', ['picked_up', 'cleared']).order('created_at'),
     ]);
     if (b.error) {
@@ -159,7 +165,7 @@ export default function BoxesAdmin() {
     a.status !== b.status ? (a.status === 'full' ? -1 : 1)
       : a.status === 'full' ? (a.requested_at ?? '').localeCompare(b.requested_at ?? '')
       : a.box_number - b.box_number);
-  const allLinks = boxes.map((b) => `Box ${b.box_number}${b.room ? ` (${roomLabel(b.room)}${b.school ? `, ${b.school}` : ''})` : ''}: ${linkFor(b.code)}`).join('\n');
+  const allLinks = boxes.map((b) => `Box ${b.box_number}${b.room ? ` (${roomLabel(b.room)}${b.school ? `, ${b.school}` : ''})` : ''}\n  NFC tag: ${linkFor(b.code, 'tag')}\n  QR code: ${linkFor(b.code, 'qr')}`).join('\n');
 
   return (
     <div className="p-6 sm:p-8">
@@ -235,11 +241,27 @@ export default function BoxesAdmin() {
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center gap-2 bg-paper/70 rounded-lg px-3 py-1.5">
-                <code className="text-xs truncate flex-1 select-all">{linkFor(b.code)}</code>
-                <button onClick={() => copy(linkFor(b.code), b.code)} className="inline-flex items-center gap-1 text-xs font-bold text-chalkboard/80 hover:text-apple px-2 py-1">
-                  {copied === b.code ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy link</>}
-                </button>
+              <div className="mt-3 space-y-1.5">
+                {(['tag', 'qr'] as const).map((via) => {
+                  const scans = via === 'tag' ? b.tag_scans : b.qr_scans;
+                  const last = via === 'tag' ? b.tag_last_scan : b.qr_last_scan;
+                  const key = `${b.code}-${via}`;
+                  const used = (scans ?? 0) > 0;
+                  return (
+                    <div key={via} className="flex flex-wrap items-center gap-x-2 gap-y-1 bg-paper/70 rounded-lg px-3 py-1.5">
+                      <span className="text-[0.625rem] font-bold uppercase tracking-widest text-chalkboard/70 w-14 shrink-0">{via === 'tag' ? 'NFC tag' : 'QR code'}</span>
+                      <code className="text-xs truncate flex-1 min-w-[8rem] select-all">{linkFor(b.code, via)}</code>
+                      {scans !== undefined && (
+                        <span className={`text-xs whitespace-nowrap px-2 py-0.5 rounded-full ${used ? 'bg-emerald-50 text-emerald-800 font-bold' : 'bg-chalkboard/5 text-chalkboard/70'}`}>
+                          {used ? `${via === 'tag' ? 'Tapped' : 'Scanned'} ${scans}× · last ${ago(last ?? null)}` : via === 'tag' ? 'Never tapped' : 'Never scanned'}
+                        </span>
+                      )}
+                      <button onClick={() => copy(linkFor(b.code, via), key)} className="inline-flex items-center gap-1 text-xs font-bold text-chalkboard/80 hover:text-apple px-2 py-1">
+                        {copied === key ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
 
               {editing === b.id && (
@@ -290,7 +312,7 @@ export default function BoxesAdmin() {
       <datalist id="box-schools">{SCHOOLS.map((s) => <option key={s} value={s} />)}</datalist>
 
       <p className="mt-6 text-xs text-chalkboard/70 leading-relaxed">
-        Write each box's link to its NFC tag as a URL record (NFC Tools app → Write → Add a record → URL), and use the same link for its QR code.
+        Write each box's NFC tag link to its tag as a URL record (NFC Tools app → Write → Add a record → URL), and make its QR code from the QR link. The different endings are how a tap or scan gets counted: a tag showing "Never tapped" has not been used yet.
         Pickup emails go to the address set in FormBold; see the README.
       </p>
     </div>
