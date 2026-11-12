@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ArrowRight, Loader2, Mail, RotateCcw } from 'lucide-react';
 import SiteHeader from '../components/SiteHeader';
-import { supabase } from '../lib/supabase';
+import { boxRpc } from '../lib/boxApi';
 import { submitToFormBold, FORMBOLD } from '../lib/forms';
 import { track } from '../lib/analytics';
 import { setPageMeta } from '../lib/seo';
@@ -221,9 +221,9 @@ export default function BoxPage() {
   const reduce = useReducedMotion();
 
   const load = async () => {
-    if (!code || !supabase) { setView({ kind: code ? 'error' : 'missing' }); return; }
+    if (!code) { setView({ kind: 'missing' }); return; }
     setView({ kind: 'loading' });
-    const { data, error } = await supabase.rpc('box_lookup', { p_code: code });
+    const { data, error } = await boxRpc<Box>('box_lookup', { p_code: code });
     if (error) { setView({ kind: 'error' }); return; }
     if (!data) { setView({ kind: 'missing' }); return; }
     const box = data as Box;
@@ -239,17 +239,17 @@ export default function BoxPage() {
     // Count the scan (the Boxes tab shows whether a tag has ever been
     // used), then drop the ending so a refresh doesn't count twice.
     const via = new URLSearchParams(window.location.search).get('from');
-    if (code && supabase && (via === 'tag' || via === 'qr')) {
-      void supabase.rpc('box_scan', { p_code: code, p_via: via }).then(() => undefined, () => undefined);
+    if (code && (via === 'tag' || via === 'qr')) {
+      void boxRpc('box_scan', { p_code: code, p_via: via });
       try { window.history.replaceState(null, '', window.location.pathname); } catch { /* ignore */ }
     }
     void load();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const request = async () => {
-    if (!code || !supabase) return;
+    if (!code) return;
     setBusy(true);
-    const { data, error } = await supabase.rpc('box_request_pickup', { p_code: code });
+    const { data, error } = await boxRpc<{ already: boolean; box: Box }>('box_request_pickup', { p_code: code });
     setBusy(false);
     if (error || !data) { setView({ kind: 'error' }); return; }
     const { already, box } = data as { already: boolean; box: Box };
@@ -273,9 +273,9 @@ export default function BoxPage() {
   };
 
   const setUp = async (school: string, room: string, teacher: string) => {
-    if (!code || !supabase) return;
+    if (!code) return;
     setBusy(true);
-    const { data, error } = await supabase.rpc('box_claim', { p_code: code, p_school: school, p_room: room, p_teacher: teacher });
+    const { data, error } = await boxRpc<Box>('box_claim', { p_code: code, p_school: school, p_room: room, p_teacher: teacher });
     setBusy(false);
     if (error || !data) { setView({ kind: 'error' }); return; }
     const box = data as Box;
