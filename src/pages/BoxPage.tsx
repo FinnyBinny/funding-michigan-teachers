@@ -45,49 +45,126 @@ type View =
   | { kind: 'ready'; box: Box }
   | { kind: 'requested'; box: Box; already: boolean };
 
-// The drawn cans and bottles from the returnables page, at one shared scale.
-const CANS = [
-  { file: 'can-red', w: 145, h: 202 },
-  { file: 'bottle-clear', w: 148, h: 392 },
-  { file: 'can-mini-lime', w: 126, h: 205 },
-  { file: 'can-tall-orange', w: 153, h: 318 },
-  { file: 'can-blue', w: 148, h: 211 },
-  { file: 'can-slim-dark', w: 122, h: 259 },
-] as const;
+/**
+ * The box and its cans, drawn on one 320-wide grid so everything lines up
+ * at any screen size.
+ *
+ * Depth comes from three stacked layers: the back of the box (back flap,
+ * side flaps, dark inside), then the cans, then the front of the box. A can
+ * that drops "in" slides down between the back and the front, so the front
+ * wall hides its lower half exactly as a real box would.
+ */
+const GRID = 320;
+const INK = '#2b1d12';
 
-function Can({ file, w, h, scale }: { file: string; w: number; h: number; scale: number }) {
+// The drawn cans and bottles from the returnables page. For each: where it
+// waits in a tidy row above the box (x, all standing on one line), and where
+// it comes to rest inside (inX, inBottom, a slight lean). `front` cans sit
+// nearer the viewer and overlap the ones behind.
+const CANS = [
+  { file: 'can-red', w: 35, h: 48, x: 41, inX: 70, inBottom: 225, lean: -7, front: true },
+  { file: 'can-tall-orange', w: 37, h: 76, x: 83, inX: 100, inBottom: 224, lean: -4, front: false },
+  { file: 'bottle-clear', w: 36, h: 94, x: 127, inX: 148, inBottom: 226, lean: 3, front: false },
+  { file: 'can-slim-dark', w: 29, h: 62, x: 170, inX: 194, inBottom: 224, lean: 6, front: false },
+  { file: 'can-blue', w: 36, h: 51, x: 206, inX: 214, inBottom: 226, lean: 8, front: true },
+  { file: 'can-mini-lime', w: 30, h: 49, x: 249, inX: 143, inBottom: 228, lean: -3, front: true },
+] as const;
+const ROW_BOTTOM = 110; // the line the waiting cans stand on, clear of the box
+const pct = (n: number) => `${(n / GRID) * 100}%`;
+
+function BoxBack({ viewBox }: { viewBox: string }) {
   return (
-    <picture className="block">
-      <source type="image/avif" srcSet={`/images/returnables/${file}.avif`} />
-      <img src={`/images/returnables/${file}.webp`} alt="" width={w} height={h} style={{ height: h * scale, width: 'auto' }} className="block drop-shadow-[0_6px_6px_rgba(45,28,12,0.2)]" />
-    </picture>
+    <svg viewBox={viewBox} className="absolute inset-0 w-full h-full" aria-hidden="true">
+      <defs>
+        <linearGradient id="box-inside" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#6f4c2b" />
+          <stop offset="1" stopColor="#4d331c" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="160" cy="309" rx="128" ry="7" fill="rgba(43,29,18,0.13)" />
+      {/* back flap, standing up behind the opening */}
+      <path d="M70 170 L58 132 L262 132 L250 170 Z" fill="#c79a5c" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      {/* side flaps, folded outward */}
+      <path d="M40 205 L70 170 L42 160 L10 192 Z" fill="#e2b87a" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      <path d="M280 205 L250 170 L278 160 L310 192 Z" fill="#e2b87a" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      {/* the inside, seen through the open top */}
+      <path d="M70 170 L250 170 L280 205 L40 205 Z" fill="url(#box-inside)" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+    </svg>
   );
 }
 
-/** A kraft-paper collection box, drawn in the site's ink-and-paper style. */
-function BoxArt({ full, shake }: { full: boolean; shake: number }) {
+function BoxFront({ viewBox, full }: { viewBox: string; full: boolean }) {
   return (
-    <motion.svg
-      key={shake}
-      viewBox="0 0 240 150"
-      className="w-[min(78vw,320px)] h-auto"
-      aria-hidden="true"
-      initial={shake ? { rotate: 0 } : false}
-      animate={shake ? { rotate: [0, -3, 3, -2, 2, 0], y: [0, 4, 0] } : undefined}
-      transition={{ duration: 0.6 }}
-    >
-      {/* back flap */}
-      <path d="M38 42 L60 14 L180 14 L202 42 Z" fill="#c99a5b" stroke="#2b1d12" strokeWidth="3" strokeLinejoin="round" />
-      {/* body */}
-      <path d="M30 42 L210 42 L198 140 L42 140 Z" fill="#d9ac6b" stroke="#2b1d12" strokeWidth="3.5" strokeLinejoin="round" />
-      {/* front flaps */}
-      <path d="M30 42 L12 64 L44 70 Z" fill="#e6bd80" stroke="#2b1d12" strokeWidth="3" strokeLinejoin="round" />
-      <path d="M210 42 L228 64 L196 70 Z" fill="#e6bd80" stroke="#2b1d12" strokeWidth="3" strokeLinejoin="round" />
+    <svg viewBox={viewBox} className="absolute inset-0 w-full h-full" aria-hidden="true">
+      <defs>
+        <linearGradient id="box-face" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#dcb070" />
+          <stop offset="1" stopColor="#cfa062" />
+        </linearGradient>
+      </defs>
+      {/* front wall */}
+      <path d="M40 205 L280 205 L268 308 L52 308 Z" fill="url(#box-face)" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
+      {/* front flap, folded down over the wall */}
+      <path d="M40 205 L280 205 L287 231 L33 231 Z" fill="#e9c388" stroke={INK} strokeWidth="3" strokeLinejoin="round" />
       {/* label */}
-      <rect x="72" y="70" width="96" height="44" rx="6" fill="#fbf7ef" stroke="#2b1d12" strokeWidth="2.5" />
-      <text x="120" y="90" textAnchor="middle" fontFamily="Architects Daughter, cursive" fontSize="15" fill="#c0392b">{full ? 'FULL!' : 'MI 10¢'}</text>
-      <text x="120" y="106" textAnchor="middle" fontFamily="Architects Daughter, cursive" fontSize="11" fill="#2b1d12">{full ? 'pick me up!' : 'cans + bottles'}</text>
-    </motion.svg>
+      <rect x="102" y="246" width="116" height="48" rx="7" fill="#fbf7ef" stroke={INK} strokeWidth="2.5" />
+      <text x="160" y="267" textAnchor="middle" fontFamily="Architects Daughter, cursive" fontSize="17" fill="#c0392b">{full ? 'FULL!' : 'MI 10¢'}</text>
+      <text x="160" y="285" textAnchor="middle" fontFamily="Architects Daughter, cursive" fontSize="12.5" fill={INK}>{full ? 'pick me up!' : 'cans + bottles'}</text>
+    </svg>
+  );
+}
+
+/**
+ * The box. With `cans`, they wait in a row above it and drop inside once
+ * `full`. Without, it is just the empty box (setup and error screens), and
+ * the space the cans would need above it is cropped away.
+ */
+function BoxStage({ full = false, cans = false, burst = 0 }: { full?: boolean; cans?: boolean; burst?: number }) {
+  const reduce = useReducedMotion();
+  const top = cans ? 0 : 122; // crop the empty headroom when there are no cans
+  const height = GRID - top;
+  const viewBox = `0 ${top} ${GRID} ${height}`;
+  return (
+    <motion.div
+      className="relative w-[min(84vw,340px)]"
+      style={{ aspectRatio: `${GRID} / ${height}` }}
+      // A small bump as the cans land.
+      animate={burst && !reduce ? { y: [0, 0, 5, 0] } : undefined}
+      transition={{ duration: 0.9, times: [0, 0.55, 0.7, 1] }}
+    >
+      <BoxBack viewBox={viewBox} />
+      {cans && CANS.map((c, i) => (
+        <motion.div
+          key={c.file}
+          className="absolute"
+          style={{ width: pct(c.w), zIndex: c.front ? 2 : 1 }}
+          initial={false}
+          animate={
+            full
+              ? { left: pct(c.inX), top: pct(c.inBottom - c.h), rotate: c.lean }
+              : { left: pct(c.x), top: pct(ROW_BOTTOM - c.h), rotate: 0 }
+          }
+          transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 170, damping: 17, delay: full ? i * 0.09 : 0 }}
+        >
+          {/* While waiting, the row rises and falls together as one slow wave. */}
+          <motion.div
+            animate={full || reduce ? { y: 0 } : { y: [0, -5, 0] }}
+            transition={full || reduce ? { duration: 0.2 } : { duration: 3, repeat: Infinity, ease: 'easeInOut', delay: i * 0.18 }}
+          >
+            <picture className="block">
+              <source type="image/avif" srcSet={`/images/returnables/${c.file}.avif`} />
+              <img src={`/images/returnables/${c.file}.webp`} alt="" className="block w-full h-auto" />
+            </picture>
+          </motion.div>
+        </motion.div>
+      ))}
+      <div className="absolute inset-0" style={{ zIndex: 3 }}>
+        <BoxFront viewBox={viewBox} full={full} />
+      </div>
+      <div className="absolute inset-x-0" style={{ top: pct(190 - top), zIndex: 4 }}>
+        <Confetti run={burst} />
+      </div>
+    </motion.div>
   );
 }
 
@@ -216,33 +293,10 @@ export default function BoxPage() {
             </p>
           )}
 
-          {/* The stage: cans hovering over the box, dropping in on request */}
+          {/* The stage: cans waiting above the box, dropping inside on request */}
           {(view.kind === 'ready' || view.kind === 'requested') && (
-            <div className="relative flex flex-col items-center mb-8">
-              <div className="flex items-end justify-center gap-2 h-[120px] mb-[-34px] relative z-0">
-                {CANS.map((c, i) => (
-                  <motion.div
-                    key={c.file + (full ? '-in' : '-up')}
-                    initial={full && !reduce ? { y: -40, opacity: 1 } : { y: 0 }}
-                    animate={
-                      full
-                        ? { y: 30, opacity: 1, rotate: (i - 2.5) * 7 }
-                        : reduce ? { y: 0 } : { y: [0, -8, 0] }
-                    }
-                    transition={
-                      full
-                        ? { type: 'spring', stiffness: 260, damping: 14, delay: i * 0.08 }
-                        : { duration: 2.2 + i * 0.25, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 }
-                    }
-                  >
-                    <Can {...c} scale={0.26} />
-                  </motion.div>
-                ))}
-              </div>
-              <div className="relative z-10">
-                <BoxArt full={full} shake={burst} />
-                <Confetti run={burst} />
-              </div>
+            <div className="flex justify-center mb-8">
+              <BoxStage cans full={full} burst={burst} />
             </div>
           )}
 
@@ -332,7 +386,7 @@ function SetUpForm({ box, busy, onSubmit }: { box: Box; busy: boolean; onSubmit:
   const label = 'block text-left text-[0.625rem] uppercase tracking-[0.2em] font-bold text-chalkboard/70 mb-2 ml-1';
   return (
     <>
-      <div className="flex justify-center mb-6"><BoxArt full={false} shake={0} /></div>
+      <div className="flex justify-center mb-6"><BoxStage /></div>
       <h1 className="font-serif font-bold text-[clamp(2rem,7vw,3rem)] leading-[1.05] tracking-[-0.02em] mb-3">
         A brand-new box! <span className="text-apple italic font-normal">Where does it live?</span>
       </h1>
@@ -376,7 +430,7 @@ function SetUpForm({ box, busy, onSubmit }: { box: Box; busy: boolean; onSubmit:
 function Problem({ title, body, retry }: { title: string; body: string; retry?: () => void }) {
   return (
     <div className="py-10" role="alert">
-      <div className="flex justify-center mb-6 opacity-80"><BoxArt full={false} shake={0} /></div>
+      <div className="flex justify-center mb-6 opacity-80"><BoxStage /></div>
       <h1 className="font-serif font-bold text-3xl sm:text-4xl mb-3">{title}</h1>
       <p className="text-chalkboard/70 font-light mb-7">{body}</p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
