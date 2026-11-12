@@ -47,6 +47,22 @@ create table if not exists public.box_events (
 );
 create index if not exists box_events_box_id_idx on public.box_events (box_id);
 
+-- Each event remembers which classroom the box was in at the time, so a
+-- teacher's pickups stay with the teacher when the box is cleared and moves
+-- to another room. 'cleared' marks that move: a box's own count starts over
+-- from there. (Added after the first version; these lines upgrade it.)
+alter table public.box_events add column if not exists school text;
+alter table public.box_events add column if not exists room text;
+alter table public.box_events add column if not exists teacher text;
+alter table public.box_events drop constraint if exists box_events_kind_check;
+alter table public.box_events add constraint box_events_kind_check
+  check (kind in ('set_up', 'requested', 'picked_up', 'cleared'));
+-- Events logged before this existed: fill in the box's current classroom.
+update public.box_events e
+   set school = b.school, room = b.room, teacher = b.teacher
+  from public.returnable_boxes b
+ where e.box_id = b.id and e.school is null and e.kind <> 'cleared';
+
 -- Only admins touch the tables directly. No policy for anyone else, so the
 -- public can do nothing but call the three functions below.
 alter table public.returnable_boxes enable row level security;
@@ -89,7 +105,11 @@ as $$
     'teacher', b.teacher,
     'status', b.status,
     'requested_at', b.requested_at,
-    'pickups', (select count(*) from box_events e where e.box_id = b.id and e.kind = 'picked_up')
+    -- Pickups for this box since it was last cleared (its current classroom).
+    'pickups', (select count(*) from box_events e
+                 where e.box_id = b.id and e.kind = 'picked_up'
+                   and e.created_at > coalesce((select max(c.created_at) from box_events c
+                                                 where c.box_id = b.id and c.kind = 'cleared'), '-infinity'))
   )
   from returnable_boxes b
   where b.code = lower(trim(p_code));
@@ -115,7 +135,7 @@ begin
    where code = lower(trim(p_code)) and school is null
   returning * into b;
   if b.id is not null then
-    insert into box_events (box_id, kind) values (b.id, 'set_up');
+    insert into box_events (box_id, kind, school, room, teacher) values (b.id, 'set_up', b.school, b.room, b.teacher);
   end if;
   return box_lookup(p_code);
 end $$;
@@ -138,7 +158,7 @@ begin
     already := true;
   else
     update returnable_boxes set status = 'full', requested_at = now() where id = b.id;
-    insert into box_events (box_id, kind) values (b.id, 'requested');
+    insert into box_events (box_id, kind, school, room, teacher) values (b.id, 'requested', b.school, b.room, b.teacher);
   end if;
   return json_build_object('already', already, 'box', box_lookup(p_code));
 end $$;
@@ -155,17 +175,40 @@ begin
     raise exception 'not allowed';
   end if;
   update returnable_boxes set status = 'ok', requested_at = null where id = p_box_id;
-  insert into box_events (box_id, kind) values (p_box_id, 'picked_up');
+  insert into box_events (box_id, kind, school, room, teacher)
+  select id, 'picked_up', school, room, teacher from returnable_boxes where id = p_box_id;
+end $$;
+
+-- Admins only: the box moves on. Its classroom is cleared and its own count
+-- starts over; the pickups already logged keep their school, room and
+-- teacher, so they still count for that classroom.
+create or replace function public.box_clear(p_box_id bigint)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'not allowed';
+  end if;
+  insert into box_events (box_id, kind, school, room, teacher)
+  select id, 'cleared', school, room, teacher from returnable_boxes where id = p_box_id;
+  update returnable_boxes
+     set school = null, room = null, teacher = null, status = 'ok', requested_at = null
+   where id = p_box_id;
 end $$;
 
 revoke all on function public.box_lookup(text) from public;
 revoke all on function public.box_claim(text, text, text, text) from public;
 revoke all on function public.box_request_pickup(text) from public;
 revoke all on function public.box_mark_picked_up(bigint) from public;
+revoke all on function public.box_clear(bigint) from public;
 grant execute on function public.box_lookup(text) to anon, authenticated;
 grant execute on function public.box_claim(text, text, text, text) to anon, authenticated;
 grant execute on function public.box_request_pickup(text) to anon, authenticated;
 grant execute on function public.box_mark_picked_up(bigint) to authenticated;
+grant execute on function public.box_clear(bigint) to authenticated;
 
 -- ── The first 14 boxes, unassigned ─────────────────────────────────────────
 -- Each gets its own code. Assign them in the admin dashboard, or let each

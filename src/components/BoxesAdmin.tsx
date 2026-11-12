@@ -26,6 +26,18 @@ interface BoxRow {
   requested_at: string | null;
 }
 
+interface EventRow {
+  box_id: number;
+  kind: 'set_up' | 'requested' | 'picked_up' | 'cleared';
+  created_at: string;
+  school: string | null;
+  room: string | null;
+  teacher: string | null;
+}
+
+/** One classroom's pickups, across every box it has had. */
+interface ClassroomTotal { school: string; room: string; teacher: string; pickups: number; last: string }
+
 const SCHOOLS = ['Okemos High School', 'East Lansing High School', 'Haslett High School'];
 const inp = 'w-full bg-paper border border-chalkboard/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-apple/20 outline-none';
 const linkFor = (code: string) => `${ORIGIN}/box/${code}`;
@@ -44,7 +56,10 @@ function ago(iso: string | null): string {
 
 export default function BoxesAdmin() {
   const [boxes, setBoxes] = useState<BoxRow[] | null>(null);
+  // Pickups per box since it was last cleared (its current classroom).
   const [pickups, setPickups] = useState<Record<number, number>>({});
+  // Pickups per classroom, kept when a box is cleared and moves on.
+  const [classrooms, setClassrooms] = useState<ClassroomTotal[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -64,7 +79,7 @@ export default function BoxesAdmin() {
     setNotAdmin(admin === false ? (who.user?.email ?? 'this login') : null);
     const [b, e] = await Promise.all([
       supabase.from('returnable_boxes').select('id, box_number, code, school, room, teacher, status, requested_at').order('box_number'),
-      supabase.from('box_events').select('box_id').eq('kind', 'picked_up'),
+      supabase.from('box_events').select('box_id, kind, created_at, school, room, teacher').in('kind', ['picked_up', 'cleared']).order('created_at'),
     ]);
     if (b.error) {
       setError(`Couldn't load boxes: ${b.error.message}. Has SUPABASE_BOXES.sql been run?`);
@@ -72,8 +87,23 @@ export default function BoxesAdmin() {
       return;
     }
     const counts: Record<number, number> = {};
-    for (const row of (e.data ?? []) as { box_id: number }[]) counts[row.box_id] = (counts[row.box_id] ?? 0) + 1;
+    const rooms = new Map<string, ClassroomTotal>();
+    // Oldest first: a 'cleared' resets that box's own count, while every
+    // pickup also adds to the classroom it was logged against.
+    for (const row of (e.data ?? []) as EventRow[]) {
+      if (row.kind === 'cleared') { counts[row.box_id] = 0; continue; }
+      counts[row.box_id] = (counts[row.box_id] ?? 0) + 1;
+      const school = row.school ?? 'Unknown school';
+      const room = row.room ?? '';
+      const teacher = row.teacher ?? '';
+      const key = [school, room, teacher].join('|').toLowerCase();
+      const t = rooms.get(key) ?? { school, room, teacher, pickups: 0, last: row.created_at };
+      t.pickups += 1;
+      t.last = row.created_at;
+      rooms.set(key, t);
+    }
     setPickups(counts);
+    setClassrooms([...rooms.values()].sort((a, b) => b.pickups - a.pickups || a.school.localeCompare(b.school)));
     setBoxes(b.data as BoxRow[]);
     setError(null);
   };
@@ -109,10 +139,8 @@ export default function BoxesAdmin() {
   };
 
   const clearBox = (b: BoxRow) => {
-    if (!window.confirm(`Clear box #${b.box_number}'s school, room and teacher? Its next tap will ask for them again. Its link stays the same.`)) return;
-    return run(b.id, () => supabase!.from('returnable_boxes').update({
-      school: null, room: null, teacher: null, status: 'ok', requested_at: null,
-    }).eq('id', b.id));
+    if (!window.confirm(`Clear box #${b.box_number} so it can move to another room? Its count starts over; the ${pickups[b.id] ?? 0} pickup(s) so far stay with ${b.room ? roomLabel(b.room) : 'this classroom'} under "Pickups by classroom". Its next tap asks for a school and room. Its link stays the same.`)) return;
+    return run(b.id, () => supabase!.rpc('box_clear', { p_box_id: b.id }));
   };
 
   const addBox = () => {
@@ -125,7 +153,7 @@ export default function BoxesAdmin() {
   }
 
   const full = boxes.filter((b) => b.status === 'full');
-  const totalPickups = Object.values(pickups).reduce((a, n) => a + n, 0);
+  const totalPickups = classrooms.reduce((a, c) => a + c.pickups, 0);
   // Boxes waiting for a pickup first, oldest request first; then the rest by number.
   const sorted = [...boxes].sort((a, b) =>
     a.status !== b.status ? (a.status === 'full' ? -1 : 1)
@@ -171,7 +199,7 @@ export default function BoxesAdmin() {
             <li key={b.id} className={`bg-white rounded-xl border p-4 ${isFull ? 'border-red-200 ring-1 ring-red-100' : 'border-chalkboard/5'}`}>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className={`w-3.5 h-3.5 rounded-full shrink-0 ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} aria-label={isFull ? 'Needs a pickup' : 'OK'} role="img" />
-                <span className="font-bold w-16 shrink-0">Box #{b.box_number}</span>
+                <span className="font-bold w-20 shrink-0 whitespace-nowrap">Box #{b.box_number}</span>
                 <div className="min-w-0 basis-full order-1 sm:order-none sm:basis-0 sm:flex-1">
                   {b.school ? (
                     <>
@@ -235,6 +263,30 @@ export default function BoxesAdmin() {
           );
         })}
       </ul>
+      {classrooms.length > 0 && (
+        <section className="mt-8">
+          <h4 className="text-sm font-bold mb-1">Pickups by classroom</h4>
+          <p className="text-xs text-chalkboard/70 mb-3">Every pickup counts for the classroom the box was in at the time, even after the box moves.</p>
+          <div className="overflow-x-auto rounded-xl border border-chalkboard/10">
+            <table className="w-full text-sm">
+              <thead className="bg-paper/70 text-left text-[0.625rem] uppercase tracking-widest text-chalkboard/70">
+                <tr><th className="px-3 py-2">Classroom</th><th className="px-3 py-2">Teacher</th><th className="px-3 py-2 text-right">Pickups</th><th className="px-3 py-2 text-right">Last</th></tr>
+              </thead>
+              <tbody>
+                {classrooms.map((c) => (
+                  <tr key={`${c.school}|${c.room}|${c.teacher}`} className="border-t border-chalkboard/5">
+                    <td className="px-3 py-2"><span className="font-bold">{c.room ? roomLabel(c.room) : '(no room)'}</span><span className="block text-xs text-chalkboard/70">{c.school}</span></td>
+                    <td className="px-3 py-2">{c.teacher || <span className="text-chalkboard/50">-</span>}</td>
+                    <td className="px-3 py-2 text-right font-bold">{c.pickups}</td>
+                    <td className="px-3 py-2 text-right text-xs text-chalkboard/70 whitespace-nowrap">{ago(c.last)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <datalist id="box-schools">{SCHOOLS.map((s) => <option key={s} value={s} />)}</datalist>
 
       <p className="mt-6 text-xs text-chalkboard/70 leading-relaxed">

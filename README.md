@@ -101,13 +101,16 @@ it, presses **Request a pickup**, and the box turns red in the admin dashboard (
 back to green and the pickup is counted.
 
 **Setup (once):** after `SUPABASE_LOCKDOWN.sql`, run `SUPABASE_BOXES.sql` in the Supabase
-SQL Editor. It creates boxes 1 to 14, each with its own random link. More boxes: **Add a
+SQL Editor. Run it again whenever it changes: it is safe to rerun and
+upgrades what is there without touching any box's link or history. It creates boxes 1 to 14, each with its own random link. More boxes: **Add a
 box** in the Boxes tab.
 
 **Assigning boxes:** nothing to do up front. A box nobody has set up asks for its school
 and room on its first tap. Or fill them in yourself with the pencil button in the Boxes
 tab. The circular-arrow button clears a box so it can move to another room; its link
-stays the same, so the tag never needs rewriting.
+stays the same, so the tag never needs rewriting. Clearing starts the box's own count
+over, but every pickup is logged with the school, room and teacher it was for, so
+**Pickups by classroom** (bottom of the tab) keeps each classroom's total.
 
 **Writing the tags:** copy a box's link from the Boxes tab (or **Copy all links**). With
 an NTAG213 or NTAG215 sticker and the free NFC Tools app: Write → Add a record → URL →
