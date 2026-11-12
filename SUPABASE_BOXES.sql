@@ -60,6 +60,17 @@ drop policy if exists "Admins manage box events" on public.box_events;
 create policy "Admins manage box events" on public.box_events
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
 
+-- Table access for signed-in users, so the admin dashboard can reach the
+-- tables at all. Supabase no longer grants this on new tables by itself;
+-- without it every dashboard request fails with 403 "permission denied".
+-- The policies above still limit it to admins. The public (anon) gets
+-- nothing: the box page uses only the functions below.
+grant select, insert, update, delete on public.returnable_boxes to authenticated;
+grant select, insert, update, delete on public.box_events to authenticated;
+grant usage on all sequences in schema public to authenticated;
+revoke all on public.returnable_boxes from anon;
+revoke all on public.box_events from anon;
+
 -- ── What the box page may do, by code only ─────────────────────────────────
 
 -- Read one box: where it is, whether a pickup is waiting, and how many
