@@ -89,10 +89,22 @@ export function initAnalytics(): void {
     // trackPageView swallows the duplicate and reports every change after.
     window.gtag('config', GA_MEASUREMENT_ID);
     configReportedFirstView = true;
-    const s = document.createElement('script');
-    s.async = true;
-    s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-    document.head.appendChild(s);
+    // The tag itself is fetched once the page has loaded and the browser is
+    // idle, so it doesn't compete with the site on a phone. Nothing is lost
+    // meanwhile: the commands above and every event wait in dataLayer, and
+    // gtag.js replays them when it arrives.
+    const load = () => {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+      document.head.appendChild(s);
+    };
+    const whenIdle = () => {
+      if ('requestIdleCallback' in window) window.requestIdleCallback(load, { timeout: 4000 });
+      else setTimeout(load, 1500);
+    };
+    if (document.readyState === 'complete') whenIdle();
+    else window.addEventListener('load', whenIdle, { once: true });
   } catch {
     /* analytics is never allowed to surface an error to a visitor */
   }
