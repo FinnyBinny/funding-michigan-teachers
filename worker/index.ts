@@ -313,6 +313,15 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
         el.setAttribute('class', existing ? `${existing} theme-${theme}` : `theme-${theme}`);
       },
     })
+    // index.html carries the homepage's markup, put there at build time so
+    // the homepage paints before its JavaScript arrives
+    // (scripts/prerender-home.mjs). Every other page gets the shell empty,
+    // as before, or it would flash the homepage first.
+    .on('#root', {
+      element(el) {
+        if (status !== 200 || url.pathname !== '/') el.setInnerContent('');
+      },
+    })
     .on('title', { element(el) { el.setInnerContent(meta.title); } })
     .on('meta[name="description"]', setContent(meta.description))
     .on('meta[name="robots"]', setContent(robots))
