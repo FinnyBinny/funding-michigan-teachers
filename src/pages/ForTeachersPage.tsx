@@ -139,7 +139,7 @@ export default function ForTeachersPage() {
    * page does not retype what that page already knew: /for-teachers?school=
    * Haslett%20High%20School&kind=mid-year-refill.
    */
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search);
   const initialKind = REQUEST_KINDS.some((k) => k.id === params.get('kind'))
     ? (params.get('kind') as string)
     : 'anytime';

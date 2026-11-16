@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/prerender-home.mjs",
+    "build": "vite build && node scripts/prerender-home.mjs && node scripts/build-markdown.mjs",
     "theme": "node scripts/build-theme.mjs && node scripts/check-theme-contrast.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "preview": "vite preview",
@@ -42,6 +42,7 @@
     "autoprefixer": "^10.4.21",
     "sharp": "^0.34.0",
     "tailwindcss": "^4.1.14",
+    "turndown": "^7.2.5",
     "typescript": "~5.8.2",
     "wrangler": "^4.110.0"
   }

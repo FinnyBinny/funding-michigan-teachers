@@ -130,6 +130,21 @@ create a new FormBold form, point it at the address you want, and paste its ID i
 database functions. Listing boxes or their history needs an admin login. Box pages are
 `noindex` and blocked in `robots.txt`.
 
+## Markdown for AI agents
+
+A request with `Accept: text/markdown` gets the page as Markdown; browsers still get HTML.
+`curl -H "Accept: text/markdown" https://www.fundingmichiganteachers.org/about` shows it.
+
+- `scripts/build-markdown.mjs` (part of `npm run build`) renders every public page and
+  writes `dist/md/<page>.md`. A new page needs a line in its `PAGE_FILES` table; the build
+  fails with that instruction if it is missing.
+- `shared/markdown.ts` holds the rules for which `Accept` headers get Markdown, and the
+  Worker serves the file. Admin, box and restricted pages have no Markdown form.
+- The Markdown is built from the data in the code. Content changed only in the admin
+  dashboard reaches the web page at once, and the Markdown on the next deploy.
+- Cloudflare's own "Markdown for Agents" switch is not used: it needs a Pro plan and
+  converts the HTML the server sends, which for most pages here is an empty shell.
+
 ## Door decorating competition (`/door-decorating`)
 
 Photos live in `public/images/door-decorating/` (made by `scripts/optimize-images.mjs`
