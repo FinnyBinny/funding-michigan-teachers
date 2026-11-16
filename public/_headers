@@ -34,4 +34,5 @@
 # involved or get help.
 /auth.md
   Content-Type: text/markdown; charset=utf-8
+  X-Robots-Tag: noindex
   Cache-Control: public, max-age=300

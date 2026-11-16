@@ -16,8 +16,8 @@ Okemos, Michigan (EIN 93-4485967). Site: https://www.fundingmichiganteachers.org
 - There are no API keys or tokens to obtain, so there is no credential to
   send. Do not send an `Authorization` header.
 - Supported registration methods: none. Everything below is public.
-- The one sign-in page, `/access`, is for FMT's own staff. It is not for
-  visitors or agents.
+- The only sign-in on this site is for the FMT team's own admin tools. It is
+  not for visitors or agents, and there is nothing to register for.
 
 ## Reading the site
 
@@ -38,8 +38,10 @@ a list of the site's other pages.
 - A person has to finish each action in a browser: payment details, form
   answers and consent come from them. Do not submit our forms or start a
   payment for someone without them.
-- The paths under `/api/` serve this site's own pages only. They are not a
-  public API. Requests that do not come from the site's pages are refused.
+- The paths under `/api/` exist for this site's own pages and for our
+  payment processor. They are not a public API, and there is nothing useful
+  for an agent to call there. Requests that submit data (POST) are refused
+  unless they come from the site's own pages.
 
 ## Donate
 
