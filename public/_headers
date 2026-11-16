@@ -28,3 +28,10 @@
   Content-Type: text/markdown; charset=utf-8
   X-Robots-Tag: noindex
   Cache-Control: public, max-age=300
+
+# /auth.md: a note for AI agents. This site has no accounts or agent
+# registration; the file says so, and how to help a person donate, get
+# involved or get help.
+/auth.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=300
