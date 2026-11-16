@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { RENDER_ALL } from '../lib/renderAll';
 import { motion } from 'motion/react';
 import { Calendar as CalendarIcon, MapPin, Clock, Phone, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -17,7 +18,7 @@ export default function EventCalendar() {
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
   // The next three, with the rest a tap away: seven cards ran this section
   // to 2,600px on desktop.
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(RENDER_ALL);
   const shown = showAll ? events : events.slice(0, 3);
 
   if (events.length === 0) {

@@ -36,6 +36,23 @@ const cases: [string | null, boolean][] = [
   ['text/markdown;q=0.4, text/*', false],
   ['text/*, text/html;q=0.5', true],
   ['text/markdown;q=bogus', false],
+  // What real browsers, crawlers and HTTP libraries send: always HTML.
+  ['text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7', false],
+  ['text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', false],
+  ['text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2', false],
+  ['text/html, text/*;q=0.9, */*;q=0.8', false],
+  ['application/xhtml+xml', false],
+  // A wildcard covers HTML when HTML is not named.
+  ['text/markdown;q=0.1, */*;q=0.9', false],
+  ['text/markdown;q=0.5, */*', false],
+  ['text/markdown;q=1.0, */*;q=0.1', true],
+  ['*/*, text/markdown', true],
+  // A range given twice counts at its highest weight.
+  ['application/xhtml+xml;q=0.2, text/markdown;q=0.5, text/html', false],
+  ['text/html;q=0.1, text/markdown;q=0.5, text/html', false],
+  ['text/markdown;q=0.5, text/markdown, text/html;q=0.8', true],
+  ['text/markdown ; q = 0.5 , text/html ; q = 0.4', true],
+  ['text/markdown;q=2', true],
 ];
 for (const [accept, want] of cases) check(`prefersMarkdown(${JSON.stringify(accept)})`, prefersMarkdown(accept), want);
 

@@ -45,6 +45,10 @@ const PAGE_FILES = {
   '/accessibility': '/src/pages/AccessibilityPage.tsx',
 };
 
+// Sections that hide content behind a carousel, tabs or "show all" print
+// everything while this is set (src/lib/renderAll.ts). Before any page loads.
+globalThis.__FMT_MARKDOWN__ = true;
+
 // noDiscovery: see scripts/prerender-home.mjs.
 const vite = await createServer({
   server: { middlewareMode: true },
@@ -69,11 +73,25 @@ try {
     return ORIGIN + (href.startsWith('/') ? href : `/${href}`);
   };
 
+  const BLOCKS = 'h1,h2,h3,h4,h5,h6,p,div,ul,ol,figure,blockquote,section,article';
+  const oneLine = (text) => text.replace(/\s+/g, ' ').trim();
+  // Per page: pictures already written, so one shown at two screen sizes is said once.
+  let seenImages = new Set();
+
   const turndown = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', codeBlockStyle: 'fenced', emDelimiter: '*' });
-  // Drawings, scripts and anything the page itself hides from screen readers.
-  turndown.remove(['script', 'style', 'svg', 'noscript', 'iframe', 'source', 'input', 'select', 'textarea', 'option']);
-  turndown.addRule('aria-hidden', {
-    filter: (node) => node.getAttribute?.('aria-hidden') === 'true',
+  // Drawings, scripts, form fields, and buttons: a button is something to
+  // press on the web page, and its label alone ("Share", "Vote", "Next") is
+  // noise in text. Real destinations are links, which are kept.
+  turndown.remove(['script', 'style', 'svg', 'noscript', 'iframe', 'source', 'input', 'select', 'textarea', 'option', 'button']);
+  // Anything the page hides from screen readers, and the phone-only twin of
+  // content that also has a desktop copy (Tailwind's `lg:hidden` and friends),
+  // which would otherwise be printed twice.
+  turndown.addRule('hidden', {
+    filter: (node) => {
+      if (node.getAttribute?.('aria-hidden') === 'true') return true;
+      const classes = (node.getAttribute?.('class') || '').split(/\s+/);
+      return classes.some((c) => /^(sm|md|lg|xl|2xl):hidden$/.test(c));
+    },
     replacement: () => '',
   });
   // A form is something to do on the web page, not something to read.
@@ -87,17 +105,47 @@ try {
       const alt = (node.getAttribute('alt') || '').trim();
       const src = node.getAttribute('src') || '';
       // Decorative images (empty alt) and inline placeholders say nothing.
-      if (!alt || !src || src.startsWith('data:')) return '';
-      return `![${alt.replace(/[[\]]/g, '')}](${absolute(src)})`;
+      if (!alt || !src || src.startsWith('data:') || seenImages.has(src)) return '';
+      seenImages.add(src);
+      // Parentheses in a file name would end the Markdown link early.
+      const url = absolute(src).replace(/\(/g, '%28').replace(/\)/g, '%29');
+      return `![${alt.replace(/[[\]]/g, '')}](${url})`;
+    },
+  });
+  // A heading is one line: a <br> inside it must not cut it in half.
+  turndown.addRule('heading', {
+    filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+    replacement: (content, node) => {
+      const text = oneLine(content);
+      return text ? `\n\n${'#'.repeat(Number(node.nodeName[1]))} ${text}\n\n` : '';
     },
   });
   turndown.addRule('link', {
     filter: (node) => node.nodeName === 'A',
     replacement: (content, node) => {
-      const text = content.replace(/\s+/g, ' ').trim();
       const href = absolute(node.getAttribute('href'));
+      // A whole card wrapped in one link: keep its heading and paragraphs as
+      // they are, and put the link on a line of its own underneath.
+      if (node.querySelector?.(BLOCKS)) {
+        const label = oneLine(node.querySelector('h1,h2,h3,h4,h5,h6')?.textContent || '') || 'Open';
+        return href ? `\n\n${content.trim()}\n\n[${label}](${href})\n\n` : `\n\n${content.trim()}\n\n`;
+      }
+      const text = oneLine(content);
       if (!text) return '';
       return href ? `[${text}](${href})` : text;
+    },
+  });
+  // Tables as pipe tables, with the caption as a line above.
+  turndown.addRule('table', {
+    filter: 'table',
+    replacement: (_content, node) => {
+      const cell = (c) => oneLine(c.textContent || '').replace(/\|/g, '\\|');
+      const rows = Array.from(node.getElementsByTagName('tr')).map((tr) => Array.from(tr.children).map(cell));
+      if (!rows.length) return '';
+      const caption = oneLine(node.getElementsByTagName('caption')[0]?.textContent || '');
+      const line = (cells) => `| ${cells.join(' | ')} |`;
+      const [head, ...body] = rows;
+      return `\n\n${caption ? `${caption}:\n\n` : ''}${line(head)}\n${line(head.map(() => '---'))}\n${body.map(line).join('\n')}\n\n`;
     },
   });
 
@@ -106,10 +154,12 @@ try {
   function toMarkdown(route, html) {
     const meta = metaForPath(route);
     const main = /<main[\s\S]*<\/main>/i.exec(html)?.[0] ?? html;
-    let body = turndown.turndown(main);
-    // A picture that appears twice (one copy per screen size) is said once.
-    const seen = new Set();
-    body = body.replace(/!\[[^\]]*\]\([^)]*\)/g, (img) => (seen.has(img) ? '' : (seen.add(img), img)));
+    seenImages = new Set();
+    // Side-by-side pieces with no space in the markup (a number and its
+    // label, two buttons in a row) would otherwise run together: "220+Teachers".
+    const spaced = main
+      .replace(/(<\/(?:span|a|div|li|dt|dd|strong|time)>)(?=<(?!\/)|[A-Za-z0-9$])/g, '$1 ');
+    let body = turndown.turndown(spaced);
     body = body.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 
     const others = MARKDOWN_ROUTES.filter((r) => r !== route)

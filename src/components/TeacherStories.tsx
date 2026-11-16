@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { RENDER_ALL } from '../lib/renderAll';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, ArrowLeft, ArrowRight, School, MapPin, Mail } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -22,6 +23,22 @@ export default function TeacherStories() {
 
   const currentStory = stories[currentIndex];
   if (!currentStory) return null;
+
+  // The Markdown copy of the page: every story, not just the one showing.
+  if (RENDER_ALL) {
+    return (
+      <div>
+        {stories.map((story) => (
+          <div key={story.id ?? story.name}>
+            <h3>{story.name}</h3>
+            <p>{story.school} · {story.location}</p>
+            <blockquote>{story.impact}</blockquote>
+            <p>{story.bio}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto">

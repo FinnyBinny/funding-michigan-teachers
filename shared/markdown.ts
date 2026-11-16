@@ -42,14 +42,21 @@ export function markdownRouteFor(pathname: string): string | null {
  *   text/*                             -> yes
  *   * / *  (curl, and every browser's fallback) -> no: HTML stays the default
  *   text/html, text/markdown;q=0.5     -> no
- * On a tie between text/html and text/markdown the one listed first wins.
- * A missing or empty header is HTML.
+ *   text/markdown;q=0.1, * / *;q=0.9   -> no: the wildcard covers HTML, and higher
+ * A range listed twice counts at its highest weight. On a tie between
+ * text/html and text/markdown, both named, the one listed first wins; named
+ * Markdown beats a wildcard of the same weight. A missing or empty header is
+ * HTML.
  */
 export function prefersMarkdown(accept: string | null | undefined): boolean {
   if (!accept) return false;
   let md: { q: number; at: number } | null = null;
   let html: { q: number; at: number } | null = null;
   let textAny: { q: number; at: number } | null = null;
+  let any: { q: number; at: number } | null = null;
+  type Seen = { q: number; at: number } | null;
+  // Highest weight wins for a range given more than once; first position on a tie.
+  const best = (old: Seen, q: number, at: number): Seen => (!old || q > old.q ? { q, at } : old);
   accept.split(',').forEach((part, at) => {
     const [range, ...params] = part.split(';').map((s) => s.trim().toLowerCase());
     let q = 1;
@@ -60,18 +67,21 @@ export function prefersMarkdown(accept: string | null | undefined): boolean {
         q = Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0;
       }
     }
-    if (range === 'text/markdown') md ??= { q, at };
-    else if (range === 'text/html' || range === 'application/xhtml+xml') html ??= { q, at };
-    else if (range === 'text/*') textAny ??= { q, at };
+    if (range === 'text/markdown') md = best(md, q, at);
+    else if (range === 'text/html' || range === 'application/xhtml+xml') html = best(html, q, at);
+    else if (range === 'text/*') textAny = best(textAny, q, at);
+    else if (range === '*/*' || range === '*') any = best(any, q, at);
   });
-  // text/* stands in for whichever of the two was not named outright.
-  const m: { q: number; at: number } | null = md ?? textAny;
-  const h: { q: number; at: number } | null = html ?? (md ? textAny : null);
+  // text/* stands in for whichever of the two was not named outright. When
+  // Markdown is named and HTML is not, a wildcard is what covers HTML.
+  const m: Seen = md ?? textAny;
+  const h: Seen = html ?? (md ? textAny ?? any : null);
   if (!m || m.q <= 0) return false;
   if (!h) return true;
   if (m.q !== h.q) return m.q > h.q;
-  // Same weight. text/* alone covers both: Cloudflare answers Markdown.
-  if (!md && !html) return true;
+  // Same weight. Unless HTML was named too, Markdown is what was asked for:
+  // "text/*" alone, or "text/markdown, * / *" in either order.
+  if (!html) return true;
   return m.at < h.at;
 }
 

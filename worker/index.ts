@@ -1079,7 +1079,8 @@ export default {
       }
       // Assets stay reachable on purpose: without them the restricted page
       // would render as unstyled HTML with no JavaScript.
-      if (isAssetPath(path)) {
+      // Not the Markdown copies of the pages (/md/*): those are the pages.
+      if (isAssetPath(path) && !path.startsWith('/md/')) {
         return env.ASSETS.fetch(request);
       }
       if (path === '/restricted') {
