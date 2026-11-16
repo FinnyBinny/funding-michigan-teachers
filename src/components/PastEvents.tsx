@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { RENDER_ALL } from '../lib/renderAll';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Star, Users, Gift, Coins } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -101,6 +102,28 @@ export default function PastEvents() {
   const events = grouped.get(activeYear) ?? [];
 
   if (PAST_EVENTS.length === 0) return null;
+
+  // The Markdown copy of the page: every school year, not just the open tab.
+  if (RENDER_ALL) {
+    return (
+      <div>
+        <h3>What We've Done</h3>
+        {years.map((year) => (
+          <div key={year}>
+            <h4>{year} school year</h4>
+            <ul>
+              {(grouped.get(year) ?? []).map((event) => (
+                <li key={event.id}>
+                  <strong>{event.month}: {event.title}.</strong> {event.description}
+                  {event.partner ? ` (With ${event.partner}.)` : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="mt-20">

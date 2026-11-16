@@ -84,7 +84,9 @@ function Tally({ value, count }: { value: string; count: boolean }) {
   const reduce = useReducedMotion();
   const target = Number(value);
   const animatable = count && !reduce && Number.isFinite(target);
-  const [shown, setShown] = useState(animatable ? 0 : target);
+  // Rendered without a browser (the Markdown copy of the page) there is no
+  // count-up to run, so start at the real number, not at 0.
+  const [shown, setShown] = useState(animatable && typeof window !== 'undefined' ? 0 : target);
 
   useEffect(() => {
     if (!animatable || !inView) return;

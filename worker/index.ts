@@ -13,6 +13,7 @@
  */
 import Stripe from 'stripe';
 import { isKnownRoute } from '../shared/routes';
+import { estimateTokens, markdownAssetPath, markdownRouteFor, prefersMarkdown } from '../shared/markdown';
 import {
   MIN_GIFT, MAX_GIFT,
   coverFee, decodeDesignation, designationFromLegacyFund, encodeDesignation, schoolFundLabel,
@@ -295,6 +296,12 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
     if (theme) out.set('Cache-Control', 'private, no-cache');
   }
   if (theme) out.append('Vary', 'Cookie');
+  // The same URL also answers in Markdown (markdownResponse below), so a
+  // cache must keep the two apart; and a client that got HTML is told where
+  // the Markdown is.
+  out.append('Vary', 'Accept');
+  const mdRoute = status === 200 ? markdownRouteFor(url.pathname) : null;
+  if (mdRoute) out.append('Link', `<${markdownAssetPath(mdRoute)}>; rel="alternate"; type="text/markdown"`);
 
   if (res.status === 304) {
     return new Response(null, { status: 304, headers: out });
@@ -332,6 +339,30 @@ async function shellWithStatus(request: Request, env: Env, status: number): Prom
     .on('meta[name="twitter:title"]', setContent(meta.title))
     .on('meta[name="twitter:description"]', setContent(meta.description))
     .transform(response);
+}
+
+/**
+ * A page as Markdown, for a client that asked for it (shared/markdown.ts).
+ *
+ * The files are written at build time by scripts/build-markdown.mjs. Returns
+ * null when this path has no Markdown form (the admin and box pages, a 404)
+ * or the file is somehow missing, and the caller sends the usual HTML.
+ */
+async function markdownResponse(request: Request, env: Env, pathname: string): Promise<Response | null> {
+  const route = markdownRouteFor(pathname);
+  if (!route) return null;
+  const res = await env.ASSETS.fetch(new Request(new URL(markdownAssetPath(route), request.url).toString()));
+  if (!res.ok) return null;
+  const text = await res.text();
+
+  const headers = new Headers();
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) headers.set(name, value);
+  headers.set('Content-Type', 'text/markdown; charset=utf-8');
+  headers.set('Vary', 'Accept');
+  headers.set('X-Markdown-Tokens', String(estimateTokens(text)));
+  headers.set('Cache-Control', 'public, max-age=300');
+  headers.set('Link', `<${canonicalUrl(route)}>; rel="canonical"`);
+  return new Response(request.method === 'HEAD' ? null : text, { status: 200, headers });
 }
 
 /**
@@ -1048,7 +1079,8 @@ export default {
       }
       // Assets stay reachable on purpose: without them the restricted page
       // would render as unstyled HTML with no JavaScript.
-      if (isAssetPath(path)) {
+      // Not the Markdown copies of the pages (/md/*): those are the pages.
+      if (isAssetPath(path) && !path.startsWith('/md/')) {
         return env.ASSETS.fetch(request);
       }
       if (path === '/restricted') {
@@ -1108,6 +1140,13 @@ export default {
     // Pages are the Worker's job now that the asset service no longer falls
     // back to the shell. Real routes get it at 200, anything else under a
     // genuine 404 so typos and dead links stop reporting success.
-    return shellWithStatus(request, env, isKnownRoute(path) ? 200 : 404);
+    const known = isKnownRoute(path);
+    // An AI agent that asks for Markdown gets the page's words without the
+    // markup. Browsers never ask, so they are unaffected.
+    if (known && (request.method === 'GET' || request.method === 'HEAD') && prefersMarkdown(request.headers.get('Accept'))) {
+      const markdown = await markdownResponse(request, env, path);
+      if (markdown) return markdown;
+    }
+    return shellWithStatus(request, env, known ? 200 : 404);
   },
 };

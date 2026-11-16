@@ -105,6 +105,20 @@ jobs:
       - name: Test CRM filing
         run: npx tsx scripts/test-crm.mts
 
+      # "Markdown for agents": which Accept headers get Markdown, and that the
+      # build wrote a file for every public page (and none for private ones).
+      - name: Test Markdown negotiation
+        run: |
+          npx tsx scripts/test-markdown-negotiation.mts
+          for f in home about donate schools/okemos; do
+            test -s "dist/md/$f.md" || { echo "::error::dist/md/$f.md is missing"; exit 1; }
+          done
+          for f in access.md restricted.md box box.md; do
+            if [ -e "dist/md/$f" ]; then
+              echo "::error::a private page has a Markdown copy at dist/md/$f"; exit 1
+            fi
+          done
+
       # Fails the deploy rather than shipping a build with the database code
       # stripped out — the exact silent failure that made votes look broken
       # for months (Vite inlines VITE_*/constants at build time, so an empty

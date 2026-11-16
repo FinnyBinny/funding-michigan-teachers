@@ -20,3 +20,11 @@
 # one), so a day, then served stale for up to a week while it refreshes.
 /images/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# The Markdown copy of each page (scripts/build-markdown.mjs), which the
+# Worker sends to a client that asks for text/markdown. Reachable directly
+# too, but kept out of search results: the web page is the one to index.
+/md/*
+  Content-Type: text/markdown; charset=utf-8
+  X-Robots-Tag: noindex
+  Cache-Control: public, max-age=300
